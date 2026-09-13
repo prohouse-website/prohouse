@@ -15,7 +15,7 @@ window.PROHOUSE_PROPERTIES = [
     description: "A convenient Sydney base for short stays, airport travel, business trips, relocation and longer furnished stays.",
     heroImage: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1600&q=88",
     cardImage: "https://images.unsplash.com/photo-1600607688969-a5bfcd646154?auto=format&fit=crop&w=1200&q=86",
-    bookingUrl: "https://prohouse.hostexbooking.site/home",
+    bookingUrl: "/book",
     highlights: [
       "Convenient access to Sydney Airport",
       "Near Wolli Creek Station",
@@ -26,40 +26,37 @@ window.PROHOUSE_PROPERTIES = [
     notes: "Exact address and access instructions are provided with the confirmed booking and arrival guide.",
     offers: [
       {
-        id: "room-a",
-        name: "Room A",
+        id: "room-1",
+        name: "Room 1",
         type: "Private room",
         shared: true,
         summary: "Private bedroom in a shared 3-bedroom apartment.",
-        image: "https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=1000&q=86",
-        details: ["Private bedroom", "Shared kitchen and living area", "Self check-in"]
+        image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/806094655.jpg?k=6e143dd1af58b90e96395883126b4676b37de2b334c9f3a542ac9bad7f36206c&o=",
+        listingId: "121942",
+        bookingUrl: "/book#room-1",
+        details: ["Private bedroom", "Private bathroom outside the room", "Shared kitchen and living area", "Self check-in"]
       },
       {
-        id: "room-b",
-        name: "Room B",
+        id: "room-2",
+        name: "Room 2",
         type: "Private room",
         shared: true,
         summary: "Private bedroom in a shared 3-bedroom apartment.",
-        image: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1000&q=86",
-        details: ["Private bedroom", "Shared kitchen and living area", "Self check-in"]
+        image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/806094845.jpg?k=40179e626ac625a877005dd009448547c50470462472a8adc789693aba749a4f&o=",
+        listingId: "121943",
+        bookingUrl: "/book#room-2",
+        details: ["Private bedroom", "Private ensuite bathroom", "Shared kitchen and living area", "Self check-in"]
       },
       {
-        id: "room-c",
-        name: "Room C",
+        id: "room-3",
+        name: "Room 3",
         type: "Private room",
         shared: true,
         summary: "Private bedroom in a shared 3-bedroom apartment.",
-        image: "https://images.unsplash.com/photo-1615874959474-d609969a20ed?auto=format&fit=crop&w=1000&q=86",
-        details: ["Private bedroom", "Shared kitchen and living area", "Self check-in"]
-      },
-      {
-        id: "whole-apartment",
-        name: "3 Bedroom Whole Apartment",
-        type: "Whole apartment",
-        shared: false,
-        summary: "A furnished 3-bedroom apartment for your booking's exclusive use, subject to availability.",
-        image: "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1000&q=86",
-        details: ["Whole apartment", "Furnished living areas", "Kitchen facilities"]
+        image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/819449045.jpg?k=19d9013c1a29f6dd474bb4b41653a1027dc97ace2b6162790a9d8b696ee84cc7&o=",
+        listingId: "121944",
+        bookingUrl: "/book#room-3",
+        details: ["Private bedroom", "Private ensuite bathroom", "Shared kitchen and living area", "Self check-in"]
       }
     ]
   },
@@ -75,7 +72,7 @@ window.PROHOUSE_PROPERTIES = [
     description: "Sample property — details and availability to be confirmed before publishing as a live accommodation offering.",
     heroImage: "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=1600&q=88",
     cardImage: "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=1200&q=86",
-    bookingUrl: "https://prohouse.hostexbooking.site/home",
+    bookingUrl: "/book",
     highlights: ["Central Sydney location", "Furnished accommodation", "Flexible stays"],
     notes: "Sample property for website layout.",
     offers: []
@@ -92,7 +89,7 @@ window.PROHOUSE_PROPERTIES = [
     description: "Sample property — details and availability to be confirmed before publishing as a live accommodation offering.",
     heroImage: "https://images.unsplash.com/photo-1514395462725-fb4566210144?auto=format&fit=crop&w=1600&q=88",
     cardImage: "https://images.unsplash.com/photo-1514395462725-fb4566210144?auto=format&fit=crop&w=1200&q=86",
-    bookingUrl: "https://prohouse.hostexbooking.site/home",
+    bookingUrl: "/book",
     highlights: ["Melbourne west", "Furnished accommodation", "Flexible stays"],
     notes: "Sample property for website layout.",
     offers: []
@@ -109,7 +106,7 @@ window.PROHOUSE_PROPERTIES = [
     description: "Sample property — details and availability to be confirmed before publishing as a live accommodation offering.",
     heroImage: "https://images.unsplash.com/photo-1514395462725-fb4566210144?auto=format&fit=crop&w=1600&q=88",
     cardImage: "https://images.unsplash.com/photo-1514395462725-fb4566210144?auto=format&fit=crop&w=1200&q=86",
-    bookingUrl: "https://prohouse.hostexbooking.site/home",
+    bookingUrl: "/book",
     highlights: ["Central Melbourne", "Furnished accommodation", "Flexible stays"],
     notes: "Sample property for website layout.",
     offers: []
@@ -126,7 +123,7 @@ window.PROHOUSE_PROPERTIES = [
     description: "Sample property — details and availability to be confirmed before publishing as a live accommodation offering.",
     heroImage: "https://images.unsplash.com/photo-1524586410818-196d249560e4?auto=format&fit=crop&w=1600&q=88",
     cardImage: "https://images.unsplash.com/photo-1524586410818-196d249560e4?auto=format&fit=crop&w=1200&q=86",
-    bookingUrl: "https://prohouse.hostexbooking.site/home",
+    bookingUrl: "/book",
     highlights: ["Central Perth", "Furnished accommodation", "Flexible stays"],
     notes: "Sample property for website layout.",
     offers: []
@@ -143,7 +140,7 @@ window.PROHOUSE_PROPERTIES = [
     description: "Sample property — details and availability to be confirmed before publishing as a live accommodation offering.",
     heroImage: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Lake-ParlHouse.JPG",
     cardImage: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Lake-ParlHouse.JPG",
-    bookingUrl: "https://prohouse.hostexbooking.site/home",
+    bookingUrl: "/book",
     highlights: ["Canberra", "Furnished accommodation", "Flexible stays"],
     notes: "Sample property for website layout.",
     offers: []

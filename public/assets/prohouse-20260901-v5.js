@@ -2,7 +2,7 @@
 const cfg=window.PROHOUSE_CONFIG||{}, props=window.PROHOUSE_PROPERTIES||[];
 if(cfg.theme){const r=document.documentElement;if(cfg.theme.navy)r.style.setProperty('--ink',cfg.theme.navy);if(cfg.theme.gold)r.style.setProperty('--gold',cfg.theme.gold);if(cfg.theme.cream)r.style.setProperty('--cream',cfg.theme.cream);if(cfg.theme.bodyText)r.style.setProperty('--ink2',cfg.theme.bodyText);}
 document.querySelectorAll('[data-config]').forEach(el=>{let v=cfg;for(const k of el.dataset.config.split('.'))v=v&&v[k];if(v!==undefined&&v!==null)el.textContent=v;});
-document.querySelectorAll('[data-booking-link]').forEach(a=>{a.href=cfg.bookingUrl||'#';a.target='_blank';a.rel='noopener';});
+document.querySelectorAll('[data-booking-link]').forEach(a=>{a.href=cfg.bookingUrl||'/book';a.removeAttribute('target');a.removeAttribute('rel');});
 document.querySelectorAll('[data-email-link]').forEach(a=>{a.href='mailto:'+(cfg.publicEmail||'');});
 const y=document.querySelector('[data-year]');if(y)y.textContent=new Date().getFullYear();
 const b=document.querySelector('.menu-btn'),n=document.querySelector('.navlinks');if(b&&n)b.addEventListener('click',()=>n.classList.toggle('open'));
