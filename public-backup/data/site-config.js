@@ -8,7 +8,7 @@ window.PROHOUSE_CONFIG = {
   tagline: "Stay in Sydney. Feel at home.",
   subtagline: "Modern furnished accommodation for short stays, business trips, relocations and longer stays — with the comfort and flexibility of a home.",
   domain: "https://www.prohouse.com.au",
-  bookingUrl: "/book",
+  bookingUrl: "https://prohouse.hostexbooking.site/home",
   publicEmail: "hi@prohouse.com.au",
   publicPhone: "+61 423 696 436",
   city: "Sydney",

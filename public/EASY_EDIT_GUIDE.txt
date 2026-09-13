@@ -1,0 +1,75 @@
+PROHOUSE EASY-EDIT GUIDE
+
+Most routine updates now happen in only TWO files:
+
+1) data/site-config.js
+   Use this for:
+   - Business name
+   - Homepage headline/subheadline
+   - Booking URL
+   - Public email
+   - Hero image
+   - Brand colours
+   - Social links
+
+2) data/properties.js
+   Use this for:
+   - Adding/removing properties
+   - Property names and descriptions
+   - Property images
+   - Property highlights
+   - Room 1 / Room 2 / Room 3
+   - Each room's private bathroom arrangement
+   - Per-property booking links
+
+ADDING A NEW PROPERTY
+Copy the full Wolli Creek property block in data/properties.js, paste another copy after it, and change:
+id: "mascot"
+name: "ProHouse – Mascot"
+suburb: "Mascot"
+images, highlights, offers, bookingUrl
+
+The website automatically adds the property to the homepage and Properties page.
+Its page will be:
+property.html?id=mascot
+
+ADDING A NEW ROOM
+Inside a property's offers: [ ... ] section, duplicate one room block and change:
+id
+name
+type
+shared
+summary
+image
+details
+
+Set:
+shared: true
+for private rooms in a shared apartment.
+
+Set:
+shared: false
+for an entire apartment.
+
+HIDING A PROPERTY
+status: "hidden"
+
+SHOWING A PROPERTY
+status: "active"
+
+CHANGING PHOTOS
+You can keep URL images, or put your own files under:
+assets/images/
+
+Then reference them as:
+"assets/images/wolli-creek-room-a.jpg"
+
+PUBLISHING TO CLOUDFLARE
+Upload the updated site files as a new deployment in the SAME Cloudflare Pages project.
+Your custom domain stays connected.
+
+IMPORTANT
+Before final production:
+- Replace stock images with ProHouse photos.
+- Confirm the public email.
+- Insert your approved policy wording into policies.html.
