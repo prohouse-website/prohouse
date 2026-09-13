@@ -40,6 +40,12 @@
 /data/prohouse-properties-20260913-v11.js
   Cache-Control: public, max-age=31536000, immutable
 
+/assets/prohouse-20260913-v12.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/prohouse-guest-guide-20260913-v2.css
+  Cache-Control: public, max-age=31536000, immutable
+
 /assets/prohouse-guest-guide-20260913-v1.css
   Cache-Control: public, max-age=31536000, immutable
 
