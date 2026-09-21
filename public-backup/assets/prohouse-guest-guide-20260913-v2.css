@@ -219,3 +219,27 @@
 .guide-footer-nav a{color:#d9c18d;font-size:.72rem;font-weight:800}
 @media(max-width:980px){.guide-overview-grid>a{border-right:0;border-bottom:1px solid var(--guide-line)}.guide-overview-grid>a:last-child{border-bottom:0}}
 @media(max-width:700px){.guide-detail-hero{padding:48px 0 44px}.guide-detail-hero h1{font-size:clamp(2.7rem,13vw,4.2rem)}.guide-route-nav{display:grid;grid-template-columns:1fr}.guide-route-nav a{text-align:center}.guide-footer-nav{gap:12px}}
+
+/* Clear route back to the public website */
+.guide-brand{display:inline-flex;align-items:center;border-radius:12px}
+.guide-brand:focus-visible,.guide-footer-brand:focus-visible{outline:3px solid rgba(185,150,88,.5);outline-offset:5px}
+.guide-header-actions{display:flex;align-items:center;gap:12px}
+.guide-home-link{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:8px 15px;border:1px solid rgba(20,35,48,.14);border-radius:999px;background:rgba(255,255,255,.52);color:var(--guide-navy);font-size:.72rem;font-weight:900;letter-spacing:.07em;text-transform:uppercase;box-shadow:inset 0 1px 0 rgba(255,255,255,.9);transition:background .2s ease,border-color .2s ease,transform .2s ease}
+.guide-home-link:hover,.guide-home-link:focus-visible{border-color:rgba(185,150,88,.7);background:#fff;outline:none;transform:translateY(-1px)}
+.guide-footer-brand{display:inline-flex;border-radius:12px}
+
+/* Preserve every instruction image: no annotated edge or control is cropped. */
+.guide-hero-media img,.guide-step img,.paid-gallery img{object-fit:contain;object-position:center;background:#eef1f3}
+.location-layout{align-items:start}
+.guide-feature-figure{align-self:start}
+.guide-feature-figure img{height:auto;min-height:0;aspect-ratio:auto;object-fit:contain;object-position:center;background:#eef1f3}
+
+@media(max-width:700px){
+  .guide-header-actions{gap:7px}
+  .guide-home-link{min-height:34px;padding:7px 11px;font-size:.66rem}
+}
+@media(max-width:420px){
+  .guide-brand img{width:112px}
+  .guide-code strong{padding:6px 8px;font-size:.64rem}
+  .guide-home-link{padding:7px 9px}
+}

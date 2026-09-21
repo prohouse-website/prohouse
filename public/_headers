@@ -49,6 +49,9 @@
 /assets/prohouse-guest-guide-20260913-v1.css
   Cache-Control: public, max-age=31536000, immutable
 
+/assets/prohouse-neon-refresh-20260921.css
+  Cache-Control: public, max-age=31536000, immutable
+
 /G015262*
   X-Robots-Tag: noindex, nofollow, noarchive
   Cache-Control: no-cache, no-store, must-revalidate
