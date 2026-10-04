@@ -1,0 +1,36 @@
+PROHOUSE GUEST SURVEY — EMAIL SETUP
+
+Survey page: https://www.prohouse.com.au/survey
+Email recipient: hi@prohouse.com.au (set in functions/api/survey.js)
+
+The survey page can display with static hosting, but sending email requires its
+Cloudflare Pages Function and a Resend account. Do these steps before sharing
+the survey link with guests:
+
+1. In Resend, verify the domain prohouse.com.au for sending. Add only the DNS
+   records Resend specifically shows you. Keep existing MX/email records unless
+   the provider confirms a change is necessary. Create an API key.
+2. In the existing Cloudflare Pages project, open Settings > Variables and
+   Secrets. Add RESEND_API_KEY as an encrypted Secret. Add SURVEY_FROM_EMAIL
+   with the verified sender, for example "ProHouse Survey <reviews@prohouse.com.au>".
+   The sender address must belong to a domain verified in Resend.
+3. Deploy the entire website folder with Wrangler or a connected Git repository
+   so Cloudflare compiles the top-level functions/ directory. Example from the
+   parent folder (replace YOUR_EXISTING_PAGES_PROJECT with its actual name):
+
+   npx wrangler pages deploy ProHouse_Guest_Survey_Email --project-name YOUR_EXISTING_PAGES_PROJECT
+
+   You may also connect the folder's contents to a Git repository and let
+   Cloudflare Pages build and deploy it. A dashboard drag-and-drop ZIP upload
+   does NOT compile Pages Functions; the page would display but email would fail.
+4. Check the production URL /survey. Send one test survey with known ratings,
+   confirm the on-page thank-you message, and confirm the email arrives at
+   hi@prohouse.com.au. If it fails, check Pages Function logs and Resend logs.
+
+Do not put the Resend API key into HTML, JavaScript assets, the ZIP or Git.
+No email is sent during local file preview without a Pages Functions runtime.
+
+SURVEY FLOW
+Only the overall stay question is shown first. Ratings of 4 or 5 open the
+Google review URL. Ratings of 1, 2 or 3 reveal the remaining private survey
+questions and Submit button. Only submitted private surveys are emailed.

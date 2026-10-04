@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Guest Survey | ProHouse</title>
+<meta name="description" content="Tell ProHouse about your recent stay. Rate your experience and share your feedback privately with our team.">
+<meta name="robots" content="noindex,follow">
+<link rel="icon" type="image/png" href="../assets/images/prohouse-logo-transparent.png">
+<link rel="stylesheet" href="../assets/prohouse-20260913-v12.css">
+<link rel="stylesheet" href="../assets/prohouse-neon-refresh-20260921.css">
+<link rel="stylesheet" href="../assets/prohouse-survey.css">
+</head>
+<body class="survey-page">
+<header class="site-header"><div class="container nav">
+  <a class="brand logo-mark" href="../index.html" aria-label="ProHouse home"><img class="site-logo" src="../assets/images/prohouse-logo-transparent.png" alt="ProHouse"></a>
+  <button class="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="survey-nav">☰</button>
+  <nav class="navlinks" id="survey-nav"><a href="../stays.html">Stays</a><a href="../location.html">Location</a><a href="../owners.html">Manage My Property</a><a href="../contact.html">Contact</a><a class="btn btn-dark" href="https://prohouse.hostexbooking.site/home">BOOK NOW</a></nav>
+</div></header>
+
+<main id="main">
+  <section class="survey-intro"><div class="container survey-intro-grid">
+    <div><p class="kicker">YOUR VOICE MATTERS</p><h1>How was your recent stay at ProHouse?</h1><p>Start with one quick rating of your recent stay.</p></div>
+    <div class="survey-intro-image" role="img" aria-label="Bright furnished ProHouse living space"></div>
+  </div></section>
+  <section class="survey-section"><div class="container survey-layout">
+    <div class="survey-aside"><span class="survey-step">01 / YOUR EXPERIENCE</span><h2>Start with your stay</h2><p>Choose one to five stars. One star means poor; five stars means excellent.</p><div class="survey-aside-note">Tap a star to continue.</div></div>
+    <div class="survey-card">
+      <form id="guest-survey" action="/api/survey" method="post" novalidate>
+        <fieldset class="rating-question"><legend>How was your stay at ProHouse? <span aria-hidden="true">*</span></legend><div class="stars" aria-label="Overall stay rating">
+          <input type="radio" id="overall-5" name="overall" value="5" required><label for="overall-5" aria-label="5 stars">★</label>
+          <input type="radio" id="overall-4" name="overall" value="4"><label for="overall-4" aria-label="4 stars">★</label>
+          <input type="radio" id="overall-3" name="overall" value="3"><label for="overall-3" aria-label="3 stars">★</label>
+          <input type="radio" id="overall-2" name="overall" value="2"><label for="overall-2" aria-label="2 stars">★</label>
+          <input type="radio" id="overall-1" name="overall" value="1"><label for="overall-1" aria-label="1 star">★</label>
+        </div><small class="rating-hint">Select your rating</small></fieldset>
+        <div id="survey-followup" hidden>
+        <p class="survey-followup-intro">Thank you for letting us know. Please tell us a little more so we can improve.</p>
+        <fieldset class="rating-question"><legend>Cleanliness <span aria-hidden="true">*</span></legend><div class="stars" aria-label="Cleanliness rating">
+          <input type="radio" id="cleanliness-5" name="cleanliness" value="5" required><label for="cleanliness-5" aria-label="5 stars">★</label>
+          <input type="radio" id="cleanliness-4" name="cleanliness" value="4"><label for="cleanliness-4" aria-label="4 stars">★</label>
+          <input type="radio" id="cleanliness-3" name="cleanliness" value="3"><label for="cleanliness-3" aria-label="3 stars">★</label>
+          <input type="radio" id="cleanliness-2" name="cleanliness" value="2"><label for="cleanliness-2" aria-label="2 stars">★</label>
+          <input type="radio" id="cleanliness-1" name="cleanliness" value="1"><label for="cleanliness-1" aria-label="1 star">★</label>
+        </div><small class="rating-hint">Select your rating</small></fieldset>
+        <fieldset class="rating-question"><legend>Customer service <span aria-hidden="true">*</span></legend><div class="stars" aria-label="Customer service rating">
+          <input type="radio" id="service-5" name="service" value="5" required><label for="service-5" aria-label="5 stars">★</label>
+          <input type="radio" id="service-4" name="service" value="4"><label for="service-4" aria-label="4 stars">★</label>
+          <input type="radio" id="service-3" name="service" value="3"><label for="service-3" aria-label="3 stars">★</label>
+          <input type="radio" id="service-2" name="service" value="2"><label for="service-2" aria-label="2 stars">★</label>
+          <input type="radio" id="service-1" name="service" value="1"><label for="service-1" aria-label="1 star">★</label>
+        </div><small class="rating-hint">Select your rating</small></fieldset>
+        <fieldset class="rating-question"><legend>Comfort <span aria-hidden="true">*</span></legend><div class="stars" aria-label="Comfort rating">
+          <input type="radio" id="comfort-5" name="comfort" value="5" required><label for="comfort-5" aria-label="5 stars">★</label>
+          <input type="radio" id="comfort-4" name="comfort" value="4"><label for="comfort-4" aria-label="4 stars">★</label>
+          <input type="radio" id="comfort-3" name="comfort" value="3"><label for="comfort-3" aria-label="3 stars">★</label>
+          <input type="radio" id="comfort-2" name="comfort" value="2"><label for="comfort-2" aria-label="2 stars">★</label>
+          <input type="radio" id="comfort-1" name="comfort" value="1"><label for="comfort-1" aria-label="1 star">★</label>
+        </div><small class="rating-hint">Select your rating</small></fieldset>
+        <div class="survey-free-text"><label for="survey-comment">Anything else you would like to tell us?</label><p>What did you enjoy, and what could we improve?</p><textarea id="survey-comment" name="comment" rows="5" maxlength="3000" placeholder="Write your feedback here…"></textarea></div>
+        <div class="survey-details"><label for="guest-name">Your name <span>(optional)</span></label><input id="guest-name" name="name" type="text" autocomplete="name" maxlength="100" placeholder="So we know who to thank"></div>
+        <div class="survey-trap" aria-hidden="true"><label for="survey-website">Website</label><input id="survey-website" name="website" type="text" autocomplete="off" tabindex="-1"></div>
+        <p class="survey-feedback" id="survey-feedback" role="status" aria-live="polite"></p>
+        <button class="btn btn-primary survey-submit" type="submit">SEND MY FEEDBACK <span aria-hidden="true">→</span></button>
+        <p class="survey-fineprint">Your answers are emailed privately to ProHouse. Please use <a href="../contact.html">Contact</a> for urgent help during a stay.</p>
+        </div>
+      </form>
+      <div class="survey-success" id="survey-success" hidden tabindex="-1"><span aria-hidden="true">✓</span><h2>Thank you for telling us.</h2><p>We’ve received your feedback and will use it to improve future stays.</p><a class="btn btn-dark" href="../index.html">BACK TO PROHOUSE</a></div>
+    </div>
+  </div></section>
+</main>
+<footer class="footer"><div class="container"><div class="footer-grid"><div><img class="footer-logo" src="../assets/images/prohouse-logo-transparent.png" alt="ProHouse"><p class="small">Furnished Sydney accommodation for short stays, corporate travel, relocation and longer stays.</p></div><div><h3>ProHouse</h3><a href="../stays.html">Stays</a><a href="../owners.html">Property owners</a><a href="../contact.html">Contact</a></div><div><h3>Policies</h3><a href="../policies.html#terms">Terms &amp; conditions</a><a href="../policies.html#privacy">Privacy</a></div></div><div class="footer-bottom"><span>© <span data-year></span> ProHouse Australia.</span><span>Sydney, NSW</span></div></div></footer>
+<script src="../data/prohouse-config-20260913-v11.js"></script><script src="../assets/prohouse-20260913-v11.js"></script><script src="../assets/prohouse-survey.js?v=2"></script>
+</body></html>

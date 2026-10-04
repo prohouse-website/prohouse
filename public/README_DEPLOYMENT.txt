@@ -1,5 +1,11 @@
 EASY-EDIT VERSION
 
+SURVEY UPDATE (OCTOBER 2026)
+The guest survey lives at /survey and sends email through a Cloudflare Pages
+Function. Read SURVEY_EMAIL_SETUP.txt first. The older static-only deployment
+steps below do not activate survey email delivery. Use Wrangler or Git for this
+version, and set the email secret in Cloudflare before publishing the survey.
+
 Start with EASY_EDIT_GUIDE.txt.
 Most routine changes are in data/site-config.js and data/properties.js.
 
