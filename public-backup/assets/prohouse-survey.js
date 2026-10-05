@@ -4,22 +4,18 @@
   const feedback = document.getElementById('survey-feedback');
   const submit = form.querySelector('[type="submit"]');
   const followup = document.getElementById('survey-followup');
-  const googleReview = document.getElementById('survey-google-review');
   const reviewUrl = 'https://g.page/r/CRV2vE_fnR2LEBM/review';
   const selectedOverall = form.querySelector('input[name="overall"]:checked');
   followup.hidden = !selectedOverall || Number(selectedOverall.value) >= 4;
-  googleReview.hidden = !selectedOverall || Number(selectedOverall.value) < 4;
   const questions = ['overall', 'cleanliness', 'service', 'comfort'];
   form.addEventListener('change', (event) => {
     if (event.target.name === 'overall') {
       if (Number(event.target.value) >= 4) {
         followup.hidden = true;
-        googleReview.hidden = false;
-        window.open(reviewUrl, '_blank', 'noopener,noreferrer');
+        window.location.assign(reviewUrl);
         return;
       }
       followup.hidden = false;
-      googleReview.hidden = true;
     }
     if (questions.includes(event.target.name)) event.target.closest('fieldset')?.classList.remove('is-missing');
   });
@@ -28,8 +24,7 @@
     feedback.textContent = '';
     const data = new FormData(form);
     if (Number(data.get('overall')) >= 4) {
-      googleReview.hidden = false;
-        window.open(reviewUrl, '_blank', 'noopener,noreferrer');
+      window.location.assign(reviewUrl);
       return;
     }
     let firstMissing = null;

@@ -2,7 +2,7 @@
 .survey-intro-grid{display:grid;grid-template-columns:1.2fr .8fr;min-height:390px;align-items:center;gap:60px;padding-top:54px;padding-bottom:50px}
 .survey-intro h1{font-size:clamp(2.8rem,5.5vw,5.3rem);line-height:1.04;max-width:830px;margin:12px 0 22px}
 .survey-intro p:not(.kicker){font-size:1.17rem;max-width:630px;color:#4d6178;line-height:1.65}
-.survey-intro-image{height:300px;border-radius:28px;background:linear-gradient(135deg,rgba(36,206,248,.10),rgba(126,79,240,.18)),url("images/survey-sydney-harbour.jpg") center/cover;box-shadow:18px 18px 0 #d7eff9}
+.survey-intro-image{height:300px;border-radius:28px;background:linear-gradient(135deg,rgba(36,206,248,.10),rgba(126,79,240,.18)),url("images/prohouse-hero-living.webp") center/cover;box-shadow:18px 18px 0 #d7eff9}
 .survey-section{padding:75px 0 115px}.survey-layout{display:grid;grid-template-columns:minmax(260px,.72fr) minmax(0,1.28fr);gap:clamp(35px,6vw,100px);align-items:start}
 .survey-aside{position:sticky;top:130px}.survey-step{color:#6548e2;font-weight:900;font-size:.76rem;letter-spacing:.17em}.survey-aside h2{font-size:clamp(2.5rem,4vw,4.4rem);margin:16px 0 20px}.survey-aside p{color:#5b6d80;line-height:1.7;font-size:1.08rem}
 .survey-aside-note{margin-top:32px;border-left:4px solid #25d9e4;padding:15px 20px;background:#eefaff;color:#314b60;line-height:1.6}
@@ -17,13 +17,3 @@
 @media(max-width:550px){.survey-intro-grid{padding-top:28px}.survey-intro h1{font-size:2.8rem}.survey-intro-image{height:190px;box-shadow:8px 8px 0 #d7eff9}.survey-section{padding-top:35px}.survey-card{padding:25px 20px;border-radius:22px}.stars{gap:1px}.stars label{padding:0 3px}}
 
 #survey-followup[hidden]{display:none}.survey-followup-intro{color:#526779;line-height:1.6;margin:0 0 25px}
-
-/* Centered property guest survey */
-.survey-intro-grid{display:block;text-align:center;padding-top:45px;padding-bottom:38px;min-height:0;max-width:1000px}
-.survey-intro h1{max-width:780px;margin:12px auto 32px}.survey-intro-image{height:260px;box-shadow:none;background-position:center bottom;border-radius:24px}
-.survey-layout{display:block;max-width:780px}.survey-section{padding-top:40px}.survey-card{text-align:center}
-.rating-control{width:max-content;max-width:100%;margin:0 auto}.stars{margin:0 auto;gap:0}.stars label{width:60px;padding:0;text-align:center;font-size:3.4rem}
-.star-scale{display:flex;justify-content:space-between;margin-top:8px;color:#607588;font-size:.84rem}.star-scale span{width:60px;text-align:center}
-.overall-question legend{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-.survey-free-text,.survey-details{text-align:left}.survey-submit{text-align:left}
-@media(max-width:550px){.survey-intro h1{font-size:2.6rem}.survey-intro-image{height:190px}.stars label{width:49px;font-size:2.9rem}.star-scale span{width:49px}.survey-intro-grid{padding-top:28px}.survey-section{padding-top:28px}}

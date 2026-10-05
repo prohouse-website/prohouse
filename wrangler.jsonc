@@ -1,9 +1,16 @@
 {
   "name": "prohouse",
-  "compatibility_date": "2026-09-02",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-10-05",
+  "keep_vars": true,
   "assets": {
     "directory": "./public",
-    "html_handling": "auto-trailing-slash",
-    "not_found_handling": "404-page"
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/api/*"
+    ]
+  },
+  "vars": {
+    "SURVEY_FROM_EMAIL": "ProHouse Survey <reviews@prohouse.com.au>"
   }
 }

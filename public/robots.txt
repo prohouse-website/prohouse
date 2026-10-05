@@ -1,3 +1,0 @@
-User-agent: *
-Allow: /
-Sitemap: https://www.prohouse.com.au/sitemap.xml
