@@ -12,5 +12,10 @@
   },
   "vars": {
     "SURVEY_FROM_EMAIL": "ProHouse Survey <reviews@prohouse.com.au>"
+  },
+  "previews": {
+    "vars": {
+      "SURVEY_FROM_EMAIL": "ProHouse Survey Preview <reviews@prohouse.com.au>"
+    }
   }
 }
