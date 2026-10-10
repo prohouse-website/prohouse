@@ -1,0 +1,42 @@
+<!doctype html><html lang="en-AU"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><meta name="theme-color" content="#e6ff67"><title>Review your stay | ProHouse</title><link rel="icon" href="/assets/prohouse-logo-transparent.png"><link rel="stylesheet" href="/assets/theme.css"><link rel="stylesheet" href="/assets/subpages.css"></head><body class="subpage review-design"><header class="header"><a class="brand" href="/" aria-label="ProHouse home"><img src="/assets/prohouse-logo-transparent.png" alt="ProHouse"></a><nav aria-label="Main navigation"><a href="/stays/">The stays</a><a href="/location/">The city</a><a href="/owners/">For owners</a><a href="/contact/">Contact</a></nav><details class="mobile-menu"><summary>Menu <span>＋</span></summary><div><a href="/stays/">The stays</a><a href="/location/">The city</a><a href="/owners/">For owners</a><a href="/contact/">Contact</a></div></details></header><main class="review-main"><section class="review-scene"><img src="/assets/survey-sydney-harbour.jpg" alt="Sydney harbour city view"><div><span class="eyebrow">PROHOUSE / GUEST FEEDBACK</span><h1>Your stay.<br>Your say.</h1></div></section><section class="review-form-shell"><div class="review-form-card">
+      <form id="guest-survey" action="/api/survey" method="post" novalidate>
+        <fieldset class="rating-question overall-question"><legend>How was your stay at ProHouse? <span aria-hidden="true">*</span></legend><div class="rating-control"><div class="stars" aria-label="Overall stay rating">
+          <input type="radio" id="overall-5" name="overall" value="5" required><label for="overall-5" aria-label="5 stars">★</label>
+          <input type="radio" id="overall-4" name="overall" value="4"><label for="overall-4" aria-label="4 stars">★</label>
+          <input type="radio" id="overall-3" name="overall" value="3"><label for="overall-3" aria-label="3 stars">★</label>
+          <input type="radio" id="overall-2" name="overall" value="2"><label for="overall-2" aria-label="2 stars">★</label>
+          <input type="radio" id="overall-1" name="overall" value="1"><label for="overall-1" aria-label="1 star">★</label>
+        </div><div class="star-scale" aria-hidden="true"><span>Poor</span><span>Excellent</span></div></div></fieldset>
+        <div id="survey-google-review" hidden><a class="btn btn-primary" href="https://g.page/r/CRV2vE_fnR2LEBM/review" target="_blank" rel="noopener noreferrer">OPEN GOOGLE REVIEWS ↗</a></div>
+        <div id="survey-followup" hidden>
+        <p class="survey-followup-intro">Thank you for letting us know. Please tell us a little more so we can improve.</p>
+        <fieldset class="rating-question"><legend>Cleanliness <span aria-hidden="true">*</span></legend><div class="rating-control"><div class="stars" aria-label="Cleanliness rating">
+          <input type="radio" id="cleanliness-5" name="cleanliness" value="5" required><label for="cleanliness-5" aria-label="5 stars">★</label>
+          <input type="radio" id="cleanliness-4" name="cleanliness" value="4"><label for="cleanliness-4" aria-label="4 stars">★</label>
+          <input type="radio" id="cleanliness-3" name="cleanliness" value="3"><label for="cleanliness-3" aria-label="3 stars">★</label>
+          <input type="radio" id="cleanliness-2" name="cleanliness" value="2"><label for="cleanliness-2" aria-label="2 stars">★</label>
+          <input type="radio" id="cleanliness-1" name="cleanliness" value="1"><label for="cleanliness-1" aria-label="1 star">★</label>
+        </div><div class="star-scale" aria-hidden="true"><span>Poor</span><span>Excellent</span></div></div></fieldset>
+        <fieldset class="rating-question"><legend>Customer service <span aria-hidden="true">*</span></legend><div class="rating-control"><div class="stars" aria-label="Customer service rating">
+          <input type="radio" id="service-5" name="service" value="5" required><label for="service-5" aria-label="5 stars">★</label>
+          <input type="radio" id="service-4" name="service" value="4"><label for="service-4" aria-label="4 stars">★</label>
+          <input type="radio" id="service-3" name="service" value="3"><label for="service-3" aria-label="3 stars">★</label>
+          <input type="radio" id="service-2" name="service" value="2"><label for="service-2" aria-label="2 stars">★</label>
+          <input type="radio" id="service-1" name="service" value="1"><label for="service-1" aria-label="1 star">★</label>
+        </div><div class="star-scale" aria-hidden="true"><span>Poor</span><span>Excellent</span></div></div></fieldset>
+        <fieldset class="rating-question"><legend>Comfort <span aria-hidden="true">*</span></legend><div class="rating-control"><div class="stars" aria-label="Comfort rating">
+          <input type="radio" id="comfort-5" name="comfort" value="5" required><label for="comfort-5" aria-label="5 stars">★</label>
+          <input type="radio" id="comfort-4" name="comfort" value="4"><label for="comfort-4" aria-label="4 stars">★</label>
+          <input type="radio" id="comfort-3" name="comfort" value="3"><label for="comfort-3" aria-label="3 stars">★</label>
+          <input type="radio" id="comfort-2" name="comfort" value="2"><label for="comfort-2" aria-label="2 stars">★</label>
+          <input type="radio" id="comfort-1" name="comfort" value="1"><label for="comfort-1" aria-label="1 star">★</label>
+        </div><div class="star-scale" aria-hidden="true"><span>Poor</span><span>Excellent</span></div></div></fieldset>
+        <div class="survey-free-text"><label for="survey-comment">Anything else you would like to tell us?</label><p>What did you enjoy, and what could we improve?</p><textarea id="survey-comment" name="comment" rows="5" maxlength="3000" placeholder="Write your feedback here…"></textarea></div>
+        <div class="survey-details"><label for="guest-name">Your name <span>(optional)</span></label><input id="guest-name" name="name" type="text" autocomplete="name" maxlength="100" placeholder="So we know who to thank"></div>
+        <div class="survey-trap" aria-hidden="true"><label for="survey-website">Website</label><input id="survey-website" name="website" type="text" autocomplete="off" tabindex="-1"></div>
+        <p class="survey-feedback" id="survey-feedback" role="status" aria-live="polite"></p>
+        <button class="btn btn-primary survey-submit" type="submit">SEND MY FEEDBACK <span aria-hidden="true">→</span></button>
+        
+        </div>
+      </form>
+      <div class="survey-success" id="survey-success" hidden tabindex="-1"><span aria-hidden="true">✓</span><h2>Thank you for telling us.</h2><p>We’ve received your feedback and will use it to improve future stays.</p><a class="btn btn-dark" href="/index.html">BACK TO PROHOUSE</a></div></div></section></main><footer class="new-footer"><div class="footer-top"><a class="footer-word" href="/">PROHOUSE<span>®</span></a><p>Sydney stays.<br>Your way.</p></div><div class="footer-policies"><a href="/terms/">Terms &amp; conditions</a><a href="/privacy/">Privacy</a><a href="/complaints/">Complaints</a><a href="/review/">Review your stay</a><a href="/contact/">Contact</a></div><div class="footer-bottom"><span>© 2026 ProHouse</span><a href="mailto:hi@prohouse.com.au">hi@prohouse.com.au ↗</a><a href="https://wa.me/61423696436" target="_blank" rel="noopener">WhatsApp ↗</a><a href="/owners/">Property management ↗</a></div></footer><script src="/assets/site.js"></script><script src="/assets/prohouse-survey.js?v=6"></script></body></html>
