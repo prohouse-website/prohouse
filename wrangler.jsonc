@@ -7,8 +7,13 @@
     "directory": "./public",
     "binding": "ASSETS",
     "run_worker_first": [
-      "/api/*"
-    ]
+      "/api/*",
+      "/survey",
+      "/survey/*",
+      "/G015262/survey",
+      "/G015262/survey/*"
+    ],
+    "not_found_handling": "404-page"
   },
   "vars": {
     "SURVEY_FROM_EMAIL": "ProHouse Survey <reviews@prohouse.com.au>"

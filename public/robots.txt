@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /G015262
+Disallow: /review
+Disallow: /survey
+Sitemap: https://www.prohouse.com.au/sitemap.xml

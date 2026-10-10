@@ -1,2 +1,6 @@
-/book /book.html 200
-/book/ /book 301
+/survey /review/ 301
+/survey/ /review/ 301
+/survey/index.html /review/ 301
+/G015262/survey /G015262/review/ 301
+/G015262/survey/ /G015262/review/ 301
+/G015262/survey/index.html /G015262/review/ 301
