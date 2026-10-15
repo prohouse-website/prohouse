@@ -45,7 +45,7 @@ export async function vendorIdentity(req,env,a,user,isAdmin,action,body={}){
   const claim=await q(env,"INSERT INTO vendor_id_checks(agreement_id,provider_status,started_at) VALUES(?,'Starting',?) ON CONFLICT(agreement_id) DO UPDATE SET provider_status='Starting',started_at=excluded.started_at WHERE vendor_id_checks.session_id IS NULL AND vendor_id_checks.provider_status IS NOT 'Starting'",a.id,now()).run();
   if(!claim.meta.changes)return reply({error:'Verification is starting. Refresh shortly.'},409);
   try{
-   const session=await provider(env,'session/',{workflow_id:env.DIDIT_WORKFLOW_ID,vendor_data:a.id,callback:new URL('/cleaners/?agreement='+a.id,new URL(req.url).origin).href,contact_details:{email:user.email,send_notification_emails:false}});
+   const session=await provider(env,'session/',{workflow_id:env.DIDIT_WORKFLOW_ID,vendor_data:a.id,callback:new URL('/vendors/?agreement='+a.id,new URL(req.url).origin).href,contact_details:{email:user.email,send_notification_emails:false}});
    const link=new URL(session.url);if(!session.session_id||link.protocol!=='https:'||link.hostname!=='verify.didit.me')throw Error('Unexpected verification link');
    await q(env,'UPDATE vendor_id_checks SET session_id=?,session_url=?,provider_status=?,started_at=? WHERE agreement_id=?',session.session_id,link.href,'Not Started',now(),a.id).run();return reply({url:link.href});
   }catch{await q(env,"UPDATE vendor_id_checks SET provider_status='Unavailable' WHERE agreement_id=? AND session_id IS NULL",a.id).run();return reply({error:'Verification could not be started. Please retry later or contact ProHouse.'},502);}

@@ -18,10 +18,18 @@ export default {
       if (request.method !== 'POST') return new Response('Method not allowed', { status: 405, headers: { Allow: 'POST', 'Cache-Control': 'no-store' } });
       return onRequestPost({ request, env });
     }
-    if (path === '/cleaners') return Response.redirect(new URL('/cleaners/' + url.search, url.origin), 302);
-    if (path.startsWith('/api/cleaners/')) return cleanerPortal(request, env);
-    if (path === '/cleaners/' || path.startsWith('/cleaners/')) {
-      const asset = await env.ASSETS.fetch(request);
+    const portalPath=path==='/cleaners'||path.startsWith('/cleaners/')||path==='/vendors'||path.startsWith('/vendors/');
+    if (portalPath) {
+      const target=new URL(env.VENDOR_PORTAL_ORIGIN||url.origin);
+      target.pathname=path.replace(/^\/cleaners(?=\/|$)/,'/vendors');
+      if(target.pathname==='/vendors')target.pathname='/vendors/';
+      target.search=url.search;
+      if(target.href!==url.href)return Response.redirect(target,302);
+    }
+    if (path.startsWith('/api/cleaners/')||path.startsWith('/api/vendors/')) return cleanerPortal(request, env);
+    if (path.startsWith('/vendors/')) {
+      const assetURL=new URL(request.url);assetURL.pathname=path.replace(/^\/vendors\//,'/cleaners/');
+      const asset = await env.ASSETS.fetch(new Request(assetURL,request));
       const response = new Response(asset.body, asset);
       response.headers.set('Cache-Control', 'no-store');
       response.headers.set('X-Robots-Tag', 'noindex, nofollow');

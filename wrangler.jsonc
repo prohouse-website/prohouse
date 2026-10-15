@@ -10,17 +10,18 @@
     "not_found_handling": "404-page"
   },
   "vars": {
-    "SURVEY_FROM_EMAIL": "ProHouse Survey <reviews@prohouse.com.au>",
+    "SURVEY_FROM_EMAIL": "ProHouse Survey <no-reply@prohouse.com.au>",
     "PROHOUSE_ADMIN_EMAILS": "hi@prohouse.com.au",
-    "CLEANER_FROM_EMAIL": "ProHouse Agreements <reviews@prohouse.com.au>"
+    "CLEANER_FROM_EMAIL": "ProHouse Agreements <no-reply@prohouse.com.au>"
   },
   "previews": {
     "vars": {
-      "SURVEY_FROM_EMAIL": "ProHouse Survey Preview <reviews@prohouse.com.au>",
+      "SURVEY_FROM_EMAIL": "ProHouse Survey Preview <no-reply@prohouse.com.au>",
       "PROHOUSE_ADMIN_EMAILS": "hi@prohouse.com.au",
-      "CLEANER_FROM_EMAIL": "ProHouse Agreements Preview <reviews@prohouse.com.au>",
+      "CLEANER_FROM_EMAIL": "ProHouse Agreements Preview <no-reply@prohouse.com.au>",
       "DIDIT_WORKFLOW_ID": "f7f47ff2-b92d-4676-9280-132b116adbde",
-      "DIDIT_MONTHLY_LIMIT": "25"
+      "DIDIT_MONTHLY_LIMIT": "25",
+      "VENDOR_PORTAL_ORIGIN": "https://new-vendor-agreement-portal-prohouse.hi-07f.workers.dev"
     },
     "d1_databases": [
       {

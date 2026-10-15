@@ -28,7 +28,7 @@ test('full portal lifecycle, privacy, locked signatures and email retries',async
   assert.equal((await request(env,'agreements',{email:'cleaner@example.com',proposal:{...proposal,abn:'11111111111'}},admin.cookie)).status,400);
  });
  await t.test('invitation stores exact services and sends cleaner link',async()=>{
-  const r=await request(env,'agreements',{email:'Cleaner@example.com',proposal},admin.cookie);assert.equal(r.status,201);id=(await r.json()).id;assert.ok(mails.at(-1).text.includes('/cleaners/?agreement='+id));assert.equal(mails.at(-1).to[0],'cleaner@example.com');
+  const r=await request(env,'agreements',{email:'Cleaner@example.com',proposal},admin.cookie);assert.equal(r.status,201);id=(await r.json()).id;assert.ok(mails.at(-1).text.includes('/vendors/?agreement='+id));assert.equal(mails.at(-1).to[0],'cleaner@example.com');
   cleanerSession=await login(env,'cleaner@example.com','cleaner',mails);
   assert.equal((await request(env,'auth/verify',{code:cleanerSession.code},cleanerSession.challenge)).status,401);
  });
@@ -66,8 +66,10 @@ test('full portal lifecycle, privacy, locked signatures and email retries',async
 test('worker preserves guest website routes and adds portal security headers',async()=>{
  const env={ASSETS:{fetch:async()=>new Response('<h1>Asset</h1>',{headers:{'Content-Type':'text/html'}})}};
  const home=await worker.fetch(new Request(base+'/'),env);assert.equal(home.status,200);
- const portal=await worker.fetch(new Request(base+'/cleaners/'),env);assert.equal(portal.status,200);assert.equal(portal.headers.get('x-robots-tag'),'noindex, nofollow');assert.ok(portal.headers.get('content-security-policy').includes("frame-ancestors 'none'"));
- assert.equal((await worker.fetch(new Request(base+'/cleaners'),env)).status,302);
+ const portal=await worker.fetch(new Request(base+'/vendors/'),env);assert.equal(portal.status,200);assert.equal(portal.headers.get('x-robots-tag'),'noindex, nofollow');assert.ok(portal.headers.get('content-security-policy').includes("frame-ancestors 'none'"));
+ const legacy=await worker.fetch(new Request(base+'/cleaners/?agreement=abc'),env);assert.equal(legacy.status,302);assert.equal(legacy.headers.get('location'),base+'/vendors/?agreement=abc');
+ const renamed=await worker.fetch(new Request('https://old.example/vendors/?agreement=abc'),{...env,VENDOR_PORTAL_ORIGIN:'https://new.example'});assert.equal(renamed.headers.get('location'),'https://new.example/vendors/?agreement=abc');
+ assert.equal((await worker.fetch(new Request(base+'/api/vendors/me'),env)).status,503);
  assert.equal((await worker.fetch(new Request(base+'/api/cleaners/me'),env)).status,503);
  assert.equal((await worker.fetch(new Request(base+'/api/something'),env)).status,404);
  const survey=await worker.fetch(new Request(base+'/survey'),env);assert.equal(survey.status,301);assert.equal(survey.headers.get('location'),base+'/review/');

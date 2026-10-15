@@ -1,6 +1,6 @@
 # ProHouse cleaner agreements
 
-Target production URL: https://www.prohouse.com.au/cleaners/
+Target production URL: https://www.prohouse.com.au/vendors/
 
 This portal is part of the existing ProHouse Cloudflare Worker and GitHub repository. It does not redirect to the earlier ChatGPT-hosted application. Existing guest website design, booking and survey routes are preserved. The portal is excluded from search indexing.
 
@@ -52,7 +52,7 @@ Ensure these **runtime** settings exist in both production and preview:
 | --- | --- | --- |
 | `CLEANER_DB` | D1 binding | The selected production or isolated preview database |
 | `RESEND_API_KEY` | Secret | Existing Resend sending key, if valid for the verified ProHouse sender/domain |
-| `CLEANER_FROM_EMAIL` | Variable | `ProHouse Agreements <reviews@prohouse.com.au>` (or another verified ProHouse sender) |
+| `CLEANER_FROM_EMAIL` | Variable | `ProHouse Agreements <no-reply@prohouse.com.au>` (or another verified ProHouse sender) |
 | `PROHOUSE_ADMIN_EMAILS` | Variable | `hi@prohouse.com.au` (comma-separated operator-approved addresses if needed) |
 
 The portal reuses the existing `RESEND_API_KEY` and falls back to `SURVEY_FROM_EMAIL` when no dedicated sender is set. Do not overwrite the survey sender or put secrets in Git. Commit the reviewed database configuration on this branch, push, obtain the Cloudflare preview, complete the acceptance check, and request Brian's approval before merging to main under the established publishing workflow.

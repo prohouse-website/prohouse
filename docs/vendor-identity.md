@@ -1,6 +1,6 @@
 # Vendor agreement portal
 
-Preview: https://feature-cleaner-agreement-portal-prohouse.hi-07f.workers.dev/cleaners/
+Preview: https://new-vendor-agreement-portal-prohouse.hi-07f.workers.dev/vendors/
 
 New agreements use version `2026-10-15.4`. Stored signed snapshots retain their original terms. Use a replacement agreement for revised terms; never rewrite an existing signed submission.
 
@@ -33,3 +33,7 @@ Apply `migrations/0003_service_evidence.sql` before deployment. Evidence is stor
 ## Validation
 
 Run `node --test test/cleaner-portal.test.js` (Node SQLite and Poppler `pdftotext` required). Tests cover signing/immutability, queued PDF emails/retries, PDF content, private evidence access, Didit-only gating and authenticated provider decisions. Worker packaging uses the existing Wrangler configuration. PDF rendering is inspected with Poppler before release.
+
+## Portal address and sender
+
+The portal is served at `/vendors/`, with `/cleaners/` redirected for existing invitations. New UI API calls use `/api/vendors/`; legacy `/api/cleaners/` remains a compatible alias. Static source remains in `public/cleaners` and is internally served under `/vendors`. Both preview hostnames share the same isolated database. `VENDOR_PORTAL_ORIGIN` makes the new preview the canonical portal host; it is omitted from production settings. Agreement and survey sender settings now use `no-reply@prohouse.com.au`; replies continue to go to `hi@prohouse.com.au`. Preview CI deploys both hostnames to preserve old links.

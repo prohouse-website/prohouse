@@ -3,7 +3,7 @@ import { serviceEvidence, evidenceList } from './service-evidence.js';
 import { vendorIdentity, identitySummary, approvedIdentity, diditReady } from './vendor-identity.js';
 import { PROHOUSE_DEFAULTS } from '../public/cleaners/prohouse-defaults.js';
 import { terms } from './cleaner-terms.js';
-const ROOT='/cleaners/';
+const ROOT='/vendors/';
 const emailOK = s => typeof s==='string' && s.length<=254 && /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(s);
 const cleanEmail=s=>String(s||'').trim().toLowerCase();
 const encode=s=>Array.from(s,b=>b.toString(16).padStart(2,'0')).join('');
@@ -47,7 +47,7 @@ async function drain(env,agreementId) {const rows=await stmt(env,'SELECT * FROM 
 async function status(env,id) {return (await stmt(env,'SELECT kind,recipient,sent_at,attempts,last_error FROM cleaner_mail WHERE agreement_id=? ORDER BY rowid',id).all()).results;}
 function configured(env) {return env.CLEANER_DB&&env.RESEND_API_KEY&&(env.CLEANER_FROM_EMAIL||env.SURVEY_FROM_EMAIL);}
 export async function cleanerPortal(req,env) {
- const path=new URL(req.url).pathname;
+ const path=new URL(req.url).pathname.replace(/^\/api\/vendors(?=\/)/,'/api/cleaners');
  const missing=[];
  if(!env.CLEANER_DB)missing.push('database');
  if(!env.RESEND_API_KEY)missing.push('email secret');
