@@ -1,4 +1,5 @@
 import { onRequestPost } from './survey.js';
+import { cleanerPortal } from './cleaner-portal.js';
 
 export default {
   async fetch(request, env) {
@@ -16,6 +17,18 @@ export default {
     if (path === '/api/survey') {
       if (request.method !== 'POST') return new Response('Method not allowed', { status: 405, headers: { Allow: 'POST', 'Cache-Control': 'no-store' } });
       return onRequestPost({ request, env });
+    }
+    if (path === '/cleaners') return Response.redirect(new URL('/cleaners/' + url.search, url.origin), 302);
+    if (path.startsWith('/api/cleaners/')) return cleanerPortal(request, env);
+    if (path === '/cleaners/' || path.startsWith('/cleaners/')) {
+      const asset = await env.ASSETS.fetch(request);
+      const response = new Response(asset.body, asset);
+      response.headers.set('Cache-Control', 'no-store');
+      response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+      response.headers.set('Referrer-Policy', 'no-referrer');
+      response.headers.set('X-Content-Type-Options', 'nosniff');
+      response.headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
+      return response;
     }
     if (path.startsWith('/api/')) return new Response('Not found', { status: 404 });
     return env.ASSETS.fetch(request);
