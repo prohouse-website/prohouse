@@ -8,6 +8,28 @@ const sitemap = readFileSync(resolve(publicDir, 'sitemap.xml'), 'utf8');
 const urls = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map(match => match[1]);
 assert(urls.length > 0, 'Sitemap must contain public pages');
 assert.equal(new Set(urls).size, urls.length, 'Sitemap contains duplicate URLs');
+// Keep historical Google result URLs mapped to the corresponding current content.
+const legacyRedirects = {
+  "/about-us/contact-us": "/contact/",
+  "/owner-and-investor": "/owners/",
+  "/policies/complaint-policy": "/complaints/",
+  "/policies/customer-service-commitment": "/policies/"
+};
+const redirectRules = readFileSync(resolve(publicDir, '_redirects'), 'utf8')
+  .split(/\r?\n/).map(line => line.trim()).filter(line => line && !line.startsWith('#'))
+  .map(line => line.split(/\s+/));
+for (const [source, target] of Object.entries(legacyRedirects)) {
+  assert(existsSync(resolve(publicDir, '.' + target, 'index.html')), `Missing redirect destination: ${target}`);
+  for (const path of [source, source + '/']) {
+    const rule = redirectRules.find(([from]) => from === path);
+    assert(rule && rule[1] === target && rule[2] === '301', `Missing permanent redirect: ${path} -> ${target}`);
+    if (process.argv.includes('--live')) {
+      const response = await fetch(base + path, { redirect: 'manual', signal: AbortSignal.timeout(20000) });
+      assert.equal(response.status, 301, `Expected permanent live redirect: ${path}`);
+      assert.equal(new URL(response.headers.get('location'), base).href, base + target, `Wrong live destination: ${path}`);
+    }
+  }
+}
 for (const url of urls) {
   assert(url.startsWith(base + '/'), `Unexpected sitemap host: ${url}`);
   const path = new URL(url).pathname;
