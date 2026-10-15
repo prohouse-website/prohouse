@@ -18,7 +18,9 @@
     "vars": {
       "SURVEY_FROM_EMAIL": "ProHouse Survey Preview <reviews@prohouse.com.au>",
       "PROHOUSE_ADMIN_EMAILS": "hi@prohouse.com.au",
-      "CLEANER_FROM_EMAIL": "ProHouse Agreements Preview <reviews@prohouse.com.au>"
+      "CLEANER_FROM_EMAIL": "ProHouse Agreements Preview <reviews@prohouse.com.au>",
+      "DIDIT_WORKFLOW_ID": "f7f47ff2-b92d-4676-9280-132b116adbde",
+      "DIDIT_MONTHLY_LIMIT": "25"
     },
     "d1_databases": [
       {

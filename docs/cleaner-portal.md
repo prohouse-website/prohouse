@@ -11,7 +11,7 @@ This portal is part of the existing ProHouse Cloudflare Worker and GitHub reposi
 3. The invited cleaner receives a link on the ProHouse domain, chooses **Cleaner sign-in**, and verifies the code sent to that same email. No ChatGPT account is needed. Cleaner accounts can only read and sign their own agreements.
 4. The cleaner enters legal name, entity, valid ABN, phone, business address, bank name, account name, BSB and account number. The verified email is fixed. The cleaner can propose different per-service prices, GST and pricing notes, reads all terms, then types their full legal name and accepts electronic signing.
 5. The cleaner submission is locked and ProHouse receives a notification at `hi@prohouse.com.au` to review the exact final rates and countersign.
-6. ProHouse countersigns. Both parties are emailed the complete signed HTML document as an attachment, including all terms, scope, final rates, both signatures, timestamps, activity and integrity hashes. A copy remains accessible through authenticated download. Open the downloaded HTML in a browser to print/save as PDF. Automated PDF attachment generation is not included.
+6. ProHouse countersigns. Both parties are emailed the complete signed PDF document as an attachment, including all terms, scope, final rates, both signatures, timestamps, activity and integrity hashes. A copy remains accessible through authenticated download. Open the downloaded HTML in a browser to print/save as PDF. Automated PDF attachment generation is not included.
 
 The cleaning window remains 10am to strictly before 3pm. Checkout concerns require reports before 9pm Sydney time. Maintenance reporting and weekly invoices after Sunday to hi@prohouse.com.au are retained. No terms or pricing can be edited after cleaner signature; withdraw an incomplete agreement and send a replacement instead. Completed agreements cannot be withdrawn through the portal.
 
@@ -79,3 +79,6 @@ npx wrangler deploy --dry-run
 ```
 
 Tests use Node's SQLite adapter and a mocked email provider; they do not send real emails. They cover identity separation, one-time codes, access control, signature order and locking, preservation of final cleaner rates, hash verification, withdrawal, outbox recovery, attachments and existing website routes. Browser signing and live email delivery still require the acceptance check above.
+
+
+Current vendor identity, PDF delivery, safety terms and service-photo setup: see `vendor-identity.md`. New agreements use terms 2026-10-15.3, Didit only and 30-day notice.
