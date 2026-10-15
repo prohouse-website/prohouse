@@ -4,3 +4,13 @@
 /G015262/survey /G015262/review/ 301
 /G015262/survey/ /G015262/review/ 301
 /G015262/survey/index.html /G015262/review/ 301
+
+# Legacy URLs still receiving Google Search impressions.
+/about-us/contact-us /contact/ 301
+/about-us/contact-us/ /contact/ 301
+/owner-and-investor /owners/ 301
+/owner-and-investor/ /owners/ 301
+/policies/complaint-policy /complaints/ 301
+/policies/complaint-policy/ /complaints/ 301
+/policies/customer-service-commitment /policies/ 301
+/policies/customer-service-commitment/ /policies/ 301
