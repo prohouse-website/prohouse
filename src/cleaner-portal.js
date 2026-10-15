@@ -32,7 +32,12 @@ async function status(env,id) {return (await stmt(env,'SELECT kind,recipient,sen
 function configured(env) {return env.CLEANER_DB&&env.RESEND_API_KEY&&(env.CLEANER_FROM_EMAIL||env.SURVEY_FROM_EMAIL);}
 export async function cleanerPortal(req,env) {
  const path=new URL(req.url).pathname;
- if(!configured(env))return json({error:'The cleaner portal is awaiting Cloudflare database and email configuration. Please contact ProHouse.'},503);
+ const missing=[];
+ if(!env.CLEANER_DB)missing.push('database');
+ if(!env.RESEND_API_KEY)missing.push('email secret');
+ if(!(env.CLEANER_FROM_EMAIL||env.SURVEY_FROM_EMAIL))missing.push('email sender');
+ if(path==='/api/cleaners/status'&&req.method==='GET')return json({ready:configured(env)?true:false,missing});
+ if(!configured(env))return json({error:!env.RESEND_API_KEY?'Sign-in is unavailable: this Cloudflare preview is missing its email sending secret (RESEND_API_KEY). No code has been sent. ProHouse must add it in this preview’s Cloudflare secret settings.':'Sign-in is unavailable: the portal’s '+missing.join(' and ')+' configuration is incomplete. No code has been sent.'},503);
  const write=req.method==='POST';
  if(write&&(req.headers.get('origin')!==origin(req)||!req.headers.get('content-type')?.startsWith('application/json')))return json({error:'Invalid request origin or content type.'},403);
  let body={};if(write){const raw=await req.text();if(raw.length>70000)return json({error:'Request too large.'},413);try{body=JSON.parse(raw);}catch{return json({error:'Invalid JSON.'},400);}}

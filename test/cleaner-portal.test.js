@@ -76,3 +76,10 @@ test('signature hash prevents countersigning modified cleaner content; withdrawa
  assert.equal((await request(env,'agreements/'+id+'/withdraw',{},owner.cookie)).status,200);assert.ok(mails.at(-1).subject.includes('withdrawn'));assert.equal((await request(env,'agreements/'+id+'/sign',{cleaner,consent:true},session.cookie)).status,409);
  }finally{globalThis.fetch=old;}
 });
+
+test('configuration status identifies missing email without permitting a send',async()=>{
+ const env=context();delete env.RESEND_API_KEY;
+ const status=await request(env,'status');assert.equal(status.status,200);assert.deepEqual(await status.json(),{ready:false,missing:['email secret']});
+ const login=await request(env,'auth/request',{email:'hi@prohouse.com.au',role:'prohouse'});assert.equal(login.status,503);assert.match((await login.json()).error,/RESEND_API_KEY/);
+ assert.equal(env.CLEANER_DB.raw.prepare('SELECT COUNT(*) AS n FROM cleaner_login').get().n,0);
+});
