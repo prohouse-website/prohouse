@@ -83,3 +83,29 @@ test('configuration status identifies missing email without permitting a send',a
  const login=await request(env,'auth/request',{email:'hi@prohouse.com.au',role:'prohouse'});assert.equal(login.status,503);assert.match((await login.json()).error,/RESEND_API_KEY/);
  assert.equal(env.CLEANER_DB.raw.prepare('SELECT COUNT(*) AS n FROM cleaner_login').get().n,0);
 });
+test('optional ProHouse prices remain blank until cleaner supplies final prices',async()=>{
+ const env=context(),mails=[],old=globalThis.fetch;globalThis.fetch=async(u,o)=>{mails.push(JSON.parse(o.body));return Response.json({id:'test'});};
+ try {
+  const owner=await login(env,'hi@prohouse.com.au','prohouse',mails);
+  const blankOffer={...proposal,rows:[{service:'Bedroom and bathroom',unit:'Per clean',rate:''},{service:'Kitchen touch-up',unit:'Per visit',rate:'0'}]};
+  const result=await request(env,'agreements',{email:'cleaner@example.com',proposal:blankOffer},owner.cookie);assert.equal(result.status,201);const id=(await result.json()).id;
+  const copy=await (await request(env,'agreements/'+id+'/copy',undefined,owner.cookie)).text();assert.ok(copy.includes('Cleaner to propose'));assert.ok(copy.includes('$0.00'));
+  const row=env.CLEANER_DB.raw.prepare('SELECT data FROM cleaner_agreements WHERE id=?').get(id);assert.equal(JSON.parse(row.data).proposal.rows[0].rate,'');
+  const session=await login(env,'cleaner@example.com','cleaner',mails);
+  const unsigned=await request(env,'agreements/'+id+'/sign',{cleaner:{...cleaner,rows:blankOffer.rows},consent:true},session.cookie);assert.equal(unsigned.status,400);
+  const signed=await request(env,'agreements/'+id+'/sign',{cleaner:{...cleaner,rows:[{service:'Bedroom and bathroom',unit:'Per clean',rate:'85'},{service:'Kitchen touch-up',unit:'Per visit',rate:'20'}]},consent:true},session.cookie);assert.equal(signed.status,200);
+  assert.equal((await request(env,'agreements/'+id+'/sign',{signature:'Brian Nguyen',consent:true},owner.cookie)).status,200);
+  const finalCopy=Buffer.from(mails.at(-1).attachments[0].content,'base64').toString();assert.ok(finalCopy.includes('$85.00'));assert.ok(finalCopy.includes('$20.00'));
+ }finally{globalThis.fetch=old;}
+});
+test('creation identifies the exact invalid fields and does not send invitations',async()=>{
+ const env=context(),mails=[],old=globalThis.fetch;globalThis.fetch=async(u,o)=>{mails.push(JSON.parse(o.body));return Response.json({id:'test'});};
+ try {
+  const owner=await login(env,'hi@prohouse.com.au','prohouse',mails),count=mails.length;
+  const bad=await request(env,'agreements',{email:'cleaner@example.com',proposal:{...proposal,abn:'11111111111'}},owner.cookie);assert.equal(bad.status,400);const data=await bad.json();assert.deepEqual(Object.keys(data.fields),['abn']);assert.ok(data.error.includes('checksum'));
+  const same=await request(env,'agreements',{email:'hi@prohouse.com.au',proposal},owner.cookie);assert.equal(same.status,400);assert.ok((await same.json()).fields.inviteEmail.includes('own email'));
+  const noService=await request(env,'agreements',{email:'cleaner@example.com',proposal:{...proposal,rows:[{service:'',unit:'Per clean',rate:''}]}},owner.cookie);assert.equal(noService.status,400);assert.ok((await noService.json()).fields.rows);
+  const negative=await request(env,'agreements',{email:'cleaner@example.com',proposal:{...proposal,rows:[{service:'Cleaning',unit:'Per clean',rate:'-5'}]}},owner.cookie);assert.equal(negative.status,400);
+  assert.equal(mails.length,count);
+ }finally{globalThis.fetch=old;}
+});
