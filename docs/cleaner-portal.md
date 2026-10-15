@@ -17,9 +17,9 @@ The cleaning window remains 10am to strictly before 3pm. Checkout concerns requi
 
 ## Activation status
 
-Source is implemented and tested. Cloudflare credentials were unavailable during development, so production database provisioning, email delivery and a browser-based signing run have **not** been performed. Do not treat a successful branch preview build as an activated portal.
+Source is implemented and tested. Production and isolated preview D1 databases have been created through the connected Cloudflare account and the migration has been applied to both. The existing production Worker has a RESEND_API_KEY runtime secret. Live inbox delivery and a browser-based signing run remain unverified.
 
-The existing `wrangler.jsonc` is intentionally left unchanged until real database IDs are available. Without the binding and email variables, API requests return a clear 503 setup message and the guest website continues operating.
+The branch now contains the real production and preview database bindings in `wrangler.jsonc`. These take effect in the corresponding deployment; production code still follows the preview → Brian approval → merge workflow.
 
 ## Cloudflare setup (once)
 

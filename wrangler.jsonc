@@ -10,11 +10,33 @@
     "not_found_handling": "404-page"
   },
   "vars": {
-    "SURVEY_FROM_EMAIL": "ProHouse Survey <reviews@prohouse.com.au>"
+    "SURVEY_FROM_EMAIL": "ProHouse Survey <reviews@prohouse.com.au>",
+    "PROHOUSE_ADMIN_EMAILS": "hi@prohouse.com.au",
+    "CLEANER_FROM_EMAIL": "ProHouse Agreements <reviews@prohouse.com.au>"
   },
   "previews": {
     "vars": {
-      "SURVEY_FROM_EMAIL": "ProHouse Survey Preview <reviews@prohouse.com.au>"
+      "SURVEY_FROM_EMAIL": "ProHouse Survey Preview <reviews@prohouse.com.au>",
+      "PROHOUSE_ADMIN_EMAILS": "hi@prohouse.com.au",
+      "CLEANER_FROM_EMAIL": "ProHouse Agreements Preview <reviews@prohouse.com.au>"
+    },
+    "d1_databases": [
+      {
+        "binding": "CLEANER_DB",
+        "database_name": "prohouse-cleaner-agreements-preview",
+        "database_id": "9e99d3d9-221a-46a7-b958-09261129655c",
+        "migrations_dir": "migrations",
+        "preview_database_id": "9e99d3d9-221a-46a7-b958-09261129655c"
+      }
+    ]
+  },
+  "d1_databases": [
+    {
+      "binding": "CLEANER_DB",
+      "database_name": "prohouse-cleaner-agreements",
+      "database_id": "713bac7f-7f86-4e1d-b056-3fe60fac8ae9",
+      "migrations_dir": "migrations",
+      "preview_database_id": "9e99d3d9-221a-46a7-b958-09261129655c"
     }
-  }
+  ]
 }
