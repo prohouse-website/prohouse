@@ -129,7 +129,7 @@ test('Didit-only identity, 30-day notice, safety terms, PDF and private service 
   assert.equal((await raw('identity/upload',vendor.cookie,bytes)).status,410);
   assert.equal((await raw('evidence/upload',vendor.cookie,bytes)).status,403);
   const list=await (await request(env,'agreements',undefined,vendor.cookie)).json(),d=list.items[0].data;
-  assert.equal(d.termsVersion,'2026-10-15.3');assert.equal(d.identityMethod,'didit');
+  assert.equal(d.termsVersion,'2026-10-15.4');assert.equal(d.identityMethod,'didit');
   const text=JSON.stringify(d.terms);for(const str of ['30 calendar days','rate increase','tailgating','windows locked','police officer','lawful power of entry','photo evidence','departure day','after-cleaning','WhatsApp'])assert.ok(text.includes(str),str);
   assert.doesNotMatch(text,/(?:0423|\+61\s*423)/);assert.ok(!text.includes('28 days'));
   assert.equal((await request(env,'agreements/'+id+'/sign',{cleaner:{...cleaner,paymentDays:60},consent:true},vendor.cookie)).status,400);

@@ -2,7 +2,7 @@
 
 Preview: https://feature-cleaner-agreement-portal-prohouse.hi-07f.workers.dev/cleaners/
 
-New agreements use version `2026-10-15.3`. Stored signed snapshots retain their original terms. Use a replacement agreement for revised terms; never rewrite an existing signed submission.
+New agreements use version `2026-10-15.4`. Stored signed snapshots retain their original terms. Use a replacement agreement for revised terms; never rewrite an existing signed submission.
 
 ## Agreement flow
 

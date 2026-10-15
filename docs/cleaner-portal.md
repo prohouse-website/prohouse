@@ -81,4 +81,4 @@ npx wrangler deploy --dry-run
 Tests use Node's SQLite adapter and a mocked email provider; they do not send real emails. They cover identity separation, one-time codes, access control, signature order and locking, preservation of final cleaner rates, hash verification, withdrawal, outbox recovery, attachments and existing website routes. Browser signing and live email delivery still require the acceptance check above.
 
 
-Current vendor identity, PDF delivery, safety terms and service-photo setup: see `vendor-identity.md`. New agreements use terms 2026-10-15.3, Didit only and 30-day notice.
+Current vendor identity, PDF delivery, safety terms and service-photo setup: see `vendor-identity.md`. New agreements use terms 2026-10-15.4, Didit only and 30-day notice.
