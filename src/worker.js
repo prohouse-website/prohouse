@@ -1,4 +1,5 @@
 import { onRequestPost } from './survey.js';
+import { cleanerPortal } from './cleaner-portal.js';
 
 export default {
   async fetch(request, env) {
@@ -16,6 +17,26 @@ export default {
     if (path === '/api/survey') {
       if (request.method !== 'POST') return new Response('Method not allowed', { status: 405, headers: { Allow: 'POST', 'Cache-Control': 'no-store' } });
       return onRequestPost({ request, env });
+    }
+    const portalPath=path==='/cleaners'||path.startsWith('/cleaners/')||path==='/vendors'||path.startsWith('/vendors/');
+    if (portalPath) {
+      const target=new URL(env.VENDOR_PORTAL_ORIGIN||url.origin);
+      target.pathname=path.replace(/^\/cleaners(?=\/|$)/,'/vendors');
+      if(target.pathname==='/vendors')target.pathname='/vendors/';
+      target.search=url.search;
+      if(target.href!==url.href)return Response.redirect(target,302);
+    }
+    if (path.startsWith('/api/cleaners/')||path.startsWith('/api/vendors/')) return cleanerPortal(request, env);
+    if (path.startsWith('/vendors/')) {
+      const assetURL=new URL(request.url);assetURL.pathname=path.replace(/^\/vendors\//,'/cleaners/');
+      const asset = await env.ASSETS.fetch(new Request(assetURL,request));
+      const response = new Response(asset.body, asset);
+      response.headers.set('Cache-Control', 'no-store');
+      response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+      response.headers.set('Referrer-Policy', 'no-referrer');
+      response.headers.set('X-Content-Type-Options', 'nosniff');
+      response.headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
+      return response;
     }
     if (path.startsWith('/api/')) return new Response('Not found', { status: 404 });
     return env.ASSETS.fetch(request);
