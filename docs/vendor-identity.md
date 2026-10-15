@@ -37,3 +37,5 @@ Run `node --test test/cleaner-portal.test.js` (Node SQLite and Poppler `pdftotex
 ## Portal address and sender
 
 The portal is served at `/vendors/`, with `/cleaners/` redirected for existing invitations. New UI API calls use `/api/vendors/`; legacy `/api/cleaners/` remains a compatible alias. Static source remains in `public/cleaners` and is internally served under `/vendors`. Both preview hostnames share the same isolated database. `VENDOR_PORTAL_ORIGIN` makes the new preview the canonical portal host; it is omitted from production settings. Agreement and survey sender settings now use `no-reply@prohouse.com.au`; replies continue to go to `hi@prohouse.com.au`. Preview CI deploys both hostnames to preserve old links.
+
+Production links and `/vendors/` redirect to the established vendor-portal host so existing real agreements remain accessible in its database. Guest website pages stay on the production domain.

@@ -12,7 +12,8 @@
   "vars": {
     "SURVEY_FROM_EMAIL": "ProHouse Survey <no-reply@prohouse.com.au>",
     "PROHOUSE_ADMIN_EMAILS": "hi@prohouse.com.au",
-    "CLEANER_FROM_EMAIL": "ProHouse Agreements <no-reply@prohouse.com.au>"
+    "CLEANER_FROM_EMAIL": "ProHouse Agreements <no-reply@prohouse.com.au>",
+    "VENDOR_PORTAL_ORIGIN": "https://new-vendor-agreement-portal-prohouse.hi-07f.workers.dev"
   },
   "previews": {
     "vars": {
