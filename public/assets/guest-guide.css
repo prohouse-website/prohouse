@@ -15,3 +15,5 @@
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 
 .arrival-warning{margin-top:12px;font-weight:700}.arrival-copy h2{margin-top:0}.parking-short-title{font-size:32px!important;margin-bottom:22px}.parking-rules{margin-top:28px;border:1px solid var(--line);border-radius:8px;padding:18px;background:white;font-size:14px;line-height:1.7}.parking-rules summary{font-weight:700;cursor:pointer;min-height:30px}.parking-rules p{margin-top:14px}.parking-rules ul{padding-left:20px}.parking-rules li{margin-top:10px}.guest-hub .arrival-copy{padding-bottom:24px}
+
+.parking-rules{margin:0 0 20px}.parking-rules h2{font-size:30px!important;line-height:1.1}.parking-consent{width:22px;height:22px;margin:0 10px 0 0;vertical-align:middle;accent-color:var(--ink)}.parking-consent-label{display:inline;font-size:15px;font-weight:700;line-height:1.7;cursor:pointer}.parking-consent:focus-visible{outline:3px solid #8542ce;outline-offset:4px}.parking-instructions{display:none;margin-top:32px}.parking-consent:checked~.parking-instructions{display:block}
