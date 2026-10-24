@@ -88,7 +88,7 @@ test('signature hash prevents countersigning modified cleaner content; withdrawa
 
 test('configuration status identifies missing email without permitting a send',async()=>{
  const env=context();delete env.RESEND_API_KEY;
- const status=await request(env,'status');assert.equal(status.status,200);assert.deepEqual(await status.json(),{ready:false,missing:['email secret'],termsVersion:'2026-10-24.2'});
+ const status=await request(env,'status');assert.equal(status.status,200);assert.deepEqual(await status.json(),{ready:false,missing:['email secret'],termsVersion:'2026-10-24.3'});
  const login=await request(env,'auth/request',{email:'hi@prohouse.com.au',role:'prohouse'});assert.equal(login.status,503);assert.match((await login.json()).error,/RESEND_API_KEY/);
  assert.equal(env.CLEANER_DB.raw.prepare('SELECT COUNT(*) AS n FROM cleaner_login').get().n,0);
 });
@@ -132,7 +132,7 @@ test('Didit-only identity, 30-day notice, safety terms, PDF and private service 
   assert.equal((await raw('identity/upload',vendor.cookie,bytes)).status,410);
   assert.equal((await raw('evidence/upload',vendor.cookie,bytes)).status,403);
   const list=await (await request(env,'agreements',undefined,vendor.cookie)).json(),d=list.items[0].data;
-  assert.equal(d.termsVersion,'2026-10-24.2');assert.equal(d.identityMethod,'didit');
+  assert.equal(d.termsVersion,'2026-10-24.3');assert.equal(d.identityMethod,'didit');
   const notice=d.terms.find(([heading])=>heading.startsWith('9.'))[1];
   assert.ok(notice.startsWith('The vendor must give ProHouse at least 30 calendar days'));
   assert.ok(notice.includes('ProHouse is not subject to this 30-day notice requirement'));
