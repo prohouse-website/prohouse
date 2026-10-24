@@ -2,7 +2,7 @@
 
 Preview: https://new-vendor-agreement-portal-prohouse.hi-07f.workers.dev/vendors/
 
-New agreements use version `2026-10-24.5`. Stored signed snapshots retain their original terms. Use a replacement agreement for revised terms; never rewrite an existing signed submission. See `vendor-contract-20261024.md` for the approved protections, onboarding checks and human verification still required.
+New agreements use version `2026-10-24.6`. Stored signed snapshots retain their original terms. Use a replacement agreement for revised terms; never rewrite an existing signed submission. See `vendor-contract-20261024.md` for the approved protections, onboarding checks and human verification still required.
 
 ## Agreement flow
 
@@ -14,7 +14,7 @@ ProHouse and vendors sign in with email codes. ProHouse sets scope, contacts, se
 - The terms refer to the contacts in the schedule instead of repeating a phone number.
 - Doors and windows remain locked; no tailgating or voluntary admission based on a claimed role. Refer access requests to ProHouse at the listed contacts. The terms preserve lawful entry and emergency access.
 - Urgent matters: call first, then send WhatsApp photo evidence. All damage and extra-charge reports must reach WhatsApp before 9 pm Sydney time on departure day. Obtain written approval before extras, subject to immediate emergency loss prevention.
-- Both parties give at least 30 calendar days’ written notice of proposed rate increases or ending future work. Rates change only by written agreement after that period. ProHouse may cancel a confirmed clean before 9:00 AM Sydney time on its service date without a vendor claim; late cancellation rules are separate. Serious-breach/mandatory-rights protections and payment for completed approved work remain.
+- Clause 9 has two short points: both parties give at least 30 calendar days’ written notice to end this agreement or propose a rate change. Rates change only by written agreement after that period. Clause 3 preserves ProHouse’s right to cancel a confirmed clean before 9:00 AM Sydney time on its service date without a vendor claim. Serious-breach/mandatory-rights protections and payment for completed approved work remain elsewhere.
 - ProHouse controls payment terms. Vendor paymentDays/paymentTerms/proposal overrides are rejected.
 - After each clean, vendors must upload after-cleaning photos to the portal or send them via WhatsApp, identifying service date and room/areas and avoiding personal information.
 
