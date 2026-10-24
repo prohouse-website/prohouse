@@ -42,5 +42,8 @@
       "migrations_dir": "migrations",
       "preview_database_id": "9e99d3d9-221a-46a7-b958-09261129655c"
     }
+  ],
+  "compatibility_flags": [
+    "global_fetch_strictly_public"
   ]
 }
