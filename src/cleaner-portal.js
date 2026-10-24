@@ -89,7 +89,7 @@ export async function cleanerPortal(req,env) {
   if(!emailOK(email))errors.inviteEmail='Enter a valid vendor email address.';
   else if(admin(email,env))errors.inviteEmail='Use the vendor’s own email address. A ProHouse administrator email cannot also be the vendor on this agreement.';
   if(Object.keys(errors).length)return json({error:Object.values(errors).join(' '),fields:errors},400);
-  const id=crypto.randomUUID(),now=new Date().toISOString(),data={proposal:safeSchedule(body.proposal),termsVersion:'2026-10-15.4',idRequired:true,identityMethod:'didit',terms,audit:[{event:'ProHouse sent service schedule and terms',at:now,by:user.email}]};
+  const id=crypto.randomUUID(),now=new Date().toISOString(),data={proposal:safeSchedule(body.proposal),termsVersion:'2026-10-24.1',idRequired:true,identityMethod:'didit',terms,audit:[{event:'ProHouse sent service schedule and terms',at:now,by:user.email}]};
   const text=`ProHouse invites you to review a vendor service agreement.\n\nSign in with ${email} at ${origin(req)}${ROOT}?agreement=${id}\n\nReview all services, proposed rates and terms, enter your business and bank details, then sign. You may propose your own rates. ProHouse will review and countersign to accept. The agreement takes effect only after both signatures.\n\nReference: ${id}\nQuestions: hi@prohouse.com.au`;
   await env.CLEANER_DB.batch([stmt(env,'INSERT INTO cleaner_agreements(id,email,status,data,updated) VALUES(?,?,?,?,?)',id,email,'Awaiting cleaner',JSON.stringify(data),now),mailRow(env,id+'-invite',id,'Invitation',email,{to:email,subject:'ProHouse — vendor agreement for your review',text})]);
   await drain(env,id);return json({ok:true,id,mail:await status(env,id)},201);

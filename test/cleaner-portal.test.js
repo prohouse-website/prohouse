@@ -131,7 +131,12 @@ test('Didit-only identity, 30-day notice, safety terms, PDF and private service 
   assert.equal((await raw('identity/upload',vendor.cookie,bytes)).status,410);
   assert.equal((await raw('evidence/upload',vendor.cookie,bytes)).status,403);
   const list=await (await request(env,'agreements',undefined,vendor.cookie)).json(),d=list.items[0].data;
-  assert.equal(d.termsVersion,'2026-10-15.4');assert.equal(d.identityMethod,'didit');
+  assert.equal(d.termsVersion,'2026-10-24.1');assert.equal(d.identityMethod,'didit');
+  const notice=d.terms.find(([heading])=>heading.startsWith('9.'))[1];
+  assert.ok(notice.startsWith('The vendor must give ProHouse at least 30 calendar days'));
+  assert.ok(notice.includes('ProHouse is not subject to this 30-day notice requirement'));
+  assert.ok(notice.includes('written notice effective on receipt'));
+  assert.ok(notice.includes('express written acceptance by both parties'));
   const text=JSON.stringify(d.terms);for(const str of ['30 calendar days','rate increase','tailgating','windows locked','police officer','lawful power of entry','photo evidence','departure day','after-cleaning','WhatsApp'])assert.ok(text.includes(str),str);
   assert.doesNotMatch(text,/(?:0423|\+61\s*423)/);assert.ok(!text.includes('28 days'));
   assert.equal((await request(env,'agreements/'+id+'/sign',{cleaner:{...cleaner,paymentDays:60},consent:true},vendor.cookie)).status,400);
