@@ -88,7 +88,7 @@ test('signature hash prevents countersigning modified cleaner content; withdrawa
 
 test('configuration status identifies missing email without permitting a send',async()=>{
  const env=context();delete env.RESEND_API_KEY;
- const status=await request(env,'status');assert.equal(status.status,200);assert.deepEqual(await status.json(),{ready:false,missing:['email secret'],termsVersion:'2026-10-24.5'});
+ const status=await request(env,'status');assert.equal(status.status,200);assert.deepEqual(await status.json(),{ready:false,missing:['email secret'],termsVersion:'2026-10-24.6'});
  const login=await request(env,'auth/request',{email:'hi@prohouse.com.au',role:'prohouse'});assert.equal(login.status,503);assert.match((await login.json()).error,/RESEND_API_KEY/);
  assert.equal(env.CLEANER_DB.raw.prepare('SELECT COUNT(*) AS n FROM cleaner_login').get().n,0);
 });
@@ -132,14 +132,15 @@ test('Didit-only identity, 30-day notice, safety terms, PDF and private service 
   assert.equal((await raw('identity/upload',vendor.cookie,bytes)).status,410);
   assert.equal((await raw('evidence/upload',vendor.cookie,bytes)).status,403);
   const list=await (await request(env,'agreements',undefined,vendor.cookie)).json(),d=list.items[0].data;
-  assert.equal(d.termsVersion,'2026-10-24.5');assert.equal(d.identityMethod,'didit');
+  assert.equal(d.termsVersion,'2026-10-24.6');assert.equal(d.identityMethod,'didit');
   const notice=d.terms.find(([heading])=>heading.startsWith('9.'))[1];
-  assert.ok(notice.startsWith('Either party must give at least 30 calendar days'));
-  assert.ok(notice.includes('The period starts on delivery under clause 12'));
-  assert.ok(notice.includes('before 9:00 AM Sydney time'));
-  assert.ok(notice.includes('No cancellation fee, reimbursement or other claim is payable'));
-  assert.ok(notice.includes('Rates change only by written agreement after the 30 days'));
-  const text=JSON.stringify(d.terms);for(const str of ['30 calendar days','rate increase','tailgating','windows locked','police officer','lawful power of entry','photo evidence','departure day','after-cleaning','WhatsApp'])assert.ok(text.includes(str),str);
+  assert.ok(notice.startsWith('1. Ending the agreement: Either party may end this agreement'));
+  assert.ok(notice.includes('\n2. Rate changes: Either party must give at least 30 calendar days'));
+  assert.ok(notice.includes('It takes effect only if both parties agree in writing after that period'));
+  const cleaning=d.terms.find(([heading])=>heading.startsWith('3.'))[1];
+  assert.ok(cleaning.includes('before 9:00 AM Sydney time'));
+  assert.ok(cleaning.includes('with no cancellation fee, reimbursement or other claim'));
+  const text=JSON.stringify(d.terms);for(const str of ['30 calendar days','rate change','tailgating','windows locked','police officer','lawful power of entry','photo evidence','departure day','after-cleaning','WhatsApp'])assert.ok(text.includes(str),str);
   assert.doesNotMatch(text,/(?:0423|\+61\s*423)/);assert.ok(!text.includes('28 days'));
   assert.equal((await request(env,'agreements/'+id+'/sign',{cleaner:{...cleaner,paymentDays:60},consent:true},vendor.cookie)).status,400);
   await uploadAndReview(env,id);
