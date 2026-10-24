@@ -49,7 +49,8 @@ for (const url of urls) {
     assert(existsSync(resolve(publicDir, '.' + asset)), `Missing asset ${asset} on ${url}`);
   }
   for (const [, target] of html.matchAll(/href="(\/[^"?#]*)/g)) {
-    assert(existsSync(resolve(publicDir, '.' + target)) || existsSync(resolve(publicDir, '.' + target, 'index.html')), `Broken internal link ${target} on ${url}`);
+    const assetTarget = target.startsWith('/vendors/') ? target.replace('/vendors/', '/cleaners/') : target;
+    assert(existsSync(resolve(publicDir, '.' + assetTarget)) || existsSync(resolve(publicDir, '.' + assetTarget, 'index.html')), `Broken internal link ${target} on ${url}`);
   }
   if (process.argv.includes('--live')) {
     const response = await fetch(url, { signal: AbortSignal.timeout(20000) });
