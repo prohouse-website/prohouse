@@ -2,7 +2,7 @@
 
 Preview: https://new-vendor-agreement-portal-prohouse.hi-07f.workers.dev/vendors/
 
-New agreements use version `2026-10-24.2`. Stored signed snapshots retain their original terms. Use a replacement agreement for revised terms; never rewrite an existing signed submission. See `vendor-contract-20261024.md` for the approved protections, onboarding checks and human verification still required.
+New agreements use version `2026-10-24.3`. Stored signed snapshots retain their original terms. Use a replacement agreement for revised terms; never rewrite an existing signed submission. See `vendor-contract-20261024.md` for the approved protections, onboarding checks and human verification still required.
 
 ## Agreement flow
 
