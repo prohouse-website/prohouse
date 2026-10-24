@@ -8,7 +8,7 @@ The production source is this repository. Cloudflare Workers Builds is connected
 2. Wait for the Cloudflare preview build and open its preview URL.
 3. Check the homepage, changed pages, images, navigation and booking links. Test the survey only when preview runtime secrets are configured.
 4. Get Brian's approval before merging.
-5. Merge into `main`. Cloudflare runs `npx wrangler deploy` automatically.
+5. Merge into `main`. Cloudflare runs `npx wrangler deploy && npx wrangler preview --name new-vendor-agreement-portal` automatically. Brian approved updating both the main website and the established vendor portal in the same release. Preserve the vendor portal database and runtime secrets.
 6. Confirm the production build succeeded and check the live website.
 
 ## Configuration

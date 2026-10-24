@@ -5,6 +5,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { cleanerPortal } from '../src/cleaner-portal.js';
 import worker from '../src/worker.js';
+import { PROHOUSE_DEFAULTS } from '../public/cleaners/prohouse-defaults.js';
 const hash=async s=>Buffer.from(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s))).toString('hex');
 const base='https://www.prohouse.com.au';
 function database(){const db=new DatabaseSync(':memory:');db.exec(readFileSync(new URL('../migrations/0001_cleaner_portal.sql',import.meta.url),'utf8'));db.exec(readFileSync(new URL('../migrations/0002_vendor_identity.sql',import.meta.url),'utf8'));db.exec(readFileSync(new URL('../migrations/0003_service_evidence.sql',import.meta.url),'utf8'));const prepare=sql=>({sql,values:[],bind(...values){this.values=values.map(v=>v instanceof ArrayBuffer?new Uint8Array(v):v);return this;},async run(){const r=db.prepare(this.sql).run(...this.values);return {meta:{changes:Number(r.changes)}};},async first(){return db.prepare(this.sql).get(...this.values)||null;},async all(){return {results:db.prepare(this.sql).all(...this.values)};}});return {prepare,async batch(ops){db.exec('BEGIN');try{const r=[];for(const o of ops)r.push(await o.run());db.exec('COMMIT');return r;}catch(e){db.exec('ROLLBACK');throw e;}},raw:db};}
@@ -15,7 +16,7 @@ const pdfText=bytes=>execFileSync('pdftotext',['-','-'],{input:bytes}).toString(
 // Other lifecycle tests seed an already authenticated Didit outcome. Provider trust is tested separately.
 async function uploadAndReview(env,id){env.CLEANER_DB.raw.prepare("INSERT INTO vendor_id_checks(agreement_id,session_id,provider_status,provider_name,checked_at) VALUES(?,?,'Approved','Test Cleaner',?) ON CONFLICT(agreement_id) DO UPDATE SET provider_status='Approved',provider_name='Test Cleaner'").run(id,'fixture-session',new Date().toISOString());}
 const proposal={legal:'ProHouse Pty Ltd',abn:'51824753556',address:'Sydney NSW',scope:'Room 1 + bathroom + shared kitchen; replenish supplies and send photos.',rows:[{service:'Room turnover',unit:'Per clean',rate:'80.00'}],gst:'Not GST registered — no GST charged',start:'2026-10-20',paymentDays:7,insurance:'Legally required insurance.'};
-const cleaner={legal:'Test Cleaner',entity:'Test Cleaning',abn:'51824753556',phone:'0400000000',address:'Sydney',accountName:'Test Cleaning',bank:'Test Bank',bsb:'123456',accountNumber:'123456789',rows:[{service:'Room turnover',unit:'Per clean',rate:'90.00'}],gst:'Not GST registered — no GST charged',signature:'Test Cleaner',notes:'Supplies included'};
+const cleaner={role:'Owner',insurer:'Example Insurance',policyNumber:'TEST-123',policyExpiry:'2099-12-31',certificateReference:'Example certificate emailed to ProHouse',legal:'Test Cleaner',entity:'Test Cleaning',abn:'51824753556',phone:'0400000000',address:'Sydney',accountName:'Test Cleaning',bank:'Test Bank',bsb:'123456',accountNumber:'123456789',rows:[{service:'Room turnover',unit:'Per clean',rate:'90.00'}],gst:'Not GST registered — no GST charged',signature:'Test Cleaner',notes:'Supplies included'};
 test('full portal lifecycle, privacy, locked signatures and email retries',async t=>{
  const env=context(),mails=[];let fail=false;const realFetch=globalThis.fetch;
  globalThis.fetch=async(url,options)=>{assert.equal(url,'https://api.resend.com/emails');if(fail)return new Response('outage',{status:503});mails.push(JSON.parse(options.body));return Response.json({id:'email-'+mails.length});};
@@ -47,7 +48,7 @@ test('full portal lifecycle, privacy, locked signatures and email retries',async
   const list=await (await request(env,'agreements',undefined,admin.cookie)).json();const a=list.items.find(a=>a.id===id);assert.equal(a.data.cleaner.email,'cleaner@example.com');assert.equal(a.data.cleaner.rows[0].rate,'90.00');assert.match(a.data.signedContentHash,/^[a-f0-9]{64}$/);
  });
  await t.test('countersign completes even if mail provider fails; immutable copies queued',async()=>{
-  fail=true;const r=await request(env,'agreements/'+id+'/sign',{signature:'Brian Nguyen',consent:true},admin.cookie);assert.equal(r.status,200);const d=await r.json();assert.equal(d.status,'Completed');assert.equal(d.mail.filter(x=>!x.sent_at).length,2);
+  fail=true;const r=await request(env,'agreements/'+id+'/sign',{signature:'Brian Nguyen',consent:true,complianceReviewed:true},admin.cookie);assert.equal(r.status,200);const d=await r.json();assert.equal(d.status,'Completed');assert.equal(d.mail.filter(x=>!x.sent_at).length,2);
   assert.equal((await request(env,'agreements/'+id+'/sign',{signature:'Changed',consent:true},admin.cookie)).status,409);
   assert.equal((await request(env,'agreements/'+id+'/withdraw',{},admin.cookie)).status,409);
   assert.equal((await request(env,'agreements/'+id+'/retry-mail',{},cleanerSession.cookie)).status,403);
@@ -87,7 +88,7 @@ test('signature hash prevents countersigning modified cleaner content; withdrawa
 
 test('configuration status identifies missing email without permitting a send',async()=>{
  const env=context();delete env.RESEND_API_KEY;
- const status=await request(env,'status');assert.equal(status.status,200);assert.deepEqual(await status.json(),{ready:false,missing:['email secret']});
+ const status=await request(env,'status');assert.equal(status.status,200);assert.deepEqual(await status.json(),{ready:false,missing:['email secret'],termsVersion:'2026-10-24.2'});
  const login=await request(env,'auth/request',{email:'hi@prohouse.com.au',role:'prohouse'});assert.equal(login.status,503);assert.match((await login.json()).error,/RESEND_API_KEY/);
  assert.equal(env.CLEANER_DB.raw.prepare('SELECT COUNT(*) AS n FROM cleaner_login').get().n,0);
 });
@@ -103,7 +104,7 @@ test('optional ProHouse prices remain blank until cleaner supplies final prices'
   const unsigned=await request(env,'agreements/'+id+'/sign',{cleaner:{...cleaner,rows:blankOffer.rows},consent:true},session.cookie);assert.equal(unsigned.status,400);
   await uploadAndReview(env,id,owner.cookie,session.cookie);
   const signed=await request(env,'agreements/'+id+'/sign',{cleaner:{...cleaner,rows:[{service:'Bedroom and bathroom',unit:'Per clean',rate:'85'},{service:'Kitchen touch-up',unit:'Per visit',rate:'20'}]},consent:true},session.cookie);assert.equal(signed.status,200);
-  assert.equal((await request(env,'agreements/'+id+'/sign',{signature:'Brian Nguyen',consent:true},owner.cookie)).status,200);
+  assert.equal((await request(env,'agreements/'+id+'/sign',{signature:'Brian Nguyen',consent:true,complianceReviewed:true},owner.cookie)).status,200);
   const finalCopy=pdfText(Buffer.from(mails.at(-1).attachments[0].content,'base64'));assert.ok(finalCopy.includes('$85.00'));assert.ok(finalCopy.includes('$20.00'));
  }finally{globalThis.fetch=old;}
 });
@@ -131,7 +132,7 @@ test('Didit-only identity, 30-day notice, safety terms, PDF and private service 
   assert.equal((await raw('identity/upload',vendor.cookie,bytes)).status,410);
   assert.equal((await raw('evidence/upload',vendor.cookie,bytes)).status,403);
   const list=await (await request(env,'agreements',undefined,vendor.cookie)).json(),d=list.items[0].data;
-  assert.equal(d.termsVersion,'2026-10-24.1');assert.equal(d.identityMethod,'didit');
+  assert.equal(d.termsVersion,'2026-10-24.2');assert.equal(d.identityMethod,'didit');
   const notice=d.terms.find(([heading])=>heading.startsWith('9.'))[1];
   assert.ok(notice.startsWith('The vendor must give ProHouse at least 30 calendar days'));
   assert.ok(notice.includes('ProHouse is not subject to this 30-day notice requirement'));
@@ -142,7 +143,7 @@ test('Didit-only identity, 30-day notice, safety terms, PDF and private service 
   assert.equal((await request(env,'agreements/'+id+'/sign',{cleaner:{...cleaner,paymentDays:60},consent:true},vendor.cookie)).status,400);
   await uploadAndReview(env,id);
   assert.equal((await request(env,'agreements/'+id+'/sign',{cleaner,consent:true},vendor.cookie)).status,200);
-  assert.equal((await request(env,'agreements/'+id+'/sign',{signature:'Brian Nguyen',consent:true},owner.cookie)).status,200);
+  assert.equal((await request(env,'agreements/'+id+'/sign',{signature:'Brian Nguyen',consent:true,complianceReviewed:true},owner.cookie)).status,200);
   const mail=mails.at(-1),pdf=Buffer.from(mail.attachments[0].content,'base64');assert.equal(pdf.subarray(0,5).toString(),'%PDF-');assert.ok(pdfText(pdf).includes('Didit ID, liveness and face match'));
   assert.equal((await raw('evidence/upload',owner.cookie,bytes)).status,403);
   assert.equal((await raw('evidence/upload',vendor.cookie,bytes,'2026-02-30')).status,400);
@@ -170,7 +171,47 @@ test('Didit result must be fetched server-side with matching session and all thr
   decision.liveness_checks=[{status:'Approved'}];decision.face_matches=[{status:'Approved'}];
   result=await (await request(env,'agreements/'+id+'/identity/refresh',{},vendor.cookie)).json();assert.equal(result.check.provider_status,'Approved');
   assert.equal((await request(env,'agreements/'+id+'/sign',{cleaner,consent:true},vendor.cookie)).status,200);
-  assert.equal((await request(env,'agreements/'+id+'/sign',{signature:'Brian Nguyen',consent:true},owner.cookie)).status,200);
+  assert.equal((await request(env,'agreements/'+id+'/sign',{signature:'Brian Nguyen',consent:true,complianceReviewed:true},owner.cookie)).status,200);
   const data=JSON.parse(env.CLEANER_DB.raw.prepare('SELECT data FROM cleaner_agreements WHERE id=?').get(id).data);assert.ok(data.identityVerification.method.includes('Didit'));
+ }finally{globalThis.fetch=old;}
+});
+
+test('verified-name signature, insurance and ProHouse due-diligence checks are mandatory on revised agreements',async()=>{
+ const env=context(),mails=[],old=globalThis.fetch;globalThis.fetch=async(u,o)=>{mails.push(JSON.parse(o.body));return Response.json({id:'test'});};
+ try{
+  assert.equal(PROHOUSE_DEFAULTS.legal,'Cu Hoang Ngoc Nguyen');
+  assert.ok(PROHOUSE_DEFAULTS.insurance.includes('10 million'));
+  const owner=await login(env,'hi@prohouse.com.au','prohouse',mails);
+  const result=await request(env,'agreements',{email:'vendor@example.com',proposal:{...proposal,legal:PROHOUSE_DEFAULTS.legal}},owner.cookie),id=(await result.json()).id;
+  const vendor=await login(env,'vendor@example.com','vendor',mails);await uploadAndReview(env,id);
+  assert.equal((await request(env,'agreements/'+id+'/sign',{cleaner:{...cleaner,role:''},consent:true},vendor.cookie)).status,400);
+  assert.equal((await request(env,'agreements/'+id+'/sign',{cleaner:{...cleaner,signature:'Different Person'},consent:true},vendor.cookie)).status,400);
+  assert.equal((await request(env,'agreements/'+id+'/sign',{cleaner:{...cleaner,policyExpiry:'2000-01-01'},consent:true},vendor.cookie)).status,400);
+  assert.equal((await request(env,'agreements/'+id+'/sign',{cleaner,consent:true},vendor.cookie)).status,200);
+  assert.equal((await request(env,'agreements/'+id+'/sign',{signature:'Brian Nguyen',consent:true,complianceReviewed:false},owner.cookie)).status,400);
+  assert.equal((await request(env,'agreements/'+id+'/sign',{signature:'Brian Nguyen',consent:true,complianceReviewed:true},owner.cookie)).status,200);
+  const row=env.CLEANER_DB.raw.prepare('SELECT data FROM cleaner_agreements WHERE id=?').get(id),d=JSON.parse(row.data);
+  assert.equal(d.cleaner.role,'Owner');assert.equal(d.complianceReview.by,'hi@prohouse.com.au');
+  const pdf=pdfText(Buffer.from(mails.at(-1).attachments[0].content,'base64'));
+  assert.ok(pdf.includes('Cu Hoang Ngoc Nguyen trading as ProHouse'));assert.ok(pdf.includes('TEST-123'));assert.ok(pdf.includes('ProHouse onboarding review'));
+  assert.ok(d.terms.some(([h,t])=>h.startsWith('12.')&&t.includes('cannot silently waive')));
+  assert.ok(d.terms.some(([h,t])=>h.startsWith('13.')&&t.includes('avoid double recovery')));
+ }finally{globalThis.fetch=old;}
+});
+test('new template does not rewrite historical signed snapshots or require new fields retrospectively',async()=>{
+ const env=context(),mails=[],old=globalThis.fetch;globalThis.fetch=async(u,o)=>{mails.push(JSON.parse(o.body));return Response.json({id:'test'});};
+ try{
+  const owner=await login(env,'hi@prohouse.com.au','prohouse',mails);
+  const result=await request(env,'agreements',{email:'legacy@example.com',proposal},owner.cookie),id=(await result.json()).id;
+  const raw=env.CLEANER_DB.raw,row=raw.prepare('SELECT data FROM cleaner_agreements WHERE id=?').get(id),d=JSON.parse(row.data);
+  delete d.onboardingRequired;delete d.idRequired;d.termsVersion='historical';d.terms=[['Historical terms','Original agreed text retained.']];
+  raw.prepare('UPDATE cleaner_agreements SET data=? WHERE id=?').run(JSON.stringify(d),id);
+  const vendor=await login(env,'legacy@example.com','vendor',mails),legacy={...cleaner};for(const k of ['role','insurer','policyNumber','policyExpiry','certificateReference'])delete legacy[k];
+  assert.equal((await request(env,'agreements/'+id+'/sign',{cleaner:legacy,consent:true},vendor.cookie)).status,200);
+  assert.equal((await request(env,'agreements/'+id+'/sign',{signature:'Brian Nguyen',consent:true,complianceReviewed:false},owner.cookie)).status,200);
+  const saved=raw.prepare('SELECT data FROM cleaner_agreements WHERE id=?').get(id).data;
+  const listing=await (await request(env,'agreements',undefined,owner.cookie)).json();assert.equal(listing.items[0].data.termsVersion,'historical');assert.deepEqual(listing.items[0].data.terms,d.terms);
+  await request(env,'agreements/'+id+'/copy',undefined,owner.cookie);
+  assert.equal(raw.prepare('SELECT data FROM cleaner_agreements WHERE id=?').get(id).data,saved);
  }finally{globalThis.fetch=old;}
 });

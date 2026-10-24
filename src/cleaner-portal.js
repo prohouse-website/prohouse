@@ -2,7 +2,7 @@ import { agreementPDF } from './agreement-pdf.js';
 import { serviceEvidence, evidenceList } from './service-evidence.js';
 import { vendorIdentity, identitySummary, approvedIdentity, diditReady } from './vendor-identity.js';
 import { PROHOUSE_DEFAULTS } from '../public/cleaners/prohouse-defaults.js';
-import { terms } from './cleaner-terms.js';
+import { terms, termsVersion } from './cleaner-terms.js';
 const ROOT='/vendors/';
 const emailOK = s => typeof s==='string' && s.length<=254 && /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(s);
 const cleanEmail=s=>String(s||'').trim().toLowerCase();
@@ -35,10 +35,12 @@ function scheduleErrors(p) {
  if(!nonempty(p.insurance,2000))errors.insurance='Enter the insurance requirements.';
  return errors;
 }
-function cleanerOK(c) {return c&&['legal','entity','phone','address','accountName','bank','signature'].every(k=>nonempty(c[k],500))&&abnOK(c.abn)&&/^\d{6}$/.test(c.bsb)&&/^\d{5,10}$/.test(c.accountNumber)&&rowsOK(c.rows)&&gstValues.includes(c.gst)&&(!c.notes||nonempty(c.notes,5000));}
+const nameKey=s=>String(s||'').normalize('NFKD').toLowerCase().replace(/[^\p{L}\p{N}]/gu,'');
+function onboardingOK(c){return ['role','insurer','policyNumber','certificateReference'].every(k=>nonempty(c[k],500))&&/^\d{4}-\d{2}-\d{2}$/.test(c.policyExpiry||'')&&Number.isFinite(Date.parse(c.policyExpiry))&&new Date(c.policyExpiry).toISOString().slice(0,10)===c.policyExpiry&&c.policyExpiry>=new Date().toLocaleDateString('en-CA',{timeZone:'Australia/Sydney'})&&nameKey(c.signature)===nameKey(c.legal);}
+function cleanerOK(c,enhanced=false) {return c&&(!enhanced||onboardingOK(c))&&['legal','entity','phone','address','accountName','bank','signature'].every(k=>nonempty(c[k],500))&&abnOK(c.abn)&&/^\d{6}$/.test(c.bsb)&&/^\d{5,10}$/.test(c.accountNumber)&&rowsOK(c.rows)&&gstValues.includes(c.gst)&&(!c.notes||nonempty(c.notes,5000));}
 function record(row) {return {...row,data:JSON.parse(row.data)};}
 function safeSchedule(p) {return {legal:p.legal.trim(),abn:p.abn.replace(/\s/g,''),address:p.address.trim(),phone:(p.phone??PROHOUSE_DEFAULTS.phone).trim(),email:cleanEmail(p.email??PROHOUSE_DEFAULTS.email),serviceAddress:(p.serviceAddress??PROHOUSE_DEFAULTS.serviceAddress).trim(),scope:p.scope.trim(),rows:p.rows.map(r=>({service:r.service.trim(),unit:r.unit.trim(),rate:String(r.rate??'').trim()})),gst:p.gst,start:p.start,paymentDays:Number(p.paymentDays),insurance:p.insurance.trim()};}
-function safeCleaner(c,email) {return Object.fromEntries([...['legal','entity','phone','address','accountName','bank','signature','abn','bsb','accountNumber','notes'].map(k=>[k,String(c[k]||'').trim()]),['email',email],['rows',c.rows.map(r=>({service:r.service.trim(),unit:r.unit.trim(),rate:String(r.rate??'').trim()}))],['gst',c.gst]]);}
+function safeCleaner(c,email) {return Object.fromEntries([...['legal','entity','phone','address','accountName','bank','signature','abn','bsb','accountNumber','notes','tradingName','role','insurer','policyNumber','policyExpiry','certificateReference'].map(k=>[k,String(c[k]||'').trim()]),['email',email],['rows',c.rows.map(r=>({service:r.service.trim(),unit:r.unit.trim(),rate:String(r.rate??'').trim()}))],['gst',c.gst]]);}
 async function identity(req,env) {const t=cookies(req).ph_cleaner_session;if(!t||!/^[a-f0-9]{64}$/.test(t))return null;return stmt(env,'SELECT email FROM cleaner_sessions WHERE token_hash=? AND expires>?',await hash(t),Date.now()).first();}
 function mailRow(env,id,agreementId,kind,recipient,payload) {return stmt(env,'INSERT INTO cleaner_mail(id,agreement_id,kind,recipient,payload) VALUES(?,?,?,?,?)',id,agreementId,kind,recipient,JSON.stringify(payload));}
 function attachment(bytes,name) {let out='';for(const b of bytes)out+=String.fromCharCode(b);return {filename:name,content:btoa(out)};}
@@ -52,7 +54,7 @@ export async function cleanerPortal(req,env) {
  if(!env.CLEANER_DB)missing.push('database');
  if(!env.RESEND_API_KEY)missing.push('email secret');
  if(!(env.CLEANER_FROM_EMAIL||env.SURVEY_FROM_EMAIL))missing.push('email sender');
- if(path==='/api/cleaners/status'&&req.method==='GET')return json({ready:configured(env)?true:false,missing});
+ if(path==='/api/cleaners/status'&&req.method==='GET')return json({ready:configured(env)?true:false,missing,termsVersion});
  if(!configured(env))return json({error:!env.RESEND_API_KEY?'Sign-in is unavailable: this Cloudflare preview is missing its email sending secret (RESEND_API_KEY). No code has been sent. ProHouse must add it in this preview’s Cloudflare secret settings.':'Sign-in is unavailable: the portal’s '+missing.join(' and ')+' configuration is incomplete. No code has been sent.'},503);
  const write=req.method==='POST';
  if(write&&(req.headers.get('origin')!==origin(req)||(!path.endsWith('/identity/upload')&&!path.endsWith('/evidence/upload')&&!req.headers.get('content-type')?.startsWith('application/json'))))return json({error:'Invalid request origin or content type.'},403);
@@ -89,7 +91,7 @@ export async function cleanerPortal(req,env) {
   if(!emailOK(email))errors.inviteEmail='Enter a valid vendor email address.';
   else if(admin(email,env))errors.inviteEmail='Use the vendor’s own email address. A ProHouse administrator email cannot also be the vendor on this agreement.';
   if(Object.keys(errors).length)return json({error:Object.values(errors).join(' '),fields:errors},400);
-  const id=crypto.randomUUID(),now=new Date().toISOString(),data={proposal:safeSchedule(body.proposal),termsVersion:'2026-10-24.1',idRequired:true,identityMethod:'didit',terms,audit:[{event:'ProHouse sent service schedule and terms',at:now,by:user.email}]};
+  const id=crypto.randomUUID(),now=new Date().toISOString(),data={proposal:safeSchedule(body.proposal),termsVersion,onboardingRequired:true,idRequired:true,identityMethod:'didit',terms,audit:[{event:'ProHouse sent service schedule and terms',at:now,by:user.email}]};
   const text=`ProHouse invites you to review a vendor service agreement.\n\nSign in with ${email} at ${origin(req)}${ROOT}?agreement=${id}\n\nReview all services, proposed rates and terms, enter your business and bank details, then sign. You may propose your own rates. ProHouse will review and countersign to accept. The agreement takes effect only after both signatures.\n\nReference: ${id}\nQuestions: hi@prohouse.com.au`;
   await env.CLEANER_DB.batch([stmt(env,'INSERT INTO cleaner_agreements(id,email,status,data,updated) VALUES(?,?,?,?,?)',id,email,'Awaiting cleaner',JSON.stringify(data),now),mailRow(env,id+'-invite',id,'Invitation',email,{to:email,subject:'ProHouse — vendor agreement for your review',text})]);
   await drain(env,id);return json({ok:true,id,mail:await status(env,id)},201);
@@ -108,7 +110,7 @@ export async function cleanerPortal(req,env) {
   if(a.status!=='Awaiting cleaner')return json({error:'This agreement is locked. Ask ProHouse for a replacement if changes are needed.'},409);
   if(body.proposal||body.paymentDays!==undefined||body.cleaner?.paymentDays!==undefined||body.cleaner?.paymentTerms!==undefined)return json({error:'Vendors cannot change the ProHouse payment terms. Only service rates and inclusions may be proposed.'},400);
   if(d.idRequired){const proof=await identitySummary(env,a.id),front=proof.files.find(f=>f.slot==='front'),ready=front&&(front.document_type==='passport'||proof.files.some(f=>f.slot==='back'&&f.document_type===front.document_type));if((d.identityMethod==='didit'||!ready)&&proof.check?.provider_status!=='Approved')return json({error:'Complete verification with Didit and select Check verification result before signing.'},400);}
-  if(body.consent!==true||!cleanerOK(body.cleaner))return json({error:'Complete business, valid ABN, banking, proposed pricing and signature fields, and accept electronic signing.'},400);
+  if(body.consent!==true||!cleanerOK(body.cleaner,d.onboardingRequired))return json({error:'Complete business, valid ABN, banking, proposed pricing and signature fields, and accept electronic signing. For revised agreements, provide signatory role, current insurance and certificate reference; your signature must match your verified full name.'},400);
   d.cleaner=safeCleaner(body.cleaner,user.email);d.cleanerSignedAt=now;
   d.signedContentHash=await hash(JSON.stringify({proposal:d.proposal,terms:d.terms,cleaner:d.cleaner,cleanerSignedAt:now}));
   d.audit.push({event:'Vendor signed final proposed pricing and terms',at:now,by:user.email});next='Awaiting ProHouse';
@@ -119,6 +121,7 @@ export async function cleanerPortal(req,env) {
   const expected=await hash(JSON.stringify({proposal:d.proposal,terms:d.terms,cleaner:d.cleaner,cleanerSignedAt:d.cleanerSignedAt}));
   if(expected!==d.signedContentHash)return json({error:'Signed record failed integrity verification. Contact ProHouse.'},409);
   if(d.idRequired){const verification=await approvedIdentity(env,a.id,d.cleaner.legal,d.identityMethod==='didit');if(!verification)return json({error:'Retrieve an approved Didit result matching the vendor signatory name before countersigning.'},409);d.identityVerification=verification;}
+  if(d.onboardingRequired){if(body.complianceReviewed!==true)return json({error:'Confirm you checked the legal entities, signatory authority, insurance evidence and worker-status obligations before countersigning.'},400);d.complianceReview={by:user.email,at:now,checks:['legal entities and ABNs','signatory authority','insurance evidence and exclusions','worker-status obligations']};}
   d.prohouseSignature=body.signature.trim();d.prohouseSignedAt=now;d.prohouseEmail=user.email;d.audit.push({event:'ProHouse accepted vendor final rates and countersigned',at:now,by:user.email});
   d.completedContentHash=await hash(JSON.stringify(d));next='Completed';
   const copy=attachment(await agreementPDF({...a,status:next,data:d}),'ProHouse-Agreement-'+a.id+'.pdf');
