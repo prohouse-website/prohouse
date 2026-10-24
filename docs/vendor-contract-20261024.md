@@ -2,12 +2,12 @@
 
 ## Contract identity and version
 
-The user confirmed the contracting legal person is **Cu Hoang Ngoc Nguyen**, trading as **ProHouse**. Keep the supplied ABN 36 608 845 532 and existing contacts/address defaults. This is user-confirmed identity, not a claim of independent ABR verification. New terms version: `2026-10-24.2`.
+The user confirmed the contracting legal person is **Cu Hoang Ngoc Nguyen**, trading as **ProHouse**. Keep the supplied ABN 36 608 845 532 and existing contacts/address defaults. This is user-confirmed identity, not a claim of independent ABR verification. New terms version: `2026-10-24.3`.
 
 ## Approved protections
 
 - Express written confirmation identifies each job and its scope, price and responsibilities. No minimum work or exclusivity; ProHouse can stop offering future work without 30 days' notice.
-- The vendor retains 30 days' notice for proposed increases or ending future engagements. Cancelling confirmed jobs is separate, with reasonable, evidenced unavoidable costs rather than automatic penalties. Immediate suspension/termination is tied to serious risks and breaches. Both parties must accept rate changes.
+- The vendor retains 30 days' notice for proposed increases or ending future engagements. ProHouse may cancel a confirmed clean by delivered email or confirmed WhatsApp before 9:00 AM Sydney time on the service date without a vendor claim. Late cancellation pays authorised work actually performed and only reasonable, evidenced, non-reusable job-specific out-of-pocket costs, capped with work payment at the agreed job price excluding approved extras already performed. A rescheduled clean is a new confirmed work order. Immediate suspension/termination is tied to serious risks and breaches. Both parties must accept rate changes.
 - Time-critical rectification and proportionate recovery of evidenced additional costs; mitigation, opportunity to respond, no double recovery, no automatic withholding of undisputed invoices.
 - Core terms prevail over vendor pricing notes. Final accepted rate amounts/GST prevail over initial offers; other departures require an expressly identified signed variation.
 - Return access devices, cease access, supply evidence/final invoices and securely handle guest information on termination.
