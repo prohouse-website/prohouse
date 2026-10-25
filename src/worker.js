@@ -17,7 +17,9 @@ export default {
     if (canonicalAliases[path]) return Response.redirect(new URL(canonicalAliases[path] + url.search, url.origin), 301);
     const aliases = {'/survey':'/review/','/survey/':'/review/','/survey/index.html':'/review/','/G015262/survey':'/G015262/review/','/G015262/survey/':'/G015262/review/','/G015262/survey/index.html':'/G015262/review/'};
     if (aliases[path]) return Response.redirect(new URL(aliases[path] + url.search, url.origin), 301);
-    if (path === '/bill-calculator' || path === '/bill-calculator/index.html') return Response.redirect(new URL('/bill-calculator/' + url.search, url.origin), 301);
+    if (path === '/bill-calculator' || path === '/bill-calculator/' || path === '/bill-calculator/index.html') return Response.redirect(new URL('/operations/sharebill/' + url.search, url.origin), 301);
+    if (path === '/operations' || path === '/operations/index.html') return Response.redirect(new URL('/operations/' + url.search, url.origin), 301);
+    if (path === '/operations/sharebill' || path === '/operations/sharebill/index.html') return Response.redirect(new URL('/operations/sharebill/' + url.search, url.origin), 301);
     if (path === '/api/utilities/pdf') return utilityPDF(request, env);
     if (path === '/api/utilities/extract') return extractUtilityInvoice(request, env);
     if (path === '/api/survey') {
