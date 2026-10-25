@@ -52,6 +52,12 @@
         <div><span class="eyebrow">01 / UTILITY INVOICES</span><h2>Add your bills.</h2></div>
         <span class="bill-mini-note">Different billing dates? No problem.</span>
       </div>
+      <div class="bill-upload-zone">
+        <label for="bill-upload" class="bill-upload-button"><span class="bill-upload-symbol" aria-hidden="true">↑</span><span><strong>UPLOAD YOUR UTILITY BILLS</strong><small>PDF, JPG, PNG or WebP · up to 8 MB per file</small></span><span aria-hidden="true" class="bill-upload-arrow">↗</span></label>
+        <input type="file" id="bill-upload" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp" multiple>
+        <p id="bill-upload-status" class="bill-upload-status" role="status" aria-live="polite">We'll read each file and fill in the bill amount, dates and type. Please check the result before exporting.</p>
+        <div id="bill-upload-log" class="bill-upload-log" aria-live="polite"></div>
+      </div>
       <div id="bills-list" class="bill-stack"></div>
       <button id="add-bill" class="bill-add" type="button"><span>＋</span> ADD ANOTHER BILL</button>
 
@@ -76,7 +82,7 @@
       <div id="report-error" class="bill-error" role="alert" hidden></div>
       <button id="export-pdf" class="bill-export" type="button" disabled>DOWNLOAD PDF REPORT <span aria-hidden="true">↗</span></button>
       <button id="print-report" class="bill-print" type="button" disabled>PRINT / SAVE AS PDF</button>
-      <p class="bill-result-caption">Detailed report includes every invoice, individual tenant allocations, daily occupancy explanation and exact cent rounding.</p>
+      <p class="bill-result-caption">Simple branded PDF with the bills, each person’s total, and a short explanation of the split.</p>
     </aside>
   </div>
   <section class="bill-explainer">
