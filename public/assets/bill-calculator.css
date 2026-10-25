@@ -179,3 +179,48 @@ body.bill-page{margin:0;background:var(--paper);font-family:'DM Sans',Arial,sans
 .bill-file-attachment label:hover{text-decoration:underline}
 .bill-file-attachment span{font-size:10px;color:#66705f}
 .bill-file-attachment input{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;overflow:hidden!important;padding:0!important;border:0!important}
+
+/* Share Bill's inclusive-day display and public operations hub */
+.bill-tenant-days{margin-top:12px;background:#edf4d7;padding:10px 12px;color:#405927;font-size:11px;font-weight:800;border-left:3px solid #a3bc51}
+.bill-day-tool{margin-top:35px;border:1px solid #b9ca86;background:#ecf4d8;padding:25px}
+.bill-day-tool-heading h3{font:700 clamp(29px,3vw,43px)/1 "Barlow Condensed",Impact,sans-serif;margin:10px 0}
+.bill-day-tool-heading p{font-size:12px;color:#52604c;margin-bottom:22px;max-width:540px}
+.bill-day-tool-inner{display:grid;grid-template-columns:1.6fr .8fr;gap:20px;align-items:start}
+.bill-day-count-result{background:#202720;color:#fff;min-height:120px;padding:15px}
+.bill-day-count-result .eyebrow{color:#d2ea7d;font-size:9px}
+.bill-day-count-result strong{font:800 55px/.9 "Barlow Condensed",Impact,sans-serif;display:block;margin:8px 0}
+.bill-day-count-result p{font-size:10px;line-height:1.35;color:#d8e3d1}
+.bill-footer-portal{font-weight:800;text-decoration:underline!important}
+.ops-hero{display:grid;grid-template-columns:1.22fr .78fr;background:var(--acid);min-height:350px}
+.ops-hero-copy{padding:67px 5%}
+.ops-hero h1{font:800 clamp(64px,9vw,126px)/.83 "Barlow Condensed",Impact,sans-serif;letter-spacing:-.032em;margin:20px 0}
+.ops-hero h1 em{color:#4c630c;font-style:normal}
+.ops-hero-copy p{max-width:545px;font-size:14px}
+.ops-hero-art{background:#242924;color:var(--acid);display:flex;align-items:center;justify-content:center;flex-direction:column;min-height:275px}
+.ops-hero-art strong{font:800 190px/1 "Barlow Condensed",Impact,sans-serif}
+.ops-hero-art span{font-size:11px;letter-spacing:.23em;font-weight:800}
+.ops-tools{max-width:1380px;margin:auto;padding:75px 5% 100px}
+.ops-tools>h2{font:800 clamp(54px,7vw,97px)/.87 "Barlow Condensed",Impact,sans-serif;letter-spacing:-.015em;margin:13px 0 33px}
+.ops-tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.ops-tool-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;background:#242924;color:#fff!important;min-height:370px;padding:27px 31px;transition:transform .2s ease,box-shadow .2s ease}
+.ops-tool-card:hover{transform:translateY(-4px);box-shadow:0 12px 35px #1d251b30}
+.ops-tool-card .ops-tool-type{font-size:10px;letter-spacing:.12em;font-weight:800;color:#d5e2c5}
+.ops-tool-card .ops-tool-type>span{margin-left:12px;background:var(--acid);padding:5px 8px;color:#161d14}
+.ops-tool-symbol{font:800 72px/1 "Barlow Condensed",Impact,sans-serif;color:var(--acid);margin:30px 0 15px}
+.ops-tool-card h3{font:800 clamp(34px,4.1vw,58px)/.92 "Barlow Condensed",Impact,sans-serif;margin:0 0 17px}
+.ops-tool-card p{font-size:13px;color:#d0d9cb;max-width:490px;margin-bottom:24px}
+.ops-tool-card>strong{margin-top:auto;font-size:11px;letter-spacing:.1em;padding-bottom:5px;border-bottom:1px solid var(--acid);color:var(--acid)}
+.ops-vendors{background:#e8b1cb;color:#161a18!important}
+.ops-vendors .ops-tool-type,.ops-vendors p,.ops-vendors .ops-tool-symbol,.ops-vendors>strong{color:#202621}
+.ops-vendors>strong{border-color:#202621}
+@media(max-width:760px){
+ .bill-day-tool-inner{grid-template-columns:1fr}
+ .ops-hero{grid-template-columns:1fr}
+ .ops-hero-copy{padding:49px 5%}
+ .ops-hero h1{font-size:clamp(58px,13vw,98px)}
+ .ops-hero-art{display:none}
+ .ops-tools{padding:60px 5%}
+ .ops-tool-grid{grid-template-columns:1fr}
+ .ops-tool-card{min-height:330px}
+ .ops-tools>h2{font-size:64px}
+}
