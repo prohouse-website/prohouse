@@ -61,6 +61,11 @@ export async function extractUtilityInvoice(request,env){
     const file=form.get('bill');
     if(!(file instanceof File))return json({error:'Select a utility bill PDF or photograph.'},400);
     if(file.size<100 || file.size>8*1024*1024)return json({error:'The bill must be between 100 bytes and 8 MB.'},413);
+    if(env.UTILITY_SCAN_LIMIT){
+      const ip=request.headers.get('CF-Connecting-IP')||'anonymous';
+      const {success}=await env.UTILITY_SCAN_LIMIT.limit({key:'utility-scans:'+ip});
+      if(!success)return json({error:'Too many scans. Please try again later or enter the bill manually.'},429);
+    }
     const bytes=new Uint8Array(await file.arrayBuffer());
     const mime=contentKind(bytes);
     const extension=String(file.name||'').split('.').pop()?.toLowerCase();
@@ -75,7 +80,7 @@ export async function extractUtilityInvoice(request,env){
       return json({error:'Could not read text from this bill. Try a clearer photo or enter its details manually.'},422);
     const text=String(convertedItem.data).slice(0,24000);
     const response=await env.AI.run('@cf/cloudflare/clairic',{
-      model:'clairic',state:text,reference_date:new Date().toISOString().slice(0,10),
+      model:'clairic',state:text,
       fields:{
         utility:{type:'text',instructions:'Identify whether this is a water, gas, or electricity utility invoice. Return the utility type named in the document; null if unclear.'},
         amount:{type:'number',decimals:2,unit:'AUD',instructions:'The amount payable or total payable for THIS utility invoice in Australian dollars. Prefer current invoice total; do not use a prior balance, amount already paid, supply charge alone, GST alone, instalment, or account number. Return null if ambiguous.'},
