@@ -1,4 +1,5 @@
-import { calculateUtilitySplit, fmtDate, money, VACANT_ID } from './bill-math.js';
+import { calculateUtilitySplit, money } from './bill-math.js';
+import { billDateBounds, syncTenantsToBills } from './bill-dates.js';
 const $ = id => document.getElementById(id);
 const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const palette = ['#e6ff67','#eaa1bd','#93cddd','#cbb4f1','#f2bd7a','#9ac9a8','#f0da7d','#cfcbf2','#dd9a8a'];
@@ -8,8 +9,8 @@ const periodStart = localISO(new Date(baseDate.getFullYear(),baseDate.getMonth()
 const periodEnd = localISO(baseDate);
 let serial=0;
 const uid = prefix => prefix + '-' + (++serial);
-const newBill = (type='water', start=periodStart, end=periodEnd, amount='') => ({id:uid('bill'),type,start,end,amount});
-const newTenant = (name='', start=periodStart, end=periodEnd) => ({id:uid('tenant'),name,start,end});
+const newBill = (type='water', start=periodStart, end=periodEnd, amount='') => ({id:uid('bill'),type,start,end,amount,label:''});
+const newTenant = (name='', start=periodStart, end=periodEnd) => ({id:uid('tenant'),name,start,end,manualStart:false,manualEnd:false});
 const data = {
   bills: [newBill('water')],
   tenants: [newTenant('Tenant A'),newTenant('Tenant B')]
@@ -17,6 +18,7 @@ const data = {
 let lastReport = null;
 let exporting = false;
 let importing = false;
+const attachedFiles=new Map(); // Browser-session files only. Removed bills remove attachments.
 
 function renderBills(){
   $('bills-list').innerHTML = data.bills.map((b,i)=>'<div class="bill-item" data-kind="bills" data-id="'+escapeHTML(b.id)+'">'+
@@ -27,8 +29,10 @@ function renderBills(){
     [['water','Water'],['gas','Gas'],['electricity','Electricity'],['other','Other']].map(([value,label])=>'<option value="'+value+'"'+(value===b.type?' selected':'')+'>'+label+'</option>').join('')+'</select></div>'+
     '<div><label class="bill-label" for="amount-'+b.id+'">TOTAL BILL / AUD</label><input id="amount-'+b.id+'" inputmode="decimal" type="number" min="0" step="0.01" data-field="amount" placeholder="e.g. 360.00" value="'+escapeHTML(b.amount)+'"></div>'+
     '<div><label class="bill-label" for="ref-'+b.id+'">REFERENCE <span>OPTIONAL</span></label><input id="ref-'+b.id+'" maxlength="60" data-field="reference" placeholder="Invoice no." value="'+escapeHTML(b.reference||'')+'"></div></div>'+
+    (b.type==='other'?'<div class="bill-other-name"><label class="bill-label" for="label-'+b.id+'">WHAT BILL IS THIS?</label><input required id="label-'+b.id+'" data-field="label" maxlength="60" placeholder="e.g. Internet, Strata, Council rates" value="'+escapeHTML(b.label||'')+'"></div>':'')+
     '<div class="bill-row"><div><label class="bill-label" for="start-'+b.id+'">BILL FROM</label><input id="start-'+b.id+'" type="date" data-field="start" value="'+escapeHTML(b.start)+'" required></div>'+
     '<div><label class="bill-label" for="end-'+b.id+'">BILL THROUGH <span>INCLUSIVE</span></label><input id="end-'+b.id+'" type="date" data-field="end" value="'+escapeHTML(b.end)+'" required></div></div>'+
+    '<div class="bill-file-attachment"><label for="attach-'+b.id+'">'+(attachedFiles.has(b.id)?'✓ INVOICE ATTACHED · '+escapeHTML(attachedFiles.get(b.id).originalName):'＋ ATTACH INVOICE FOR PDF (OPTIONAL)')+'</label><input id="attach-'+b.id+'" type="file" data-attachment="1" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp"><span>Original invoice pages are added after the report.</span></div>'+
     (b.sourceName&&!b.reviewed?'<button class="bill-confirm" type="button" data-confirm="1">I CHECKED THIS BILL — CONFIRM DETAILS ✓</button>':'')+'</div>').join('');
 }
 function renderTenants(){
@@ -44,7 +48,16 @@ function handleInput(event){
   if(!wrapper || !target.dataset.field)return;
   const record = data[wrapper.dataset.kind].find(x => x.id === wrapper.dataset.id);
   if(!record)return;
-  record[target.dataset.field]=target.value;
+  const field=target.dataset.field;
+  record[field]=target.value;
+  if(wrapper.dataset.kind==='tenants' && (field==='start'||field==='end')){
+    record[field==='start'?'manualStart':'manualEnd']=true;
+  }
+  if(wrapper.dataset.kind==='bills' && (field==='start'||field==='end')){
+    syncTenantsToBills(data.tenants,data.bills);
+    renderTenants();
+  }
+
   if(wrapper.dataset.kind==='bills' && record.sourceName) {
     record.reviewed=false;
     const confirmButton=wrapper.querySelector('[data-confirm]');
@@ -54,6 +67,7 @@ function handleInput(event){
     const indicator=wrapper.querySelector('.bill-import-notice strong');
     if(indicator)indicator.textContent='REVIEW REQUIRED';
   }
+  if(wrapper.dataset.kind==='bills' && field==='type')renderBills();
   updateReport();
 }
 function handleRemove(event){
@@ -62,7 +76,7 @@ function handleRemove(event){
     const wrapper=confirm.closest('[data-kind="bills"][data-id]');
     const b=data.bills.find(x=>x.id===wrapper?.dataset.id);
     if(!b)return;
-    if(!b.amount||!(Number(b.amount)>0)||!b.start||!b.end||b.end<b.start){showError('Fill in the bill amount and valid billing dates before confirming.');return;}
+    if(!b.amount||!(Number(b.amount)>0)||!b.start||!b.end||b.end<b.start||(b.type==='other'&&!String(b.label||'').trim())){showError('Fill in the bill amount and valid billing dates before confirming.');return;}
     b.reviewed=true;renderBills();updateReport();return;
   }
   const button=event.target.closest('[data-remove]');
@@ -71,7 +85,8 @@ function handleRemove(event){
   if(!wrapper)return;
   const kind=wrapper.dataset.kind;
   data[kind]=data[kind].filter(x=>x.id!==wrapper.dataset.id);
-  if(kind==='bills')renderBills();else renderTenants();
+  if(kind==='bills'){attachedFiles.delete(wrapper.dataset.id);syncTenantsToBills(data.tenants,data.bills);renderBills();renderTenants();}
+  else renderTenants();
   updateReport();
 }
 $('bills-list').addEventListener('input',handleInput);
@@ -80,12 +95,28 @@ $('bills-list').addEventListener('click',handleRemove);
 $('tenants-list').addEventListener('input',handleInput);
 $('tenants-list').addEventListener('change',handleInput);
 $('tenants-list').addEventListener('click',handleRemove);
-$('add-bill').addEventListener('click',()=>{data.bills.push(newBill(data.bills.length===0?'water':'other'));renderBills();updateReport();});
-$('add-tenant').addEventListener('click',()=>{if(data.tenants.length>=80){showError('Maximum 80 tenants per report.');return;}data.tenants.push(newTenant('Tenant '+(data.tenants.length+1)));renderTenants();updateReport();});
+$('add-bill').addEventListener('click',()=>{
+  if(data.bills.length>=30){showError('Maximum 30 bills per report.');return;}
+  const bounds=billDateBounds(data.bills)||{start:periodStart,end:periodEnd};
+  data.bills.push(newBill('water',bounds.start,bounds.end));
+  renderBills();updateReport();
+});
+$('add-tenant').addEventListener('click',()=>{
+  if(data.tenants.length>=80){showError('Maximum 80 tenants per report.');return;}
+  const bounds=billDateBounds(data.bills)||{start:periodStart,end:periodEnd};
+  data.tenants.push(newTenant('Tenant '+(data.tenants.length+1),bounds.start,bounds.end));
+  renderTenants();updateReport();
+});
+$('sync-tenant-dates').addEventListener('click',()=>{
+  if(!syncTenantsToBills(data.tenants,data.bills,{force:true})){showError('Enter a valid bill date range first.');return;}
+  renderTenants();updateReport();
+});
 $('demo-btn').addEventListener('click',()=>{
   $('property-name').value='Wolli Creek · Example property';
+  attachedFiles.clear();
   data.bills=[newBill('water','2026-10-01','2026-11-05','360.00')];
   data.tenants=[newTenant('Tenant A','2026-10-01','2026-11-05'),newTenant('Tenant B','2026-11-04','2026-11-05')];
+  data.tenants[1].manualStart=true;
   renderBills();renderTenants();updateReport();
   $('bill-results').scrollIntoView({behavior:'smooth',block:'nearest'});
 });
@@ -121,16 +152,22 @@ $('bill-upload').addEventListener('change',async event=>{
       let next;
       const blank=data.bills.find(b=>!b.sourceName&&!String(b.amount).trim()&&!b.reference);
       if(blank){
-        Object.assign(blank,{type:result.type||'other',start:result.start||'',end:result.end||'',amount:result.amount||'',reference:result.reference||'',sourceName:file.name.slice(0,120),reviewed:false});
+        Object.assign(blank,{type:result.type||'other',start:result.start||'',end:result.end||'',amount:result.amount||'',reference:result.reference||'',label:result.label||'',sourceName:file.name.slice(0,120),reviewed:false});
         next=blank;
       }else{
         if(data.bills.length>=30)throw new Error('Maximum 30 bills per report.');
         next=newBill(result.type||'other',result.start||'',result.end||'',result.amount||'');
-        Object.assign(next,{reference:result.reference||'',sourceName:file.name.slice(0,120),reviewed:false});
+        Object.assign(next,{reference:result.reference||'',label:result.label||'',sourceName:file.name.slice(0,120),reviewed:false});
         data.bills.push(next);
       }
-      renderBills();updateReport();
-      summary.textContent='Added '+file.name+'. '+(result.missing?.length?'Enter missing '+result.missing.join(', ')+'. ':'')+'Review and confirm its details.';
+      try {
+        attachedFiles.set(next.id,await normaliseAttachment(file));
+      } catch (attachmentError) {
+        summary.textContent='Bill values extracted, but the original file was not attached: '+attachmentError.message+'. ';
+      }
+      syncTenantsToBills(data.tenants,data.bills);
+      renderBills();renderTenants();updateReport();
+      summary.textContent+='Added '+file.name+'. '+(result.missing?.length?'Enter missing '+result.missing.join(', ')+'. ':'')+'Review and confirm its details.';
       success++;
     }catch(error){
       summary.textContent='Could not import '+file.name+': '+(error.message||'Please try again.');
@@ -141,6 +178,42 @@ $('bill-upload').addEventListener('change',async event=>{
   $uploadStatus.textContent=success
     ?'Imported '+success+' bill'+(success===1?'':'s')+'. Check the highlighted details and click CONFIRM on each bill.'
     :'No bills imported. You can add invoices manually below.';
+});
+
+
+// Keep PDF source pages unchanged; WebP is converted locally to JPEG so pdf-lib
+// can embed it. Files are kept in memory, not uploaded until an export is requested.
+async function normaliseAttachment(file){
+  const type=file.type||({'pdf':'application/pdf','jpg':'image/jpeg','jpeg':'image/jpeg','png':'image/png','webp':'image/webp'}[file.name.split('.').pop()?.toLowerCase()]);
+  if(!acceptedFiles.includes(type))throw new Error('Attach a PDF, JPG, PNG or WebP invoice.');
+  if(file.size<100 || file.size>8*1024*1024)throw new Error('Each attached invoice must be below 8 MB.');
+  if(type!=='image/webp')return {file,originalName:file.name.slice(0,120)};
+  const image=await createImageBitmap(file);
+  try{
+    const canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;
+    if(canvas.width*canvas.height>24000000)throw new Error('Image is too large to include in a report.');
+    const context=canvas.getContext('2d');
+    context.fillStyle='#fff';context.fillRect(0,0,canvas.width,canvas.height);
+    context.drawImage(image,0,0);
+    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.88));
+    if(!blob || blob.size>8*1024*1024)throw new Error('Could not convert this image to PDF-compatible format.');
+    return {file:new File([blob],file.name.replace(/\.webp$/i,'.jpg'),{type:'image/jpeg'}),originalName:file.name.slice(0,120)};
+  }finally{image.close();}
+}
+$('bills-list').addEventListener('change',async event=>{
+  const input=event.target.closest('[data-attachment]');
+  if(!input)return;
+  const wrapper=input.closest('[data-kind="bills"]');
+  const chosen=input.files?.[0];
+  if(!chosen||!wrapper)return;
+  try{
+    const normalized=await normaliseAttachment(chosen);
+    const withoutPrevious=[...attachedFiles].filter(([id])=>id!==wrapper.dataset.id).reduce((sum,[,v])=>sum+v.file.size,0);
+    if(withoutPrevious+normalized.file.size>22*1024*1024)throw new Error('Combined attachments must be under 22 MB.');
+    attachedFiles.set(wrapper.dataset.id,normalized);
+    renderBills();
+    updateReport();
+  }catch(error){showError(error.message||'Could not attach this bill.');}
 });
 
 const safeColour = i => palette[i%palette.length];
@@ -188,10 +261,15 @@ function updateReport(){
 async function makePDF(){
   if(!lastReport)throw new Error('Complete the billing details first.');
   if(data.bills.some(b=>b.sourceName&&!b.reviewed))throw new Error('Confirm each uploaded bill before exporting.');
-  const response=await fetch('/api/utilities/pdf',{
-    method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({property:$('property-name').value.trim(),tenants:data.tenants,bills:data.bills})
-  });
+  const payload={property:$('property-name').value.trim(),tenants:data.tenants,bills:data.bills};
+  const body=new FormData();
+  body.append('report',JSON.stringify(payload));
+  for(const bill of data.bills){
+    const item=attachedFiles.get(bill.id);
+    if(item && String(bill.amount).trim()!=='' && Number(bill.amount)>0)
+      body.append('invoice_'+bill.id,item.file,item.file.name);
+  }
+  const response=await fetch('/api/utilities/pdf',{method:'POST',body});
   if(!response.ok){
     let message='Could not generate your PDF. Please try again.';
     try{const info=await response.json();if(typeof info.error==='string')message=info.error;}catch{}
