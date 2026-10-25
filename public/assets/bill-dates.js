@@ -17,3 +17,17 @@ export function syncTenantsToBills(tenants,bills,{force=false}={}) {
   }
   return bounds;
 }
+
+/**
+ * Billing counts inclusive calendar days, including both arrival and departure.
+ * Not hotel nights, where the departure day would not ordinarily be charged.
+ */
+export function inclusiveStayDays(start,end) {
+  const toDay=value=>{
+    if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value))return null;
+    const ms=Date.parse(value+'T00:00:00Z');
+    return Number.isFinite(ms)&&new Date(ms).toISOString().slice(0,10)===value ? Math.round(ms/86400000):null;
+  };
+  const first=toDay(start),last=toDay(end);
+  return first===null||last===null||last<first?null:last-first+1;
+}
