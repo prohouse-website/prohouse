@@ -1,5 +1,6 @@
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
-import { calculateUtilitySplit, fmtDate, money, VACANT_ID } from '../public/assets/bill-math.js';
+import { calculateUtilitySplit, fmtDate, money, VACANT_ID, parseDay } from '../public/assets/bill-math.js';
+import { summariseBilledDays } from './bill-day-summary.js';
 const A4=[595.28,841.89], LEFT=48, RIGHT=547, WIDTH=RIGHT-LEFT;
 const INK=rgb(.12,.14,.13), GREY=rgb(.39,.44,.4), LINE=rgb(.83,.86,.82),
       LIME=rgb(.91,1,.405), PALE=rgb(.96,.97,.94), PINK=rgb(.98,.90,.93), WHITE=rgb(1,1,1);
@@ -16,6 +17,7 @@ async function generatePDF(report,property,references,logoBytes,attachments=[]){
   const font=await pdf.embedFont(StandardFonts.Helvetica);
   const bold=await pdf.embedFont(StandardFonts.HelveticaBold);
   const logo=logoBytes?await pdf.embedPng(logoBytes).catch(()=>null):null;
+  const daySummary=summariseBilledDays(report);
   let page,y,number=0;
   const tx=(str,x,baseline,size=10,face=font,color=INK)=>{
     page.drawText(printable(str,face),{x,y:baseline,size,font:face,color});
@@ -44,12 +46,13 @@ async function generatePDF(report,property,references,logoBytes,attachments=[]){
     y-=11;divider();y-=14;
   }
   function utilityRow(b){
-    needed(30);
+    needed(32);
     const mark=b.name.toUpperCase();
     tx(fitted(mark,bold,9,105),LEFT+8,y-5,9,bold);
-    tx(fitted(fmtDate(b.start)+' - '+fmtDate(b.end),font,9,215),LEFT+111,y-5,9,font,GREY);
+    tx(fitted(fmtDate(b.start)+' - '+fmtDate(b.end),font,8.5,195),LEFT+111,y-5,8.5,font,GREY);
+    tx(b.days+' day'+(b.days===1?'':'s'),LEFT+318,y-5,8,bold,GREY);
     right(money(b.amountCents),RIGHT-7,y-5,10,bold);
-    y-=28;
+    y-=31;
     divider();
   }
   newPage();
@@ -61,7 +64,8 @@ async function generatePDF(report,property,references,logoBytes,attachments=[]){
   page.drawRectangle({x:LEFT,y:y-59,width:WIDTH,height:71,color:INK});
   tx('TOTAL UTILITY BILLS',LEFT+17,y-12,8,bold,LIME);
   tx(money(report.totalCents),LEFT+17,y-45,27,bold,WHITE);
-  right(report.billCount+' bill'+(report.billCount===1?'':'s')+' / '+report.tenantCount+' tenants',RIGHT-17,y-36,9,bold,WHITE);
+  right(report.billCount+' bill'+(report.billCount===1?'':'s')+' / '+report.tenantCount+' tenants',RIGHT-17,y-30,9,bold,WHITE);
+  right(daySummary.billedDays+' total billed day'+(daySummary.billedDays===1?'':'s'),RIGHT-17,y-47,9,bold,LIME);
   y-=96;
   section('1  Bills included');
   for(const b of report.bills)utilityRow(b);
@@ -83,19 +87,27 @@ async function generatePDF(report,property,references,logoBytes,attachments=[]){
   tableHeading();
   const summaries=report.summary;
   summaries.forEach((row,i)=>{
-    const height=43;
+    const height=51;
     if(y-height<98){newPage();section('Amount payable (continued)');tableHeading();}
     page.drawRectangle({x:LEFT,y:y-height,width:WIDTH,height,color:row.id===VACANT_ID?PINK:i%2===1?PALE:WHITE});
     tx(fitted(row.name,bold,10,nameWidth-17),LEFT+9,y-19,10,bold);
     const resident=report.tenants.find(t=>t.id===row.id);
-    if(resident)tx(fitted(fmtDate(resident.start)+' - '+fmtDate(resident.end),font,8,nameWidth-17),LEFT+9,y-33,8,font,GREY);
-    else tx('No occupants',LEFT+9,y-33,8,font,GREY);
+    if(resident){
+      tx(fitted(fmtDate(resident.start)+' - '+fmtDate(resident.end),font,8,nameWidth-17),LEFT+9,y-32,8,font,GREY);
+      const stayDays=parseDay(resident.end)-parseDay(resident.start)+1;
+      const billedDays=daySummary.tenantDays.get(resident.id)||0;
+      const daysLabel=stayDays+' stayed / '+billedDays+' billed days';
+      tx(fitted(daysLabel,bold,7.8,nameWidth-17),LEFT+9,y-45,7.8,bold,GREY);
+    } else {
+      tx('Unoccupied billing days',LEFT+9,y-32,7.8,font,GREY);
+      tx(daySummary.vacantDays+' vacant billed days',LEFT+9,y-45,7.8,bold,GREY);
+    }
     const centsByType=Object.fromEntries(groups.map(g=>[g,0]));
     for(const b of report.bills){
       const r=b.rows.find(p=>p.id===row.id);
       if(r && Object.hasOwn(centsByType,b.type))centsByType[b.type]+=r.amountCents;
     }
-    cols.forEach((g,j)=>right(money(g==='total'?row.amountCents:centsByType[g]),colRight(j),y-25,groups.length>=3?8.3:9,font));
+    cols.forEach((g,j)=>right(money(g==='total'?row.amountCents:centsByType[g]),colRight(j),y-30,groups.length>=3?8.3:9,font));
     y-=height;
     divider();
   });
@@ -107,10 +119,12 @@ async function generatePDF(report,property,references,logoBytes,attachments=[]){
   y-=59;
   needed(105);
   tx('3  How this is calculated',LEFT,y,12,bold);y-=12;divider();y-=18;
-  tx('Each bill is spread evenly across its billing days.',LEFT,y,10,font);y-=17;
+  tx('Each bill is divided by its calendar days (shown next to the bill).',LEFT,y,9.5,font);y-=17;
   tx('Each day is shared equally by the residents living there on that day.',LEFT,y,10,font);y-=17;
   tx('Any empty days are charged to "Vacant / property", not other tenants.',LEFT,y,10,font);y-=17;
-  tx('Amounts are rounded so the split adds up exactly to the invoice total.',LEFT,y,9,font,GREY);
+  tx('Stayed days = whole stay; billed days = days within the bill period(s).',LEFT,y,9,font,GREY);y-=17;
+  needed(16);
+  tx('Shared dates and overlapping invoices are counted once for day totals.',LEFT,y,8.7,font,GREY);
   const summaryPageCount=pdf.getPageCount();
   // Preserve original invoice PDFs as appended pages, rather than recreating them
   // from OCR text. Photographs become full-page, proportionally scaled images.
