@@ -5,6 +5,8 @@ on:
       - 'public/assets/bill-math.js'
       - 'public/assets/bill-calculator.js'
       - 'src/utilities-pdf.js'
+      - 'src/utility-extraction.js'
+      - 'test/utility-improvements.test.mjs'
       - 'src/worker.js'
       - 'test/utility-split.test.mjs'
       - 'test/utilities-pdf.test.mjs'
@@ -27,6 +29,7 @@ jobs:
           node --check public/assets/bill-math.js
           node --check public/assets/bill-calculator.js
           node --check src/utilities-pdf.js
+          node --check src/utility-extraction.js
           node --check src/worker.js
       - name: Test allocation and downloadable PDF
-        run: node --test test/utility-split.test.mjs test/utilities-pdf.test.mjs
+        run: node --test test/utility-split.test.mjs test/utilities-pdf.test.mjs test/utility-improvements.test.mjs
