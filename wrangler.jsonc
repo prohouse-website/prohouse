@@ -4,6 +4,7 @@
   "compatibility_date": "2026-10-05",
   "keep_vars": true,
   "ai": { "binding": "AI" },
+  "ratelimits": [{ "name": "UTILITY_SCAN_LIMIT", "namespace_id": "7013345", "simple": { "limit": 8, "period": 60 } }],
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",
