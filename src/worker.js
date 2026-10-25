@@ -1,6 +1,7 @@
 import { onRequestPost } from './survey.js';
 import { cleanerPortal } from './cleaner-portal.js';
 import { vendorAPI } from './vendor-proxy.js';
+import { utilityPDF } from './utilities-pdf.js';
 
 export default {
   async fetch(request, env) {
@@ -15,6 +16,8 @@ export default {
     if (canonicalAliases[path]) return Response.redirect(new URL(canonicalAliases[path] + url.search, url.origin), 301);
     const aliases = {'/survey':'/review/','/survey/':'/review/','/survey/index.html':'/review/','/G015262/survey':'/G015262/review/','/G015262/survey/':'/G015262/review/','/G015262/survey/index.html':'/G015262/review/'};
     if (aliases[path]) return Response.redirect(new URL(aliases[path] + url.search, url.origin), 301);
+    if (path === '/bill-calculator' || path === '/bill-calculator/index.html') return Response.redirect(new URL('/bill-calculator/' + url.search, url.origin), 301);
+    if (path === '/api/utilities/pdf') return utilityPDF(request, env);
     if (path === '/api/survey') {
       if (request.method !== 'POST') return new Response('Method not allowed', { status: 405, headers: { Allow: 'POST', 'Cache-Control': 'no-store' } });
       return onRequestPost({ request, env });
