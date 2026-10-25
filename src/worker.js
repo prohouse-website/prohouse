@@ -20,6 +20,7 @@ export default {
     if (path === '/bill-calculator' || path === '/bill-calculator/index.html') return Response.redirect(new URL('/bill-calculator/' + url.search, url.origin), 301);
     if (path === '/api/utilities/pdf') return utilityPDF(request, env);
     if (path === '/api/utilities/extract') return extractUtilityInvoice(request, env);
+    if (path === '/api/utilities/ready') return Response.json({ai:!!env.AI?.toMarkdown, extraction:!!env.AI?.run, rateLimited:!!env.UTILITY_SCAN_LIMIT?.limit},{headers:{'Cache-Control':'no-store','X-Robots-Tag':'noindex'}});
     if (path === '/api/survey') {
       if (request.method !== 'POST') return new Response('Method not allowed', { status: 405, headers: { Allow: 'POST', 'Cache-Control': 'no-store' } });
       return onRequestPost({ request, env });
