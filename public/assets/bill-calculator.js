@@ -45,6 +45,15 @@ function handleInput(event){
   const record = data[wrapper.dataset.kind].find(x => x.id === wrapper.dataset.id);
   if(!record)return;
   record[target.dataset.field]=target.value;
+  if(wrapper.dataset.kind==='bills' && record.sourceName) {
+    record.reviewed=false;
+    const confirmButton=wrapper.querySelector('[data-confirm]');
+    if(!confirmButton){
+      const control=document.createElement('button');control.className='bill-confirm';control.type='button';control.dataset.confirm='1';control.textContent='I CHECKED THIS BILL — CONFIRM DETAILS ✓';wrapper.appendChild(control);
+    }
+    const indicator=wrapper.querySelector('.bill-import-notice strong');
+    if(indicator)indicator.textContent='REVIEW REQUIRED';
+  }
   updateReport();
 }
 function handleRemove(event){
