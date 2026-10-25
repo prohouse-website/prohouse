@@ -18,6 +18,8 @@
     "VENDOR_PORTAL_ORIGIN": "https://new-vendor-agreement-portal-prohouse.hi-07f.workers.dev"
   },
   "previews": {
+    "ai": { "binding": "AI" },
+    "ratelimits": [{ "name": "UTILITY_SCAN_LIMIT", "namespace_id": "7013346", "simple": { "limit": 8, "period": 60 } }],
     "vars": {
       "SURVEY_FROM_EMAIL": "ProHouse Survey Preview <no-reply@prohouse.com.au>",
       "PROHOUSE_ADMIN_EMAILS": "hi@prohouse.com.au",
