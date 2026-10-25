@@ -220,3 +220,6 @@ body.bill-page{margin:0;background:var(--paper);font-family:'DM Sans',Arial,sans
 .bill-hero-copy h1{font-size:clamp(51px,6.5vw,95px)}
 @media(max-width:690px){.bill-hero-copy h1{font-size:clamp(47px,10.5vw,76px)}}
 @media(max-width:390px){.bill-hero-copy h1{font-size:46px}}
+
+.bill-privacy-note{max-width:1250px;margin:0 auto;padding:16px 5% 26px;color:#656d60;font-size:11px;line-height:1.6}
+.bill-privacy-note a{font-weight:700;text-decoration:underline}
