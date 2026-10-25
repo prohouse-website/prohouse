@@ -124,8 +124,13 @@ export async function sendShareBillDailySummary(env,now=new Date(),fetcher=fetch
     // Remove counts older than 90 days, but leave email dedupe rows for 120 days.
     const cutoff=dateSydney(new Date(now.getTime()-90*86400000));
     const emailCutoff=dateSydney(new Date(now.getTime()-120*86400000));
-    await db.prepare('DELETE FROM sharebill_usage WHERE event_day < ?').bind(cutoff).run();
-    await db.prepare('DELETE FROM sharebill_email_reports WHERE event_day < ?').bind(emailCutoff).run();
+    try {
+      await db.prepare('DELETE FROM sharebill_usage WHERE event_day < ?').bind(cutoff).run();
+      await db.prepare('DELETE FROM sharebill_email_reports WHERE event_day < ?').bind(emailCutoff).run();
+    } catch {
+      // An already-sent email must never be resent because housekeeping failed.
+      console.warn('Share Bill analytics retention cleanup failed');
+    }
     return {sent:true,date,counts:report.today};
   }catch{
     await db.prepare('DELETE FROM sharebill_email_reports WHERE event_day=?').bind(date).run();
