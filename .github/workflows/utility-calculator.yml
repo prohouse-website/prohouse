@@ -10,6 +10,8 @@ on:
       - 'public/operations/index.html'
       - 'public/assets/bill-calculator.js'
       - 'src/utilities-pdf.js'
+      - 'src/bill-day-summary.js'
+      - 'test/bill-day-summary.test.mjs'
       - 'src/utility-extraction.js'
       - 'test/utility-improvements.test.mjs'
       - 'src/worker.js'
@@ -35,7 +37,8 @@ jobs:
           node --check public/assets/bill-dates.js
           node --check public/assets/bill-calculator.js
           node --check src/utilities-pdf.js
+          node --check src/bill-day-summary.js
           node --check src/utility-extraction.js
           node --check src/worker.js
       - name: Test allocation and downloadable PDF
-        run: node --test test/utility-split.test.mjs test/utilities-pdf.test.mjs test/utility-improvements.test.mjs test/utility-attachments.test.mjs test/sharebill-public.test.mjs
+        run: node --test test/utility-split.test.mjs test/utilities-pdf.test.mjs test/utility-improvements.test.mjs test/utility-attachments.test.mjs test/sharebill-public.test.mjs test/bill-day-summary.test.mjs

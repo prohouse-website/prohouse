@@ -182,14 +182,6 @@ body.bill-page{margin:0;background:var(--paper);font-family:'DM Sans',Arial,sans
 
 /* Share Bill's inclusive-day display and public operations hub */
 .bill-tenant-days{margin-top:12px;background:#edf4d7;padding:10px 12px;color:#405927;font-size:11px;font-weight:800;border-left:3px solid #a3bc51}
-.bill-day-tool{margin-top:35px;border:1px solid #b9ca86;background:#ecf4d8;padding:25px}
-.bill-day-tool-heading h3{font:700 clamp(29px,3vw,43px)/1 "Barlow Condensed",Impact,sans-serif;margin:10px 0}
-.bill-day-tool-heading p{font-size:12px;color:#52604c;margin-bottom:22px;max-width:540px}
-.bill-day-tool-inner{display:grid;grid-template-columns:1.6fr .8fr;gap:20px;align-items:start}
-.bill-day-count-result{background:#202720;color:#fff;min-height:120px;padding:15px}
-.bill-day-count-result .eyebrow{color:#d2ea7d;font-size:9px}
-.bill-day-count-result strong{font:800 55px/.9 "Barlow Condensed",Impact,sans-serif;display:block;margin:8px 0}
-.bill-day-count-result p{font-size:10px;line-height:1.35;color:#d8e3d1}
 .bill-footer-portal{font-weight:800;text-decoration:underline!important}
 .ops-hero{display:grid;grid-template-columns:1.22fr .78fr;background:var(--acid);min-height:350px}
 .ops-hero-copy{padding:67px 5%}
@@ -214,7 +206,6 @@ body.bill-page{margin:0;background:var(--paper);font-family:'DM Sans',Arial,sans
 .ops-vendors .ops-tool-type,.ops-vendors p,.ops-vendors .ops-tool-symbol,.ops-vendors>strong{color:#202621}
 .ops-vendors>strong{border-color:#202621}
 @media(max-width:760px){
- .bill-day-tool-inner{grid-template-columns:1fr}
  .ops-hero{grid-template-columns:1fr}
  .ops-hero-copy{padding:49px 5%}
  .ops-hero h1{font-size:clamp(58px,13vw,98px)}

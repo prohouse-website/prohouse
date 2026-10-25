@@ -125,13 +125,6 @@ $('demo-btn').addEventListener('click',()=>{
   $('bill-results').scrollIntoView({behavior:'smooth',block:'nearest'});
 });
 
-function refreshStayCounter(){
-  const n=inclusiveStayDays($('counter-from').value,$('counter-through').value);
-  $('counter-days').textContent=n===null?'—':String(n);
-  $('counter-message').textContent=n===null?'Enter a valid start and end date.':n+' calendar day'+(n===1?'':'s')+' for billing, including both selected dates.';
-}
-for(const id of ['counter-from','counter-through']){$(id).addEventListener('input',refreshStayCounter);$(id).addEventListener('change',refreshStayCounter);}
-$('counter-from').value=periodStart;$('counter-through').value=periodEnd;refreshStayCounter();
 const acceptedFiles=['application/pdf','image/jpeg','image/png','image/webp'];
 const $uploadStatus=$('bill-upload-status'),$uploadLog=$('bill-upload-log');
 $('bill-upload').addEventListener('change',async event=>{
