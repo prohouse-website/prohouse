@@ -38,4 +38,4 @@ jobs:
           node --check src/utility-extraction.js
           node --check src/worker.js
       - name: Test allocation and downloadable PDF
-        run: node --test test/utility-split.test.mjs test/utilities-pdf.test.mjs test/utility-improvements.test.mjs
+        run: node --test test/utility-split.test.mjs test/utilities-pdf.test.mjs test/utility-improvements.test.mjs test/utility-attachments.test.mjs test/sharebill-public.test.mjs
