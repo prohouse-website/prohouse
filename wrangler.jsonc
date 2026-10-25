@@ -4,7 +4,11 @@
   "compatibility_date": "2026-10-05",
   "keep_vars": true,
   "ai": { "binding": "AI" },
-  "ratelimits": [{ "name": "UTILITY_SCAN_LIMIT", "namespace_id": "7013345", "simple": { "limit": 8, "period": 60 } }],
+  "triggers": { "crons": ["0 23 * * *"] },
+  "ratelimits": [
+    { "name": "UTILITY_SCAN_LIMIT", "namespace_id": "7013345", "simple": { "limit": 8, "period": 60 } },
+    { "name": "SHAREBILL_USAGE_LIMIT", "namespace_id": "7013355", "simple": { "limit": 45, "period": 60 } }
+  ],
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",
@@ -15,20 +19,31 @@
     "SURVEY_FROM_EMAIL": "ProHouse Survey <no-reply@prohouse.com.au>",
     "PROHOUSE_ADMIN_EMAILS": "hi@prohouse.com.au",
     "CLEANER_FROM_EMAIL": "ProHouse Agreements <no-reply@prohouse.com.au>",
-    "VENDOR_PORTAL_ORIGIN": "https://new-vendor-agreement-portal-prohouse.hi-07f.workers.dev"
+    "VENDOR_PORTAL_ORIGIN": "https://new-vendor-agreement-portal-prohouse.hi-07f.workers.dev",
+    "ANALYTICS_FROM_EMAIL": "ProHouse Share Bill <no-reply@prohouse.com.au>"
   },
   "previews": {
     "ai": { "binding": "AI" },
-    "ratelimits": [{ "name": "UTILITY_SCAN_LIMIT", "namespace_id": "7013346", "simple": { "limit": 8, "period": 60 } }],
+    "ratelimits": [
+      { "name": "UTILITY_SCAN_LIMIT", "namespace_id": "7013346", "simple": { "limit": 8, "period": 60 } },
+      { "name": "SHAREBILL_USAGE_LIMIT", "namespace_id": "7013356", "simple": { "limit": 45, "period": 60 } }
+    ],
     "vars": {
       "SURVEY_FROM_EMAIL": "ProHouse Survey Preview <no-reply@prohouse.com.au>",
       "PROHOUSE_ADMIN_EMAILS": "hi@prohouse.com.au",
       "CLEANER_FROM_EMAIL": "ProHouse Agreements Preview <no-reply@prohouse.com.au>",
       "DIDIT_WORKFLOW_ID": "f7f47ff2-b92d-4676-9280-132b116adbde",
       "DIDIT_MONTHLY_LIMIT": "25",
-      "VENDOR_PORTAL_ORIGIN": "https://new-vendor-agreement-portal-prohouse.hi-07f.workers.dev"
+      "VENDOR_PORTAL_ORIGIN": "https://new-vendor-agreement-portal-prohouse.hi-07f.workers.dev",
+      "ANALYTICS_FROM_EMAIL": "ProHouse Share Bill Preview <no-reply@prohouse.com.au>"
     },
     "d1_databases": [
+      {
+        "binding": "SHAREBILL_ANALYTICS_DB",
+        "database_name": "prohouse-sharebill-analytics-preview",
+        "database_id": "edb3beb3-cb60-4d50-9aaf-a523fc4b27ff",
+        "preview_database_id": "edb3beb3-cb60-4d50-9aaf-a523fc4b27ff"
+      },
       {
         "binding": "CLEANER_DB",
         "database_name": "prohouse-cleaner-agreements-preview",
@@ -39,6 +54,12 @@
     ]
   },
   "d1_databases": [
+    {
+      "binding": "SHAREBILL_ANALYTICS_DB",
+      "database_name": "prohouse-sharebill-analytics",
+      "database_id": "c0f3bfb1-098b-442b-ab7d-4688d8859b16",
+      "preview_database_id": "edb3beb3-cb60-4d50-9aaf-a523fc4b27ff"
+    },
     {
       "binding": "CLEANER_DB",
       "database_name": "prohouse-cleaner-agreements",
