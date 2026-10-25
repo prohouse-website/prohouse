@@ -10,6 +10,10 @@ on:
       - 'public/operations/index.html'
       - 'public/assets/bill-calculator.js'
       - 'src/utilities-pdf.js'
+      - 'src/sharebill-analytics.js'
+      - 'test/sharebill-analytics.test.mjs'
+      - 'public/privacy/index.html'
+      - 'wrangler.jsonc'
       - 'src/bill-day-summary.js'
       - 'test/bill-day-summary.test.mjs'
       - 'src/utility-extraction.js'
@@ -37,6 +41,7 @@ jobs:
           node --check public/assets/bill-dates.js
           node --check public/assets/bill-calculator.js
           node --check src/utilities-pdf.js
+          node --check src/sharebill-analytics.js
           node --check src/bill-day-summary.js
           node --check src/utility-extraction.js
           node --check src/worker.js
