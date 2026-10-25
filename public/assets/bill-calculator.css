@@ -1,0 +1,149 @@
+
+/* ProHouse Utility Calculator · independent responsive UI */
+:root{--ink:#181b19;--paper:#f6f5ee;--acid:#e6ff67;--pink:#eaa1bd;--line:#d7d8d0;--muted:#687067}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body.bill-page{margin:0;background:var(--paper);font-family:'DM Sans',Arial,sans-serif;color:var(--ink)}
+.bill-page button,.bill-page input,.bill-page select{font:inherit}
+.bill-page button{cursor:pointer}
+.bill-page button:disabled{cursor:not-allowed}
+.bill-page a{color:inherit;text-decoration:none}
+.bill-page :focus-visible{outline:3px solid #7b55c7;outline-offset:3px}
+.bill-page h1,.bill-page h2,.bill-page h3{margin:0}
+.bill-page p{margin:0;line-height:1.65}
+.bill-page img{width:100%;height:100%;object-fit:contain}
+.bill-page .eyebrow{letter-spacing:.14em;font-size:11px;font-weight:800}
+.bill-header{height:83px;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:0 5%;background:var(--paper);border-bottom:1px solid var(--line)}
+.bill-brand{width:151px;height:53px;flex-shrink:0}
+.bill-product{font-size:10px;font-weight:800;letter-spacing:.15em}
+.bill-header-divider{opacity:.4;margin:0 8px}
+.bill-home{font-size:10px;font-weight:800;letter-spacing:.08em;border-bottom:1px solid;padding-bottom:5px}
+.bill-home span{margin-left:14px}
+.bill-hero{display:grid;grid-template-columns:1.15fr .85fr;min-height:360px;background:var(--acid);overflow:hidden;border-bottom:1px solid var(--ink)}
+.bill-hero-copy{padding:55px 5% 36px max(5%,calc((100vw - 1300px)/2));display:flex;flex-direction:column;justify-content:center}
+.bill-live-dot{display:inline-block;width:8px;height:8px;background:#161b16;border-radius:100%;margin-right:8px}
+.bill-hero h1,.bill-explainer h2{font:800 clamp(58px,7.4vw,114px)/.88 'Barlow Condensed',Impact,sans-serif;letter-spacing:-.035em;margin:22px 0}
+.bill-hero h1 em,.bill-explainer h2 em{font-style:normal;position:relative}
+.bill-hero h1 em{color:#45610a}
+.bill-hero-copy>p{font-size:14px;max-width:460px}
+.bill-hero-badges{display:flex;flex-wrap:wrap;gap:10px;margin-top:25px}
+.bill-hero-badges span{padding:9px 11px;border:1px solid #899e46;font-size:9px;font-weight:800;letter-spacing:.08em}
+.bill-hero-art{position:relative;overflow:hidden;background:#242924;color:var(--acid);min-height:350px}
+.bill-art-ring{width:365px;height:365px;border:2px solid #8ba352;border-radius:50%;position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;gap:36px;transform-origin:center}
+.bill-art-ring:before,.bill-art-ring:after{content:"";position:absolute;border:1px solid #6a774b;border-radius:50%;inset:30px}
+.bill-art-ring:after{inset:75px}
+.bill-art-ring span{font-size:12px;letter-spacing:.12em;line-height:1.3;font-weight:700;z-index:1}
+.bill-art-ring strong{font:700 96px 'Barlow Condensed',sans-serif;z-index:1}
+.bill-art-chip{position:absolute;z-index:2;background:var(--paper);color:var(--ink);font-size:10px;font-weight:800;letter-spacing:.11em;min-width:128px;padding:16px 13px;box-shadow:0 12px 24px #0004;display:flex;justify-content:space-between;gap:13px;transform:rotate(-6deg)}
+.bill-art-chip b{font-size:14px}
+.chip-one{top:16%;left:10%;background:var(--pink)}.chip-two{top:40%;right:10%;transform:rotate(7deg)}.chip-three{bottom:20%;left:11%;transform:rotate(5deg)}
+.bill-art-caption{position:absolute;bottom:20px;right:25px;font-size:9px;letter-spacing:.12em;color:#d6dec7}
+.bill-workspace{max-width:1460px;margin:0 auto;padding:60px 5%;display:grid;grid-template-columns:minmax(0,1.48fr) minmax(315px,.82fr);gap:clamp(28px,4vw,68px);align-items:start}
+.bill-section-head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:20px}
+.bill-section-head h2{font:700 clamp(36px,4.5vw,58px)/.95 'Barlow Condensed',Impact,sans-serif;margin:10px 0 0}
+.bill-spaced{margin-top:50px}
+.bill-link-button{background:none;border:0;font-size:10px;font-weight:800;border-bottom:1px solid;padding:0 0 7px;letter-spacing:.08em}
+.bill-mini-note{font-size:11px;color:#626960;max-width:150px;text-align:right}
+.bill-panel,.bill-item{background:#fff;border:1px solid var(--line);border-radius:3px;padding:24px}
+.bill-details{display:flex;flex-direction:column;gap:10px}
+.bill-page .bill-label{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:11px;font-weight:800;letter-spacing:.04em;margin-bottom:8px}
+.bill-label span{font-size:9px;color:#93998e}
+.bill-page input,.bill-page select{width:100%;min-width:0;background:#fafaf6;border:1px solid #cbd0c5;border-radius:3px;padding:12px 11px;font-size:13px;line-height:1.3;color:#171e16}
+.bill-page input:focus,.bill-page select:focus{background:#fff;border-color:#626b40}
+.bill-page input[type=date]{font-size:12px;min-height:44px}
+.bill-page input::placeholder{color:#a0a69d}
+.bill-field-hint{font-size:11px;color:#6a7067}
+.bill-stack{display:grid;gap:12px}
+.bill-item-top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px}
+.bill-item-index{display:flex;align-items:center;gap:12px;font-size:12px;font-weight:800}
+.bill-index-pill{width:33px;height:33px;display:grid;place-items:center;background:var(--acid);border-radius:50%;font-size:13px;font-weight:800}
+.bill-remove{background:none;border:0;color:#9a3131;font-size:10px;font-weight:800;letter-spacing:.03em;padding:8px}
+.bill-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.bill-row + .bill-row{margin-top:14px}
+.bill-row.three{grid-template-columns:1.08fr .9fr .9fr}
+.bill-add{width:100%;padding:17px 20px;margin-top:12px;background:transparent;border:1px dashed #869278;text-align:left;font-size:11px;letter-spacing:.1em;font-weight:800;transition:background .2s}
+.bill-add:hover{background:var(--acid)}
+.bill-add span{font-size:18px;vertical-align:-1px;margin-right:10px}
+.bill-method-note{margin-top:24px;background:#e9edda;display:flex;gap:15px;padding:19px}
+.bill-note-icon{flex:0 0 24px;height:24px;background:#222a1c;color:var(--acid);display:grid;place-items:center;border-radius:50%;font:700 15px Georgia,serif}
+.bill-method-note p{font-size:11px}
+.bill-results{background:#242924;color:#fff;border-radius:3px;padding:29px;position:sticky;top:20px;box-shadow:0 20px 40px #0001}
+.bill-summary-top{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.bill-status{background:#4f5e2b;color:var(--acid);padding:8px;font-size:9px;font-weight:800;letter-spacing:.04em}
+.bill-results h2{font:800 clamp(62px,7vw,96px)/.84 'Barlow Condensed',sans-serif;letter-spacing:-.02em;margin:30px 0 35px}
+.bill-results h2 span{color:var(--acid)}
+.bill-total-label{font-size:10px;letter-spacing:.14em;color:#adb5a7;font-weight:800}
+.bill-grand-total{font:800 clamp(50px,5.5vw,82px)/1 'Barlow Condensed',sans-serif;margin:8px 0 22px}
+.bill-metrics{display:flex;gap:0;border-top:1px solid #596053;border-bottom:1px solid #596053;padding:20px 0;margin-bottom:29px}
+.bill-metrics>div{flex:1;display:flex;flex-direction:column;gap:4px}
+.bill-metrics>div+div{padding-left:18px;border-left:1px solid #596053}
+.bill-metrics strong{font:700 35px 'Barlow Condensed',sans-serif}
+.bill-metrics small{font-size:9px;font-weight:800;color:#bbc4b5;letter-spacing:.08em}
+.bill-results h3{font-size:11px;font-weight:800;letter-spacing:.13em;margin:0 0 15px}
+.bill-distribution{display:flex;width:100%;height:15px;gap:2px;margin-bottom:15px;background:#474d45;overflow:hidden;border-radius:2px}
+.bill-distribution>div{min-width:0;transition:width .15s}
+.bill-tenant-summary{display:grid;gap:0;margin:0 0 27px}
+.bill-tenant-summary>p{font-size:12px;color:#d8e1d2}
+.bill-tenant-line{display:flex;justify-content:space-between;gap:13px;border-bottom:1px solid #505a4c;padding:13px 0}
+.bill-person-name{display:flex;align-items:center;gap:9px;font-size:12px;overflow-wrap:anywhere}
+.bill-colour{width:9px;height:9px;border-radius:50%;display:inline-block;flex:0 0 auto}
+.bill-person-amount{font-size:14px;white-space:nowrap}
+.bill-error{background:#722b2b;color:#fff;border-left:3px solid #ffb9b9;padding:12px 14px;margin-bottom:17px;font-size:12px}
+.bill-export{display:flex;justify-content:space-between;align-items:center;width:100%;gap:15px;background:var(--acid);color:#1e251b;border:0;border-radius:2px;padding:17px 18px;font-size:11px;font-weight:800;letter-spacing:.04em}
+.bill-export:hover:not(:disabled){background:#d1ed40}
+.bill-export:disabled{opacity:.5}
+.bill-export span{font-size:23px}
+.bill-print{margin-top:10px;width:100%;padding:13px;border:1px solid #7d8b75;color:#fff;background:transparent;font-size:10px;font-weight:800;letter-spacing:.1em}
+.bill-print:disabled{opacity:.5}
+.bill-result-caption{font-size:10px;color:#bac4b8;margin-top:14px}
+.bill-explainer{background:#e9e9e0;border-top:1px solid var(--line);padding:70px 5% 88px}
+.bill-explainer>.eyebrow,.bill-explainer-grid{max-width:1280px;margin-left:auto;margin-right:auto}
+.bill-explainer-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(30px,6vw,90px);margin-top:16px}
+.bill-explainer h2{font-size:clamp(62px,6.5vw,102px);margin:10px 0}
+.bill-explainer h2 em{color:#65821f}
+.bill-explainer-grid>div{padding-top:22px}
+.bill-explainer-grid p{font-size:14px}
+.bill-explainer-formula{display:grid;gap:7px;padding:21px 0;border-top:1px solid #adb6a0;border-bottom:1px solid #adb6a0;margin:23px 0}
+.bill-explainer-formula span{font-size:9px;font-weight:800;letter-spacing:.13em;color:#586251}
+.bill-explainer-formula strong{font-size:16px;margin-bottom:15px}
+.bill-explainer-grid .bill-smallprint{font-size:11px;color:#6b7068}
+.bill-footer{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:26px 5%;font-size:9px;font-weight:800;letter-spacing:.08em}
+.bill-footer a{width:120px;height:45px}
+@media(max-width:970px){
+ .bill-workspace{grid-template-columns:1fr}
+ .bill-results{position:static;max-width:none}
+ .bill-results h2{font-size:74px}
+ .bill-grand-total{font-size:70px}
+}
+@media(max-width:690px){
+ .bill-header{height:71px;padding:0 5%}
+ .bill-brand{width:122px;height:44px}
+ .bill-product{display:none}
+ .bill-hero{grid-template-columns:1fr}
+ .bill-hero-copy{padding:40px 6%}
+ .bill-hero h1{font-size:clamp(64px,13vw,90px)}
+ .bill-hero-art{min-height:200px}
+ .bill-art-ring{height:270px;width:270px}
+ .bill-art-ring strong{font-size:65px}
+ .bill-art-chip{padding:10px;min-width:105px;font-size:9px}
+ .bill-art-caption{font-size:7px}
+ .bill-workspace{padding:38px 5% 45px}
+ .bill-panel,.bill-item{padding:17px}
+ .bill-row.three{grid-template-columns:1fr 1fr}
+ .bill-row.three>div:first-child{grid-column:1/-1}
+ .bill-section-head{align-items:center}
+ .bill-mini-note{display:none}
+ .bill-results{padding:24px 20px}
+ .bill-explainer{padding:55px 5%}
+ .bill-explainer-grid{grid-template-columns:1fr}
+ .bill-explainer-grid>div{padding-top:0}
+ .bill-explainer h2{font-size:70px}
+ .bill-footer{flex-wrap:wrap}
+}
+@media(max-width:390px){
+ .bill-row,.bill-row.three{grid-template-columns:1fr}
+ .bill-row.three>div:first-child{grid-column:auto}
+ .bill-results h2{font-size:64px}
+ .bill-grand-total{font-size:58px}
+ .bill-hero h1{font-size:64px}
+}
