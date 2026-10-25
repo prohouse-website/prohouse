@@ -84,16 +84,19 @@ async function generatePDF(report,property,references,logoBytes){
   tableHeading();
   const summaries=report.summary;
   summaries.forEach((row,i)=>{
-    const height=33;
+    const height=43;
     if(y-height<98){newPage();section('Amount payable (continued)');tableHeading();}
     page.drawRectangle({x:LEFT,y:y-height,width:WIDTH,height,color:row.id===VACANT_ID?PINK:i%2===1?PALE:WHITE});
-    tx(fitted(row.name,bold,10,nameWidth-17),LEFT+9,y-21,10,bold);
+    tx(fitted(row.name,bold,10,nameWidth-17),LEFT+9,y-19,10,bold);
+    const resident=report.tenants.find(t=>t.id===row.id);
+    if(resident)tx(fitted(fmtDate(resident.start)+' - '+fmtDate(resident.end),font,8,nameWidth-17),LEFT+9,y-33,8,font,GREY);
+    else tx('No occupants',LEFT+9,y-33,8,font,GREY);
     const centsByType=Object.fromEntries(groups.map(g=>[g,0]));
     for(const b of report.bills){
       const r=b.rows.find(p=>p.id===row.id);
       if(r && Object.hasOwn(centsByType,b.type))centsByType[b.type]+=r.amountCents;
     }
-    cols.forEach((g,j)=>right(money(g==='total'?row.amountCents:centsByType[g]),colRight(j),y-21,groups.length>=3?8.3:9,font));
+    cols.forEach((g,j)=>right(money(g==='total'?row.amountCents:centsByType[g]),colRight(j),y-25,groups.length>=3?8.3:9,font));
     y-=height;
     divider();
   });
