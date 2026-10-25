@@ -1,5 +1,5 @@
 import { calculateUtilitySplit, money } from './bill-math.js';
-import { billDateBounds, syncTenantsToBills } from './bill-dates.js';
+import { billDateBounds, syncTenantsToBills, inclusiveStayDays } from './bill-dates.js';
 const $ = id => document.getElementById(id);
 const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const palette = ['#e6ff67','#eaa1bd','#93cddd','#cbb4f1','#f2bd7a','#9ac9a8','#f0da7d','#cfcbf2','#dd9a8a'];
@@ -13,7 +13,7 @@ const newBill = (type='water', start=periodStart, end=periodEnd, amount='') => (
 const newTenant = (name='', start=periodStart, end=periodEnd) => ({id:uid('tenant'),name,start,end,manualStart:false,manualEnd:false});
 const data = {
   bills: [newBill('water')],
-  tenants: [newTenant('Tenant A'),newTenant('Tenant B')]
+  tenants: [newTenant()]
 };
 let lastReport = null;
 let exporting = false;
@@ -35,12 +35,14 @@ function renderBills(){
     '<div class="bill-file-attachment"><label for="attach-'+b.id+'">'+(attachedFiles.has(b.id)?'✓ INVOICE ATTACHED · '+escapeHTML(attachedFiles.get(b.id).originalName):'＋ ATTACH INVOICE FOR PDF (OPTIONAL)')+'</label><input id="attach-'+b.id+'" type="file" data-attachment="1" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp"><span>Original invoice pages are added after the report.</span></div>'+
     (b.sourceName&&!b.reviewed?'<button class="bill-confirm" type="button" data-confirm="1">I CHECKED THIS BILL — CONFIRM DETAILS ✓</button>':'')+'</div>').join('');
 }
+function formattedStayDays(start,end){const n=inclusiveStayDays(start,end);return n===null?'Choose valid dates to count days':n+' calendar day'+(n===1?'':'s')+' (both dates included)';}
 function renderTenants(){
   $('tenants-list').innerHTML = data.tenants.map((t,i)=>'<div class="bill-item" data-kind="tenants" data-id="'+escapeHTML(t.id)+'">'+
     '<div class="bill-item-top"><div class="bill-item-index"><span class="bill-index-pill">'+String(i+1).padStart(2,'0')+'</span> PERSON / TENANT</div><button class="bill-remove" type="button" data-remove="1" aria-label="Remove tenant '+(i+1)+'">REMOVE ×</button></div>'+
     '<div><label class="bill-label" for="tenant-name-'+t.id+'">TENANT NAME</label><input id="tenant-name-'+t.id+'" maxlength="90" type="text" data-field="name" placeholder="Full name" value="'+escapeHTML(t.name)+'"></div>'+
     '<div class="bill-row" style="margin-top:14px"><div><label class="bill-label" for="tenant-start-'+t.id+'">LIVING FROM</label><input id="tenant-start-'+t.id+'" type="date" data-field="start" value="'+escapeHTML(t.start)+'"></div>'+
-    '<div><label class="bill-label" for="tenant-end-'+t.id+'">LIVING THROUGH <span>INCLUSIVE</span></label><input id="tenant-end-'+t.id+'" type="date" data-field="end" value="'+escapeHTML(t.end)+'"></div></div></div>').join('');
+    '<div><label class="bill-label" for="tenant-end-'+t.id+'">LIVING THROUGH <span>INCLUSIVE</span></label><input id="tenant-end-'+t.id+'" type="date" data-field="end" value="'+escapeHTML(t.end)+'"></div></div>'+
+    '<div class="bill-tenant-days" id="stay-count-'+t.id+'">'+formattedStayDays(t.start,t.end)+'</div></div>').join('');
 }
 function handleInput(event){
   const target=event.target;
@@ -52,6 +54,8 @@ function handleInput(event){
   record[field]=target.value;
   if(wrapper.dataset.kind==='tenants' && (field==='start'||field==='end')){
     record[field==='start'?'manualStart':'manualEnd']=true;
+    const count=$('stay-count-'+record.id);
+    if(count)count.textContent=formattedStayDays(record.start,record.end);
   }
   if(wrapper.dataset.kind==='bills' && (field==='start'||field==='end')){
     syncTenantsToBills(data.tenants,data.bills);
@@ -104,7 +108,7 @@ $('add-bill').addEventListener('click',()=>{
 $('add-tenant').addEventListener('click',()=>{
   if(data.tenants.length>=80){showError('Maximum 80 tenants per report.');return;}
   const bounds=billDateBounds(data.bills)||{start:periodStart,end:periodEnd};
-  data.tenants.push(newTenant('Tenant '+(data.tenants.length+1),bounds.start,bounds.end));
+  data.tenants.push(newTenant('',bounds.start,bounds.end));
   renderTenants();updateReport();
 });
 $('sync-tenant-dates').addEventListener('click',()=>{
@@ -121,6 +125,13 @@ $('demo-btn').addEventListener('click',()=>{
   $('bill-results').scrollIntoView({behavior:'smooth',block:'nearest'});
 });
 
+function refreshStayCounter(){
+  const n=inclusiveStayDays($('counter-from').value,$('counter-through').value);
+  $('counter-days').textContent=n===null?'—':String(n);
+  $('counter-message').textContent=n===null?'Enter a valid start and end date.':n+' calendar day'+(n===1?'':'s')+' for billing, including both selected dates.';
+}
+for(const id of ['counter-from','counter-through']){$(id).addEventListener('input',refreshStayCounter);$(id).addEventListener('change',refreshStayCounter);}
+$('counter-from').value=periodStart;$('counter-through').value=periodEnd;refreshStayCounter();
 const acceptedFiles=['application/pdf','image/jpeg','image/png','image/webp'];
 const $uploadStatus=$('bill-upload-status'),$uploadLog=$('bill-upload-log');
 $('bill-upload').addEventListener('change',async event=>{
