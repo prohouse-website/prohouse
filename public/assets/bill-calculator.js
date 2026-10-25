@@ -19,6 +19,28 @@ let lastReport = null;
 let exporting = false;
 let importing = false;
 const attachedFiles=new Map(); // Browser-session files only. Removed bills remove attachments.
+// Count anonymous page visits and meaningful completed calculations. Only event names
+// leave this browser; property details, bill amounts and tenant names never do.
+const sendUsage=type=>{
+  try{
+    void fetch('/api/sharebill/usage',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({type}),credentials:'same-origin',keepalive:true
+    }).catch(()=>{});
+  }catch{}
+};
+let calculationTimer=null,lastUsageSignature='';
+function scheduleCalculationCount(){
+  const signature=JSON.stringify({bills:data.bills.map(b=>[b.type,b.amount,b.start,b.end,b.label]),
+    tenants:data.tenants.map(t=>[t.id,t.name,t.start,t.end])});
+  clearTimeout(calculationTimer);
+  if(signature===lastUsageSignature)return;
+  calculationTimer=setTimeout(()=>{
+    if(!lastReport)return;
+    lastUsageSignature=signature;
+    sendUsage('calculation');
+  },1800);
+}
 
 function renderBills(){
   $('bills-list').innerHTML = data.bills.map((b,i)=>'<div class="bill-item" data-kind="bills" data-id="'+escapeHTML(b.id)+'">'+
@@ -247,8 +269,11 @@ function updateReport(){
     if(needsReview){$('report-state').textContent='CHECK IMPORTED BILL';$('report-state').style.background='#694b36';}
     $('export-pdf').disabled=needsReview;
     $('print-report').disabled=needsReview;
+    if(!needsReview)scheduleCalculationCount();
+    else clearTimeout(calculationTimer);
   }catch(error){
     lastReport=null;
+    clearTimeout(calculationTimer);
     $('report-state').textContent='NEEDS DETAILS';
     $('report-state').style.background='#694b36';
     $('grand-total').textContent='$0.00';
@@ -304,3 +329,4 @@ $('print-report').addEventListener('click',async()=>{
   }catch(error){if(tab)tab.close();showError(error.message||'Could not prepare PDF preview.');}
 });
 renderBills();renderTenants();updateReport();
+sendUsage('visit');
