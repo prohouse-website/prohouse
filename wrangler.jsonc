@@ -3,6 +3,7 @@
   "main": "src/worker.js",
   "compatibility_date": "2026-10-05",
   "keep_vars": true,
+  "ai": { "binding": "AI" },
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",
