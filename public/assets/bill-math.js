@@ -39,7 +39,9 @@ export function calculateUtilitySplit(source) {
   });
   const bills = source.bills.filter(entry => String(entry.amount || '').trim() !== '' && Number(entry.amount) !== 0).map((entry, index) => {
     const type = String(entry.type || 'other').toLowerCase();
-    const name = labelType[type] || 'Other utility';
+    const customLabel = String(entry.label || '').trim().slice(0, 60);
+    const name = type === 'other' ? customLabel : (labelType[type] || 'Other utility');
+    if (type === 'other' && !name) throw new Error('Name each Other bill (for example, Internet).');
     const amount = Number(entry.amount);
     if (!Number.isFinite(amount) || amount < 0 || amount > 10000000 || !/^\d+(?:\.\d{1,2})?$/.test(String(entry.amount).trim())) {
       throw new Error('Enter a non-negative bill amount with up to two decimal places.');
