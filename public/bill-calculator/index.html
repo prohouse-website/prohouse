@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#e6ff67">
+<meta name="robots" content="noindex,nofollow">
+<title>Utility Bill Calculator | ProHouse</title>
+<meta name="description" content="ProHouse day-by-day water, gas and electricity bill allocation calculator.">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="/assets/theme.css">
+<link rel="stylesheet" href="/assets/bill-calculator.css">
+<script type="module" src="/assets/bill-calculator.js"></script>
+</head>
+<body class="bill-page">
+<header class="bill-header">
+  <a href="/" class="bill-brand" aria-label="ProHouse home"><img src="/assets/prohouse-logo-transparent.png" alt="ProHouse"></a>
+  <span class="bill-product">PROPERTY TOOLS <span class="bill-header-divider">/</span> UTILITIES</span>
+  <a href="/" class="bill-home">BACK TO WEBSITE <span aria-hidden="true">↗</span></a>
+</header>
+<main>
+  <section class="bill-hero">
+    <div class="bill-hero-copy">
+      <span class="eyebrow"><span class="bill-live-dot"></span> PROHOUSE / PROPERTY OPERATIONS</span>
+      <h1>EVERY DAY.<br><em>FAIRLY SPLIT.</em></h1>
+      <p>Different move-in dates? Different move-out dates? One clear calculation for every person, every bill and every day.</p>
+      <div class="bill-hero-badges"><span>01 / ADD BILLS</span><span>02 / ADD TENANTS</span><span>03 / EXPORT PDF</span></div>
+    </div>
+    <div class="bill-hero-art" aria-hidden="true">
+      <div class="bill-art-ring"><span>DAY-BASED<br>SHARING</span><strong>÷</strong></div>
+      <div class="bill-art-chip chip-one">WATER <b>↗</b></div><div class="bill-art-chip chip-two">GAS <b>↗</b></div><div class="bill-art-chip chip-three">ELECTRICITY <b>↗</b></div>
+      <span class="bill-art-caption">TRANSPARENT NUMBERS. ZERO GUESSWORK.</span>
+    </div>
+  </section>
+
+  <div class="bill-workspace">
+    <section class="bill-inputs" aria-label="Bill setup">
+      <div class="bill-section-head">
+        <div><span class="eyebrow">START HERE / YOUR REPORT</span><h2>Set the scene.</h2></div>
+        <button class="bill-link-button" id="demo-btn" type="button">TRY THE EXAMPLE ↗</button>
+      </div>
+      <div class="bill-panel bill-details">
+        <label class="bill-label" for="property-name">Property / reference <span>OPTIONAL</span></label>
+        <input id="property-name" type="text" maxlength="120" placeholder="e.g. Wolli Creek · Unit G01" autocomplete="off">
+        <p class="bill-field-hint">This appears on the PDF report. All entries stay in your browser until you export.</p>
+      </div>
+
+      <div class="bill-section-head bill-spaced">
+        <div><span class="eyebrow">01 / UTILITY INVOICES</span><h2>Add your bills.</h2></div>
+        <span class="bill-mini-note">Different billing dates? No problem.</span>
+      </div>
+      <div id="bills-list" class="bill-stack"></div>
+      <button id="add-bill" class="bill-add" type="button"><span>＋</span> ADD ANOTHER BILL</button>
+
+      <div class="bill-section-head bill-spaced">
+        <div><span class="eyebrow">02 / WHO LIVED HERE?</span><h2>Add the people.</h2></div>
+        <span class="bill-mini-note">Count both the arrival and final listed day.</span>
+      </div>
+      <div id="tenants-list" class="bill-stack"></div>
+      <button id="add-tenant" class="bill-add" type="button"><span>＋</span> ADD ANOTHER TENANT</button>
+      <div class="bill-method-note"><span class="bill-note-icon">i</span><p><strong>How we divide it:</strong> Each invoice is spread evenly over its calendar days. On each day, the people present share that day's cost equally. Days with nobody present go to “Vacant / property”, not to other tenants.</p></div>
+    </section>
+
+    <aside class="bill-results" id="bill-results" aria-label="Live calculation" aria-live="polite">
+      <div class="bill-summary-top"><span class="eyebrow">03 / LIVE BREAKDOWN</span><span id="report-state" class="bill-status">READY TO CALCULATE</span></div>
+      <h2>THE<br>BREAKDOWN<span>.</span></h2>
+      <div class="bill-total-label">TOTAL OF ALL INVOICES</div>
+      <div id="grand-total" class="bill-grand-total">$0.00</div>
+      <div class="bill-metrics"><div><strong id="summary-bills">0</strong><small>ACTIVE BILLS</small></div><div><strong id="summary-tenants">0</strong><small>TENANTS</small></div></div>
+      <h3>WHO PAYS WHAT</h3>
+      <div id="distribution" class="bill-distribution"></div>
+      <div id="tenant-summary" class="bill-tenant-summary"><p>Enter a bill amount to see each person's share.</p></div>
+      <div id="report-error" class="bill-error" role="alert" hidden></div>
+      <button id="export-pdf" class="bill-export" type="button" disabled>DOWNLOAD PDF REPORT <span aria-hidden="true">↗</span></button>
+      <button id="print-report" class="bill-print" type="button" disabled>PRINT / SAVE AS PDF</button>
+      <p class="bill-result-caption">Detailed report includes every invoice, individual tenant allocations, daily occupancy explanation and exact cent rounding.</p>
+    </aside>
+  </div>
+  <section class="bill-explainer">
+    <span class="eyebrow">OUR METHOD / EASY TO VERIFY</span>
+    <div class="bill-explainer-grid"><h2>NOT JUST<br>DIVIDED BY<br><em>HEADCOUNT.</em></h2><div><p>Tenants who arrive late pay only for the days they actually share. Overlaps are split equally; solo days are charged to the sole occupant.</p><div class="bill-explainer-formula"><span>ONE DAY'S COST</span><strong>Bill amount ÷ number of bill days</strong><span>EACH PERSON'S DAILY SHARE</span><strong>One day's cost ÷ people present</strong></div><p class="bill-smallprint">Dates are inclusive. The calculator allocates rounding differences of a few cents fairly to keep the full bill exact. This is a time-based allocation, not a measured-usage or meter-reading calculation.</p></div></div>
+  </section>
+</main>
+<footer class="bill-footer"><a href="/"><img src="/assets/prohouse-logo-transparent.png" alt="ProHouse"></a><span>SMARTER PROPERTY OPERATIONS, MADE SIMPLE.</span><span>© PROHOUSE AUSTRALIA</span></footer>
+</body></html>
