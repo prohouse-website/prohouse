@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - 'public/assets/bill-math.js'
+      - 'public/assets/bill-dates.js'
+      - 'test/utility-attachments.test.mjs'
       - 'public/assets/bill-calculator.js'
       - 'src/utilities-pdf.js'
       - 'src/utility-extraction.js'
@@ -27,6 +29,7 @@ jobs:
       - name: Check source syntax
         run: |
           node --check public/assets/bill-math.js
+          node --check public/assets/bill-dates.js
           node --check public/assets/bill-calculator.js
           node --check src/utilities-pdf.js
           node --check src/utility-extraction.js
