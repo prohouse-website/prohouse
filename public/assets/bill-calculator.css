@@ -147,3 +147,25 @@ body.bill-page{margin:0;background:var(--paper);font-family:'DM Sans',Arial,sans
  .bill-grand-total{font-size:58px}
  .bill-hero h1{font-size:64px}
 }
+
+/* Scan a bill / review imported values */
+.bill-upload-zone{background:#ecf5c8;border:1px solid #b5c785;padding:15px 16px 12px;margin:0 0 16px;border-radius:3px}
+.bill-upload-button{display:flex;align-items:center;gap:12px;cursor:pointer;color:#1a2514;background:#e6ff67;padding:17px;border:1px solid #a9c157;min-height:75px}
+.bill-upload-button:hover{background:#d9f34b}
+.bill-upload-button strong{display:block;font-size:12px;font-weight:800;letter-spacing:.05em}
+.bill-upload-button small{display:block;margin-top:6px;font-size:11px;color:#4d583e}
+.bill-upload-symbol{font-size:30px;border:1.5px solid;border-radius:50%;width:42px;height:42px;display:grid;place-items:center;flex:0 0 auto}
+.bill-upload-arrow{margin-left:auto;font-size:25px}
+.bill-upload-zone #bill-upload{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;padding:0;border:0}
+.bill-upload-zone #bill-upload:focus-visible+.bill-upload-button{outline:2px solid blue}
+.bill-upload-status{font-size:11px;margin-top:11px!important;color:#445033;line-height:1.55}
+.bill-upload-log{display:grid;gap:6px;margin-top:8px}
+.bill-upload-result{font-size:11px;line-height:1.5;padding:9px 11px;background:#fff;border-left:3px solid #7e9638}
+.bill-upload-failed{border-color:#a94444;color:#863131}
+.bill-import-notice{display:flex;justify-content:space-between;align-items:center;gap:15px;background:#f3f6ed;border:1px solid #d4dfca;padding:10px 12px;margin-bottom:17px;font-size:10px;overflow-wrap:anywhere}
+.bill-import-notice span{min-width:0;overflow-wrap:anywhere}
+.bill-import-notice strong{white-space:nowrap;color:#71520e}
+.bill-import-notice strong:first-child{color:#4e7539}
+.bill-confirm{background:#242924;color:#e6ff67;border:0;padding:14px;margin-top:14px;width:100%;font-size:10px;font-weight:800;letter-spacing:.03em}
+.bill-confirm:hover{background:#42513a}
+@media(max-width:480px){.bill-upload-button{gap:10px;padding:11px}.bill-upload-button strong{font-size:10px}.bill-upload-button small{font-size:10px}.bill-import-notice{flex-wrap:wrap}}
