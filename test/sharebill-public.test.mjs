@@ -14,14 +14,16 @@ test('inclusive stay days are accurate across months, leap years and a same-day 
   assert.equal(inclusiveStayDays('','2026-03-01'),null);
 });
 
-test('public Share Bill page is canonical, indexable and includes interactive date counter',()=>{
+test('public Share Bill page is canonical and indexable without an unnecessary standalone day counter',()=>{
   const html=read('public/operations/sharebill/index.html');
   assert.match(html,/<title>Free Share Bill Calculator/);
   assert.match(html,/<h1>SHARE BILL\.<br><em>CALCULATOR\./);
   assert.match(html,/<meta name="robots" content="index,follow">/);
   assert.match(html,/<link rel="canonical" href="https:\/\/www\.prohouse\.com\.au\/operations\/sharebill\/">/);
-  for(const token of ['id="counter-from"','id="counter-through"','id="counter-days"','/assets/bill-calculator.js','href="/operations/"'])
+  for(const token of ['/assets/bill-calculator.js','href="/operations/"','id="tenants-list"','id="add-tenant"'])
     assert.ok(html.includes(token),'Missing '+token);
+  for(const removed of ['QUICK TOOL / CALENDAR DAY COUNTER','How many days stayed?','id="counter-from"','id="counter-through"','id="counter-days"'])
+    assert.equal(html.includes(removed),false,'Redundant counter remains: '+removed);
 });
 
 test('initial resident field is empty and there is a way to add tenants',()=>{
