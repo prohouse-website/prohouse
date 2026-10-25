@@ -63,9 +63,9 @@
 
       <div class="bill-section-head bill-spaced">
         <div><span class="eyebrow">02 / WHO LIVED HERE?</span><h2>Add the people.</h2></div>
-        <span class="bill-mini-note">Count both the arrival and final listed day.</span>
+        <button id="sync-tenant-dates" class="bill-link-button" type="button">MATCH ALL TENANT DATES TO BILLS ↗</button>
       </div>
-      <div id="tenants-list" class="bill-stack"></div>
+      <p class="bill-sync-hint">Tenant dates fill automatically from the earliest bill start and latest bill end. Change any person's dates independently if they moved in or out during that period.</p><div id="tenants-list" class="bill-stack"></div>
       <button id="add-tenant" class="bill-add" type="button"><span>＋</span> ADD ANOTHER TENANT</button>
       <div class="bill-method-note"><span class="bill-note-icon">i</span><p><strong>How we divide it:</strong> Each invoice is spread evenly over its calendar days. On each day, the people present share that day's cost equally. Days with nobody present go to “Vacant / property”, not to other tenants.</p></div>
     </section>
@@ -82,7 +82,7 @@
       <div id="report-error" class="bill-error" role="alert" hidden></div>
       <button id="export-pdf" class="bill-export" type="button" disabled>DOWNLOAD PDF REPORT <span aria-hidden="true">↗</span></button>
       <button id="print-report" class="bill-print" type="button" disabled>PRINT / SAVE AS PDF</button>
-      <p class="bill-result-caption">Simple branded PDF with the bills, each person’s total, and a short explanation of the split.</p>
+      <p class="bill-result-caption">Simple ProHouse PDF showing each person's total, with copies of uploaded or attached invoices added at the end.</p>
     </aside>
   </div>
   <section class="bill-explainer">
