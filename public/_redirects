@@ -14,3 +14,10 @@
 /policies/complaint-policy/ /complaints/ 301
 /policies/customer-service-commitment /policies/ 301
 /policies/customer-service-commitment/ /policies/ 301
+
+# Free public bill splitting tool and old calculator URL.
+/bill-calculator /operations/sharebill/ 301
+/bill-calculator/ /operations/sharebill/ 301
+/bill-calculator/index.html /operations/sharebill/ 301
+/operations /operations/ 301
+/operations/sharebill /operations/sharebill/ 301
