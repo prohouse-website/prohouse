@@ -3,9 +3,10 @@ import { cleanerPortal } from './cleaner-portal.js';
 import { vendorAPI } from './vendor-proxy.js';
 import { utilityPDF } from './utilities-pdf.js';
 import { extractUtilityInvoice } from './utility-extraction.js';
+import { usageEvent, sendShareBillDailySummary, logShareBillEvent } from './sharebill-analytics.js';
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
     const canonicalAliases = {"/index.html": "/", "/stays": "/stays/", "/stays.html": "/stays/", "/stays/index.html": "/stays/", "/location": "/location/", "/location.html": "/location/", "/location/index.html": "/location/", "/properties": "/properties/", "/properties.html": "/properties/", "/properties/index.html": "/properties/", "/book": "/book/", "/book.html": "/book/", "/book/index.html": "/book/", "/owners": "/owners/", "/owners.html": "/owners/", "/owners/index.html": "/owners/", "/contact": "/contact/", "/contact.html": "/contact/", "/contact/index.html": "/contact/", "/why-prohouse": "/why-prohouse/", "/why-prohouse.html": "/why-prohouse/", "/why-prohouse/index.html": "/why-prohouse/", "/terms": "/terms/", "/terms.html": "/terms/", "/terms/index.html": "/terms/", "/privacy": "/privacy/", "/privacy.html": "/privacy/", "/privacy/index.html": "/privacy/", "/complaints": "/complaints/", "/complaints.html": "/complaints/", "/complaints/index.html": "/complaints/", "/sydney-airport-accommodation": "/sydney-airport-accommodation/", "/sydney-airport-accommodation.html": "/sydney-airport-accommodation/", "/sydney-airport-accommodation/index.html": "/sydney-airport-accommodation/", "/stays/room-1": "/stays/room-1/", "/stays/room-1.html": "/stays/room-1/", "/stays/room-1/index.html": "/stays/room-1/", "/stays/room-2": "/stays/room-2/", "/stays/room-2.html": "/stays/room-2/", "/stays/room-2/index.html": "/stays/room-2/", "/stays/room-3": "/stays/room-3/", "/stays/room-3.html": "/stays/room-3/", "/stays/room-3/index.html": "/stays/room-3/", "/terms-and-conditions/": "/terms/", "/terms-and-conditions": "/terms/", "/terms-and-conditions/index.html": "/terms/", "/privacy-policy/": "/privacy/", "/privacy-policy": "/privacy/", "/privacy-policy/index.html": "/privacy/", "/complaint-policy/": "/complaints/", "/complaint-policy": "/complaints/", "/complaint-policy/index.html": "/complaints/"};
@@ -20,8 +21,17 @@ export default {
     if (path === '/bill-calculator' || path === '/bill-calculator/' || path === '/bill-calculator/index.html') return Response.redirect(new URL('/operations/sharebill/' + url.search, url.origin), 301);
     if (path === '/operations' || path === '/operations/index.html') return Response.redirect(new URL('/operations/' + url.search, url.origin), 301);
     if (path === '/operations/sharebill' || path === '/operations/sharebill/index.html') return Response.redirect(new URL('/operations/sharebill/' + url.search, url.origin), 301);
-    if (path === '/api/utilities/pdf') return utilityPDF(request, env);
-    if (path === '/api/utilities/extract') return extractUtilityInvoice(request, env);
+    if (path === '/api/sharebill/usage') return usageEvent(request, env);
+    if (path === '/api/utilities/pdf') {
+      const response=await utilityPDF(request, env);
+      if (response.ok && request.method==='POST') ctx?.waitUntil?.(logShareBillEvent(env,'pdf_download').catch(()=>{}));
+      return response;
+    }
+    if (path === '/api/utilities/extract') {
+      const response=await extractUtilityInvoice(request, env);
+      if (response.ok && request.method==='POST') ctx?.waitUntil?.(logShareBillEvent(env,'scan').catch(()=>{}));
+      return response;
+    }
     if (path === '/api/survey') {
       if (request.method !== 'POST') return new Response('Method not allowed', { status: 405, headers: { Allow: 'POST', 'Cache-Control': 'no-store' } });
       return onRequestPost({ request, env });
@@ -50,5 +60,11 @@ export default {
     }
     if (path.startsWith('/api/')) return new Response('Not found', { status: 404 });
     return env.ASSETS.fetch(request);
+  },
+  async scheduled(_event, env, ctx) {
+    ctx.waitUntil(sendShareBillDailySummary(env).then(out=>{
+      if(!out.sent && out.reason!=='Already emailed')
+        console.warn('Share Bill daily email was not sent:',out.reason);
+    }).catch(()=>console.warn('Share Bill daily email encountered an error')));
   }
 };
