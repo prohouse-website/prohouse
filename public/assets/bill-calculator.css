@@ -169,3 +169,13 @@ body.bill-page{margin:0;background:var(--paper);font-family:'DM Sans',Arial,sans
 .bill-confirm{background:#242924;color:#e6ff67;border:0;padding:14px;margin-top:14px;width:100%;font-size:10px;font-weight:800;letter-spacing:.03em}
 .bill-confirm:hover{background:#42513a}
 @media(max-width:480px){.bill-upload-button{gap:10px;padding:11px}.bill-upload-button strong{font-size:10px}.bill-upload-button small{font-size:10px}.bill-import-notice{flex-wrap:wrap}}
+
+/* No grey badge behind the transparent ProHouse logo. */
+.bill-brand,.bill-brand img,.bill-footer a,.bill-footer a img{background:transparent;box-shadow:none}
+.bill-other-name{margin:15px 0}
+.bill-sync-hint{color:#55614f;font-size:11px!important;margin:0 0 17px!important}
+.bill-file-attachment{margin:16px 0 0;padding:12px 14px;background:#f6f7f1;border:1px solid #dbe0d5;display:grid;gap:6px}
+.bill-file-attachment label{font-size:10px;line-height:1.4;font-weight:800;letter-spacing:.025em;cursor:pointer;overflow-wrap:anywhere}
+.bill-file-attachment label:hover{text-decoration:underline}
+.bill-file-attachment span{font-size:10px;color:#66705f}
+.bill-file-attachment input{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;overflow:hidden!important;padding:0!important;border:0!important}
