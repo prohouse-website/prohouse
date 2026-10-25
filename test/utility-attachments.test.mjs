@@ -44,14 +44,14 @@ test('export attaches original invoice PDF after summary without modifying invoi
       [{id:'bill-1',file}]);
   const env={ASSETS:{fetch:async()=>new Response('not found',{status:404})}};
   const response=await utilityPDF(req,env);
-  assert.equal(response.status,200,await response.text().catch(()=>'')); // response clone? body consumed on failure only
+  assert.equal(response.status,200,response.status===200?'':await response.clone().text());
   const pdf=await PDFDocument.load(await response.arrayBuffer());
   assert.equal(pdf.getPageCount(),3);
   assert.deepEqual(pdf.getPage(1).getSize(),{width:450,height:600});
   assert.deepEqual(pdf.getPage(2).getSize(),{width:450,height:600});
 });
 test('export attaches invoice images after summary',async()=>{
-  const file=new File([Uint8Array.from([137,80,78,71,13,10,26,10,0])], 'broken.png',{type:'image/png'});
+  const file=new File([Uint8Array.from([...([137,80,78,71,13,10,26,10]),...new Array(128).fill(0)])], 'broken.png',{type:'image/png'});
   // PNG signature passes, but PDF generator rejects corrupt image instead of silently omitting.
   const response=await utilityPDF(formRequest({tenants,bills:[bill('bill-1','water','360')]},[{id:'bill-1',file}]),
     {ASSETS:{fetch:async()=>new Response('',{status:404})}});
