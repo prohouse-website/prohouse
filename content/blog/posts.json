@@ -21,7 +21,7 @@
       },
       {
         "heading": "Release of a hold versus refund of a payment",
-        "html": "<ul><li><strong>Hold released:</strong> an amount was reserved but not charged. The reservation is removed. A separate refund entry is usually not created.</li><li><strong>Payment refunded:</strong> an amount was actually charged and is then returned. Your bank may show a refund credit or reverse the original payment.</li><li><strong>Hold captured:</strong> some or all of the reserved amount becomes a completed payment. This is different from simply releasing the full hold.</li></ul><p>This guide describes an <strong>uncaptured security hold</strong>, not your accommodation payment. If an amount has become a completed charge, ask us to check that specific transaction rather than assuming it is a released hold.</p>"
+        "html": "<ul><li><strong>Hold released:</strong> an amount was reserved but not charged. The held amount is released. A separate refund entry is usually not created.</li><li><strong>Payment refunded:</strong> an amount was actually charged and is then returned. Your bank may show a refund credit or reverse the original payment.</li><li><strong>Hold captured:</strong> some or all of the reserved amount becomes a completed payment. This is different from simply releasing the full hold.</li></ul><p>This guide describes an <strong>uncaptured security hold</strong>, not your accommodation payment. If an amount has become a completed charge, ask us to check that specific transaction rather than assuming it is a released hold.</p>"
       },
       {
         "heading": "How to check your banking app",
