@@ -25,3 +25,7 @@
 # Guest shortcut: card authorisation and release guide.
 /card-hold /blog/card-authorisation-hold/ 301
 /card-hold/ /blog/card-authorisation-hold/ 301
+
+# Preferred guest shortcut: credit card pre-authorisation (pre-auth).
+/preauth /blog/card-authorisation-hold/ 301
+/preauth/ /blog/card-authorisation-hold/ 301
