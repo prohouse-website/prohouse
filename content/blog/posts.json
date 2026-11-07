@@ -1,19 +1,19 @@
 [
   {
     "slug": "card-authorisation-hold",
-    "title": "Card authorisation: why you may not see a refund",
+    "title": "Credit card pre-authorisation: why you may not see a refund",
     "category": "Sydney stay guides",
     "published": "2026-11-07",
-    "description": "Understand a pending card security hold, how its release differs from a refund, and what to check in your banking app after your stay.",
-    "intro": "Seeing an amount disappear from your available balance can feel like you have been charged. It is understandable to look for a refund afterwards. If the amount was only an authorisation hold and was never charged, its release usually works differently: the pending hold disappears, rather than a separate refund arriving.",
+    "description": "Understand credit card pre-authorisation (pre-auth), why releasing a pending hold usually creates no refund transaction, and what to check in your banking app.",
+    "intro": "Seeing an amount disappear from your available balance can feel like you have been charged. It is understandable to look for a refund afterwards. If the amount was only a credit card pre-authorisation (pre-auth) hold and was never charged, its release usually works differently: the pending hold disappears, rather than a separate refund arriving.",
     "sections": [
       {
         "heading": "The short answer: check Pending, not just Refunds",
         "html": "<p><strong>If your security amount was held but never charged, you will usually not see a separate refund transaction when it is released.</strong> Instead, look for the original amount under <strong>Pending</strong> in your banking app. After your bank processes the release, that pending hold will usually disappear and the held amount becomes available to spend again.</p><p>Some banks keep a record marked “reversed”, “cancelled” or similar. The exact display depends on your bank. Check that the pending item has not changed into a completed charge.</p>"
       },
       {
-        "heading": "What is a card authorisation hold?",
-        "html": "<p>A card authorisation, also called a pre-authorisation or security hold, temporarily reserves an amount on your card. Think of it as money <strong>set aside</strong>, rather than money paid to ProHouse.</p><p>For a hold that has not been captured as a payment, the held amount has not been transferred to ProHouse. However, you cannot spend that amount while it is reserved. On a debit card this reduces your available funds; on a credit card it reduces your available credit.</p>"
+        "heading": "What is a credit card pre-authorisation (pre-auth)?",
+        "html": "<p>A credit card pre-authorisation, often shortened to <strong>pre-auth</strong> or called a security hold, temporarily reserves an amount on your card. Think of it as money <strong>set aside</strong>, rather than money paid to ProHouse.</p><p>For a hold that has not been captured as a payment, the held amount has not been transferred to ProHouse. However, you cannot spend that amount while it is reserved. On a debit card this reduces your available funds; on a credit card it reduces your available credit.</p>"
       },
       {
         "heading": "Why does it look like money has been taken?",
@@ -25,11 +25,11 @@
       },
       {
         "heading": "How to check your banking app",
-        "html": "<ol><li>Open the card account used for the security authorisation.</li><li>Find the original amount and date in the <strong>Pending</strong> or authorisations section.</li><li>After the release is processed, check whether the hold has disappeared or is marked reversed/cancelled.</li><li>Check your <strong>available balance or available credit</strong>, allowing for other spending and pending transactions.</li><li>If the entry has become completed or posted, contact ProHouse so we can check whether a payment was taken.</li></ol><p>The disappearance of a pending entry alone does not prove that it was released: it can also disappear when replaced by a completed payment. Check both sections.</p>"
+        "html": "<ol><li>Open the card account used for the security pre-auth.</li><li>Find the original amount and date in the <strong>Pending</strong> or authorisations section.</li><li>After the release is processed, check whether the hold has disappeared or is marked reversed/cancelled.</li><li>Check your <strong>available balance or available credit</strong>, allowing for other spending and pending transactions.</li><li>If the entry has become completed or posted, contact ProHouse so we can check whether a payment was taken.</li></ol><p>The disappearance of a pending entry alone does not prove that it was released: it can also disappear when replaced by a completed payment. Check both sections.</p>"
       },
       {
         "heading": "Still seeing the hold? Here is what to ask",
-        "html": "<p>A release by a business and an update in your banking app may not happen at the same time. Processing depends on your bank, card and transaction; there is no single release time for every guest.</p><p>Contact ProHouse if you need us to confirm the authorisation status for your booking. If we have confirmed release but your available funds have not updated, ask your bank: <strong>“Is this a pending authorisation hold or a completed payment, and when will the released hold stop affecting my available balance?”</strong></p><p>You can send us your booking reference, transaction date and amount. If sharing a screenshot, hide your full card/account numbers and unrelated transactions. Never send your card security code, online banking password or one-time passcodes. <a href=\"/contact/\">Contact ProHouse</a> if you would like help checking.</p>"
+        "html": "<p>A release by a business and an update in your banking app may not happen at the same time. Processing depends on your bank, card and transaction; there is no single release time for every guest.</p><p>Contact ProHouse if you need us to confirm the pre-auth status for your booking. If we have confirmed release but your available funds have not updated, ask your bank: <strong>“Is this a pending pre-auth hold or a completed payment, and when will the released hold stop affecting my available balance?”</strong></p><p>You can send us your booking reference, transaction date and amount. If sharing a screenshot, hide your full card/account numbers and unrelated transactions. Never send your card security code, online banking password or one-time passcodes. <a href=\"/contact/\">Contact ProHouse</a> if you would like help checking.</p>"
       }
     ],
     "sources": [
@@ -47,7 +47,7 @@
       }
     ],
     "cta": {
-      "label": "Ask about your authorisation",
+      "label": "Ask about your pre-auth",
       "url": "/contact/"
     }
   },
