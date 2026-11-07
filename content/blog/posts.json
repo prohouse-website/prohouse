@@ -1,5 +1,57 @@
 [
   {
+    "slug": "card-authorisation-hold",
+    "title": "Card authorisation: why you may not see a refund",
+    "category": "Sydney stay guides",
+    "published": "2026-11-07",
+    "description": "Understand a pending card security hold, how its release differs from a refund, and what to check in your banking app after your stay.",
+    "intro": "Seeing an amount disappear from your available balance can feel like you have been charged. It is understandable to look for a refund afterwards. If the amount was only an authorisation hold and was never charged, its release usually works differently: the pending hold disappears, rather than a separate refund arriving.",
+    "sections": [
+      {
+        "heading": "The short answer: check Pending, not just Refunds",
+        "html": "<p><strong>If your security amount was held but never charged, you will usually not see a separate refund transaction when it is released.</strong> Instead, look for the original amount under <strong>Pending</strong> in your banking app. After your bank processes the release, that pending hold will usually disappear and the held amount becomes available to spend again.</p><p>Some banks keep a record marked “reversed”, “cancelled” or similar. The exact display depends on your bank. Check that the pending item has not changed into a completed charge.</p>"
+      },
+      {
+        "heading": "What is a card authorisation hold?",
+        "html": "<p>A card authorisation, also called a pre-authorisation or security hold, temporarily reserves an amount on your card. Think of it as money <strong>set aside</strong>, rather than money paid to ProHouse.</p><p>For a hold that has not been captured as a payment, the held amount has not been transferred to ProHouse. However, you cannot spend that amount while it is reserved. On a debit card this reduces your available funds; on a credit card it reduces your available credit.</p>"
+      },
+      {
+        "heading": "Why does it look like money has been taken?",
+        "html": "<p>Banking apps often show a hold as a negative amount alongside other transactions. Your available balance or available credit also falls. That can look like a payment even though the transaction is still pending.</p><p><strong>Example only:</strong> if you have $1,000 available and a $200 hold is placed, you may see $800 available. If the full hold is released without any payment being taken, the $200 becomes available again once your bank updates it. You would not normally see an extra $200 refund entry. This example is not ProHouse’s required security amount.</p>"
+      },
+      {
+        "heading": "Release of a hold versus refund of a payment",
+        "html": "<ul><li><strong>Hold released:</strong> an amount was reserved but not charged. The reservation is removed. A separate refund entry is usually not created.</li><li><strong>Payment refunded:</strong> an amount was actually charged and is then returned. Your bank may show a refund credit or reverse the original payment.</li><li><strong>Hold captured:</strong> some or all of the reserved amount becomes a completed payment. This is different from simply releasing the full hold.</li></ul><p>This guide describes an <strong>uncaptured security hold</strong>, not your accommodation payment. If an amount has become a completed charge, ask us to check that specific transaction rather than assuming it is a released hold.</p>"
+      },
+      {
+        "heading": "How to check your banking app",
+        "html": "<ol><li>Open the card account used for the security authorisation.</li><li>Find the original amount and date in the <strong>Pending</strong> or authorisations section.</li><li>After the release is processed, check whether the hold has disappeared or is marked reversed/cancelled.</li><li>Check your <strong>available balance or available credit</strong>, allowing for other spending and pending transactions.</li><li>If the entry has become completed or posted, contact ProHouse so we can check whether a payment was taken.</li></ol><p>The disappearance of a pending entry alone does not prove that it was released: it can also disappear when replaced by a completed payment. Check both sections.</p>"
+      },
+      {
+        "heading": "Still seeing the hold? Here is what to ask",
+        "html": "<p>A release by a business and an update in your banking app may not happen at the same time. Processing depends on your bank, card and transaction; there is no single release time for every guest.</p><p>Contact ProHouse if you need us to confirm the authorisation status for your booking. If we have confirmed release but your available funds have not updated, ask your bank: <strong>“Is this a pending authorisation hold or a completed payment, and when will the released hold stop affecting my available balance?”</strong></p><p>You can send us your booking reference, transaction date and amount. If sharing a screenshot, hide your full card/account numbers and unrelated transactions. Never send your card security code, online banking password or one-time passcodes. <a href=\"/contact/\">Contact ProHouse</a> if you would like help checking.</p>"
+      }
+    ],
+    "sources": [
+      {
+        "label": "CommBank: pending transactions and available balance",
+        "url": "https://www.commbank.com.au/support/disputing-a-transaction-faqs.html"
+      },
+      {
+        "label": "Macquarie: checking your account balance",
+        "url": "https://www.macquarie.com.au/help/personal/cards-balances-and-limits/account-balances/checking-your-account-balance.html"
+      },
+      {
+        "label": "Stripe: how authorisation holds work",
+        "url": "https://stripe.com/resources/more/authorization-holds-explained"
+      }
+    ],
+    "cta": {
+      "label": "Ask about your authorisation",
+      "url": "/contact/"
+    }
+  },
+  {
     "slug": "private-room-or-whole-apartment-sydney",
     "title": "Private room or whole apartment for your Sydney short stay?",
     "category": "Sydney stay guides",
