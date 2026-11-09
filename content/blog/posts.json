@@ -226,5 +226,57 @@
       "label": "Discuss your property with ProHouse",
       "url": "/owners/"
     }
+  },
+  {
+    "slug": "private-room-vs-whole-apartment-listing-accuracy",
+    "title": "Private room or whole apartment? Keep every booking listing accurate",
+    "category": "Property owner guides",
+    "published": "2026-11-10",
+    "description": "A practical channel-audit checklist for distinguishing private rooms in shared homes from whole-apartment short-stay listings.",
+    "intro": "A room-type error is not a small wording problem. If one channel describes a private bedroom as an entire home, a guest can arrive expecting exclusive use of spaces that are actually shared. Owners and managers need one accurate inventory record, then a deliberate check of how each booking channel displays it.",
+    "sections": [
+      {
+        "heading": "Start with the space the guest can use exclusively",
+        "html": "<p>Describe the booking from the guest’s point of view. A <strong>private-room</strong> booking gives the guest exclusive use of the stated bedroom, while one or more common areas are shared. A <strong>whole-apartment</strong> booking gives the guest exclusive use of the apartment described in that listing.</p><p>Do not decide the room type from the building category, the number of bedrooms in the property or a photograph of one bedroom. Record which bedroom, bathroom, kitchen, living and entrance areas are private or shared for that specific bookable unit.</p>"
+      },
+      {
+        "heading": "Use each platform’s actual accommodation type",
+        "html": "<p>Airbnb describes an entire place as a space where guests have the whole accommodation to themselves. Its private-room type gives the guest a private bedroom with access to shared areas. Those labels set different expectations and should match the stay being sold.</p><p>Google’s Vacation Rentals guidance currently says individual rooms and partial homes are not eligible for that integration. A connectivity feed should not convert an ineligible private room into an “entire house” simply to distribute it. Ask the channel manager which inventory types it can transmit accurately, and exclude a listing from an unsuitable feed if it cannot preserve the correct type.</p>"
+      },
+      {
+        "heading": "Audit more than the title",
+        "html": "<p>Compare the public result with the source listing. Check the property type, room name, guest capacity, bedroom and bathroom count, private-versus-shared facilities, check-in and checkout times, parking, amenities and accessibility information. Confirm that photographs belong to the bookable space or are clearly identified as shared areas.</p><p>Review negative amenity labels too. A channel may infer that a feature is unavailable when the source sent no value. Correct the source only when the property information is known; do not add an amenity merely to remove an unattractive “No” label.</p>"
+      },
+      {
+        "heading": "Follow the booking link as a guest would",
+        "html": "<p>Open the public channel result and follow its booking option. It should reach the intended property or room, not a generic page that makes the guest search again or a different inventory item. Recheck the dates and guest count after the handoff, because a link can be technically live while losing the selected search details.</p><p>Then compare the final booking page with the public result: the room type, photos, capacity, bathroom arrangement and main conditions should still describe the same stay. Keep the direct-booking destination on the organisation’s controlled domain or its established booking portal.</p>"
+      },
+      {
+        "heading": "Keep an evidence-based channel audit",
+        "html": "<p>Record the source listing ID, channel, public URL, date checked, displayed room type and any mismatch. Save a screenshot where appropriate, then make the correction in the source system or ask the connectivity provider to investigate. Recheck the public page after the next confirmed sync rather than assuming that changing one dashboard updated every channel.</p><p>For ProHouse, a private room in the Wolli Creek shared apartment is not a whole-apartment booking. The bedroom and ensuite are private; the kitchen and living room are shared. Our <a href=\"/stays/\">stay types</a> show that distinction for guests. Property owners can <a href=\"/owners/\">discuss listing setup and channel management with ProHouse</a>.</p>"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Google Hotel Center: Vacation Rentals starter guide and eligibility",
+        "url": "https://support.google.com/hotelprices/answer/12568039?hl=en"
+      },
+      {
+        "label": "Google Hotel Center: lodging business categories",
+        "url": "https://support.google.com/hotelprices/answer/9970971?hl=en-AU"
+      },
+      {
+        "label": "Airbnb: types of places to stay",
+        "url": "https://www.airbnb.com/help/article/5"
+      },
+      {
+        "label": "ProHouse private-room and whole-apartment stay types",
+        "url": "https://www.prohouse.com.au/stays/"
+      }
+    ],
+    "cta": {
+      "label": "Discuss your property with ProHouse",
+      "url": "/owners/"
+    }
   }
 ]
