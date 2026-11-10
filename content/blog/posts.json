@@ -278,5 +278,61 @@
       "label": "Discuss your property with ProHouse",
       "url": "/owners/"
     }
+  },
+  {
+    "slug": "wolli-creek-stay-groceries-food-transport",
+    "title": "A practical Wolli Creek stay guide: groceries, food and transport",
+    "category": "Sydney stay guides",
+    "published": "2026-11-11",
+    "description": "Plan groceries, local food, airport and Sydney CBD transport, and time outdoors during a short stay in Wolli Creek.",
+    "intro": "Wolli Creek can be a practical base for a Sydney short stay because everyday shops, local food and rail connections are concentrated around the station. It is not in the Sydney CBD or inside the airport terminals, so plan each journey from Wolli Creek and check live information before you leave.",
+    "sections": [
+      {
+        "heading": "Start with Wolli Creek Station",
+        "html": "<p>Wolli Creek Station is served by the T4 Eastern Suburbs &amp; Illawarra Line and the T8 Airport &amp; South Line. Transport for NSW lists city, airport and southern services from the station, but stopping patterns and platform details can change.</p><p>Use the <a href=\"https://transportnsw.info/trip\" target=\"_blank\" rel=\"noopener noreferrer\">Transport for NSW Trip Planner</a> with your actual departure time. It is safer than relying on a fixed travel-time claim, especially around weekend trackwork or timetable changes. ProHouse is in Wolli Creek with access to the Sydney CBD; it is not CBD accommodation.</p>"
+      },
+      {
+        "heading": "Buy groceries close to the local centre",
+        "html": "<p>For a longer stay or a simple meal, Wolli Creek has two major supermarkets near the station precinct. ALDI’s official store locator lists its Wolli Creek store at <strong>4 Magdalene Terrace</strong>. Woolworths lists its Wolli Creek store at <strong>78–96 Arncliffe Street</strong>.</p><p>Check each supermarket’s official store page on the day for current opening hours and services. Stock and trading hours can change, so avoid planning around an old directory listing. ProHouse private-room guests share the apartment kitchen and should leave common areas ready for the other guests.</p>"
+      },
+      {
+        "heading": "Choose food using live listings",
+        "html": "<p>The main local retail and dining area is around Wolli Creek Station and Village Square. Rather than relying on a fixed restaurant list, search a live map for the cuisine you want, then confirm the venue’s current hours, menu and booking requirements with the business.</p><p>A useful search should match the time you need food: breakfast before an airport trip, a late dinner after arrival or takeaway for the shared apartment. Check the walking route before leaving, and remember that a nearby map result may sit on the opposite side of the railway or a major road.</p>"
+      },
+      {
+        "heading": "Plan airport and CBD trips separately",
+        "html": "<p>The T8 line connects Wolli Creek with Sydney Domestic and International Airport stations and city stations. Transport for NSW advises that an airport station access fee applies in addition to the train fare when using the airport stations. Opal and contactless payment are accepted, subject to the current fare rules.</p><p>For the Sydney CBD, enter your exact destination rather than treating “the city” as one stop. Central, Town Hall and other city locations can require different services or walking connections. Check live service alerts before both your outbound and return journey.</p>"
+      },
+      {
+        "heading": "Take a break at Cahill Park",
+        "html": "<p>Bayside Council describes Cahill Park as a Wolli Creek park beside the Cooks River, with a playground, seating, barbecue facilities, a sporting field and tennis courts. Facilities or access can be affected by maintenance, events and weather, so check current council information when the park is central to your plans.</p><p>For your accommodation, compare the exact room and shared-space arrangement before booking. ProHouse offers <a href=\"/stays/\">private ensuite rooms in a shared Wolli Creek apartment</a>, and its <a href=\"/location/\">location guide</a> explains the property area and arrival context.</p>"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Transport for NSW: Wolli Creek Station",
+        "url": "https://transportnsw.info/stop?q=220510"
+      },
+      {
+        "label": "Transport for NSW: getting to and from Sydney Airport",
+        "url": "https://transportnsw.info/travel-info/airport-travel/getting-to-from-sydney-airport"
+      },
+      {
+        "label": "ALDI Wolli Creek store locator",
+        "url": "https://www.aldi.com.au/storelocator/l/wolli-creek/4-magdalene-terrace/g563"
+      },
+      {
+        "label": "Woolworths Wolli Creek store locator",
+        "url": "https://www.woolworths.com.au/shop/storelocator/nsw-wolli-creek-1128"
+      },
+      {
+        "label": "Bayside Council: Cahill Park plan of management",
+        "url": "https://www.bayside.nsw.gov.au/sites/default/files/2021-04/Cahill%20Park%20Plan%20of%20Management.pdf"
+      }
+    ],
+    "cta": {
+      "label": "Check Wolli Creek stay availability",
+      "url": "/book/"
+    }
   }
 ]
