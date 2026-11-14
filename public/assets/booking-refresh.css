@@ -62,3 +62,14 @@
 .refresh-support a{font-size:11px;font-weight:800;white-space:nowrap;border-bottom:1px solid;padding-bottom:4px}
 @media(max-width:900px){.refresh-hero{grid-template-columns:1fr 1fr}.refresh-copy{padding:28px 5vw}.refresh-hero h1{font-size:clamp(62px,8vw,90px)}.refresh-room{padding:18px}.refresh-room h3{font-size:37px}}
 @media(max-width:700px){.refresh-hero{display:flex;flex-direction:column}.refresh-copy{padding:27px 6% 31px}.refresh-hero h1{font-size:clamp(74px,17vw,110px);margin:17px 0}.refresh-lead{font-size:14px}.refresh-pills{margin:17px 0 20px}.refresh-clarity{font-size:10px;margin-top:18px}.refresh-visual{min-height:215px;height:215px}.refresh-search{padding:27px 6%}.refresh-search-heading,.refresh-section-heading{display:block}.refresh-search-heading>p,.refresh-section-heading>p{margin-top:12px}.refresh-search hostex-search-widget{padding:11px;min-height:142px}.refresh-results{padding:32px 6%}.refresh-compare,.refresh-know{padding:44px 6%}.refresh-room-grid,.refresh-know-grid{grid-template-columns:1fr;gap:13px}.refresh-room{padding:23px}.refresh-room ul{margin:14px 0 auto}.refresh-room-sub{min-height:0}.refresh-location{grid-template-columns:1fr;padding:40px 6%}.refresh-location-list{border-left:0;border-top:1px solid #51584b;padding:13px 0 0}.refresh-location h2{font-size:60px}.refresh-support{padding:21px 6%;flex-direction:column;align-items:flex-start}}
+
+/* Clarify the native Hostex search trigger without replacing its functionality. */
+.refresh-search{position:relative;z-index:10}
+.refresh-search-action-tip{display:flex;align-items:center;gap:14px;margin:12px 0 2px;padding:12px 15px;border:1px solid rgba(25,28,24,.4);border-radius:4px;background:#fff;color:#191c18;font-size:12px;line-height:1.5}
+.refresh-search-action-title{white-space:nowrap;font-size:12px;letter-spacing:.035em;font-weight:800}
+.refresh-search-action-title span{font-size:20px;margin-left:4px;color:#f35a12}
+@media(max-width:700px){
+  .refresh-search hostex-search-widget{min-height:0!important;max-height:110px;overflow:visible;padding:8px}
+  .refresh-search-action-tip{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:10px 12px;font-size:11px;margin-top:12px}
+  .refresh-search-action-title{font-size:13px}
+}
