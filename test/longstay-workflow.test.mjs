@@ -235,6 +235,48 @@ test('two applicant lifecycle emails, PDF signatures and D1 cleanup',async()=>{
   assert.equal((await repeat.json()).status,'completed');
  }finally{globalThis.fetch=original}
 });
+test('existing 48-hour invitation survives unavailable Resend attachment retrieval',async()=>{
+ const m=mockEnv(),original=globalThis.fetch;
+ globalThis.fetch=async(url,options)=>{
+  const uri=String(url);
+  if(uri.includes('/emails/')&&uri.endsWith('/attachments'))
+   return Response.json({message:'Attachment retrieval unavailable'},{status:403});
+  if(uri!=='https://api.resend.com/emails')throw Error('Unexpected network request '+uri);
+  const payload=JSON.parse(options.body);m.sent.push(payload);
+  return Response.json({id:'00000000-0000-4000-8000-'+String(m.sent.length).padStart(12,'0')});
+ };
+ try{
+  const r=await submitLongStayFirst(makeRequest('/api/longstay/application',buildFirst()),m.env);
+  assert.equal(r.status,200);
+  const first=await r.json();
+  const invite=m.sent.find(x=>x.subject.includes('Complete your ProHouse joint application'));
+  assert.ok(invite);
+  const token=invite.text.match(/#token=([a-f0-9]{64})/)[1];
+  // Emulate an invitation sent before encrypted temporary storage was deployed.
+  m.docs.delete(first.reference);
+  const answer=await submitLongStaySecond(makeRequest('/api/longstay/coapplicant',buildSecond(token)),m.env);
+  assert.equal(answer.status,200);
+  const completed=await answer.json();
+  assert.equal(completed.status,'completed');
+  assert.equal(completed.documentsCombined,false);
+  const originalMail=m.sent.find(x=>x.subject.includes('[1/3 received]'));
+  const secondMail=m.sent.find(x=>x.subject.includes('[REVIEW REQUIRED: TWO PDF EMAILS]'));
+  assert.ok(originalMail&&secondMail,'Admin must receive both separate PDF attachments');
+  assert.match(secondMail.text,/FIRST-applicant ID and income files were delivered in the EARLIER ProHouse admin email/);
+  assert.equal(originalMail.attachments.length,1);
+  assert.equal(secondMail.attachments.length,1);
+  assert.ok((await PDFDocument.load(Buffer.from(secondMail.attachments[0].content,'base64'))).getPageCount()>=3);
+  assert.ok(m.reviews.get(first.reference),'Review link created even on fallback');
+ }finally{globalThis.fetch=original;}
+});
+test('rent payment frequency accepts fortnightly, four weekly and calendar monthly, not weekly',async()=>{
+ const m=mockEnv();
+ const form=buildFirst({second:false});
+ form.set('payFrequency','Every week');
+ const r=await submitLongStayFirst(makeRequest('/api/longstay/application',form),m.env);
+ assert.equal(r.status,400);
+ assert.match((await r.json()).message,/payment frequency/);
+});
 test('single applicant receives its confirmation and owner receives uploaded files',async()=>{
  const m=mockEnv(),original=globalThis.fetch;
  globalThis.fetch=async(_url,options)=>{m.sent.push(JSON.parse(options.body));return new Response('{}',{status:200});};
