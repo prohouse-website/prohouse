@@ -68,8 +68,7 @@
     <div class="fieldGrid">
      <div class="field"><label for="incomeProof1">Proof of income <span class="req">*</span></label><input type="file" id="incomeProof1" name="incomeProof1" required accept=".pdf,.jpg,.jpeg,.png"></div>
      <div class="field"><label for="incomeProof2">Extra proof of income (optional)</label><input type="file" id="incomeProof2" name="incomeProof2" accept=".pdf,.jpg,.jpeg,.png"></div>
-     <div class="field"><label for="photoIdType">Photo ID type <span class="req">*</span></label>
- <select id="photoIdType" name="photoIdType" required><option value="">Choose ID type</option><option>Australian-issued driver licence</option><option>Passport</option></select></div>
+     
  <div class="field"><label for="photoId1">Australian driver licence or passport <span class="req">*</span></label><input type="file" id="photoId1" name="photoId1" required accept=".pdf,.jpg,.jpeg,.png"></div>
      <div class="field"><label for="photoId2">Extra photo ID (optional)</label><input type="file" id="photoId2" name="photoId2" accept=".pdf,.jpg,.jpeg,.png"></div>
     </div>
@@ -92,7 +91,7 @@
      <div class="field"><label for="length">Length of stay <span class="req">*</span></label><select id="length" name="length" required><option value="">Select a length</option><option>3 months</option><option>6 months</option><option>12 months</option><option>Other</option></select></div>
      <div class="field conditional" id="lengthOtherWrap" hidden><label for="lengthOther">Other length of stay <span class="req">*</span></label><input name="lengthOther" id="lengthOther" placeholder="e.g. 9 months" maxlength="150"></div>
      <div class="field"><label for="weeklyRent">Weekly rent you wish to pay (AUD) <span class="req">*</span></label><input id="weeklyRent" name="weeklyRent" inputmode="decimal" type="number" min="1" step=".01" required placeholder="Your proposed weekly rent"></div>
-     <div class="field"><label for="payFrequency">Preferred payment frequency <span class="req">*</span></label><select name="payFrequency" id="payFrequency" required><option value="">Select frequency</option><option>Every week</option><option>Every 2 weeks</option><option>Every 4 weeks</option><option>Every calendar month</option></select></div>
+     <div class="field"><label for="payFrequency">Preferred payment frequency <span class="req">*</span></label><select name="payFrequency" id="payFrequency" required><option value="">Select frequency</option><option>Every 2 weeks</option><option>Every 4 weeks</option><option>Every calendar month</option></select></div>
     </div>
     <div class="note"><strong>Rent overview</strong>
      <div class="priceGrid">
@@ -142,6 +141,7 @@
   $('stepHeading').textContent='Step '+(index+1)+' of 4';
   $('progressPct').textContent=((index+1)*25)+'% complete';$('trackBar').style.width=((index+1)*25)+'%';
   document.querySelector('.mainColumn').scrollIntoView({behavior:'smooth',block:'start'});
+  if(index===3)requestAnimationFrame(()=>resize());
  }
  function validateStep(){
   for(const input of steps[current].querySelectorAll('input,select,textarea')){
@@ -184,14 +184,14 @@
   for(const [label,value] of pairs){const div=document.createElement('div'),sm=document.createElement('small'),strong=document.createElement('strong');sm.textContent=label;strong.textContent=value||'—';div.append(sm,strong);box.append(div)}
  }
  const canvas=$('signaturePad'),ctx=canvas.getContext('2d');let signed=false,dragging=false;
- function resize(){const rect=canvas.getBoundingClientRect();const oldSigned=signed,oldImage=oldSigned?canvas.toDataURL('image/png'):null;
+ function resize(){const rect=canvas.getBoundingClientRect();if(rect.width<12||rect.height<12)return;const oldSigned=signed,oldImage=oldSigned&&canvas.width&&canvas.height?canvas.toDataURL('image/png'):null;
   const scale=window.devicePixelRatio||1;canvas.width=Math.round(rect.width*scale);canvas.height=Math.round(rect.height*scale);ctx.setTransform(scale,0,0,scale,0,0);
   ctx.strokeStyle='#182820';ctx.lineWidth=2.5;ctx.lineCap='round';ctx.lineJoin='round';
   if(oldImage){const img=new Image();img.onload=()=>ctx.drawImage(img,0,0,rect.width,rect.height);img.src=oldImage;}
  }
  function point(evt){const r=canvas.getBoundingClientRect();return{x:evt.clientX-r.left,y:evt.clientY-r.top}}
- canvas.addEventListener('pointerdown',e=>{dragging=true;signed=true;canvas.setPointerCapture(e.pointerId);const p=point(e);ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x+.1,p.y+.1);ctx.stroke()});
- canvas.addEventListener('pointermove',e=>{if(!dragging)return;const p=point(e);ctx.lineTo(p.x,p.y);ctx.stroke()});
+ canvas.addEventListener('pointerdown',e=>{if(canvas.width<12)resize();e.preventDefault();dragging=true;signed=true;canvas.setPointerCapture(e.pointerId);const p=point(e);ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x+.1,p.y+.1);ctx.stroke()});
+ canvas.addEventListener('pointermove',e=>{if(!dragging)return;e.preventDefault();const p=point(e);ctx.lineTo(p.x,p.y);ctx.stroke()});
  for(const eventName of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(eventName,()=>{dragging=false});
  $('clearSignature').addEventListener('click',()=>{ctx.clearRect(0,0,canvas.width,canvas.height);signed=false;$('signature').value=''});
  window.addEventListener('resize',resize);resize();
