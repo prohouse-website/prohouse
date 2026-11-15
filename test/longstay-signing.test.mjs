@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { PDFDocument } from 'pdf-lib';
 import { deflateSync } from 'node:zlib';
 import {
- prepareLease,packetForAdmin,tenantPacket,leaseDocument,sendLease,tenantSign,
+ prepareLease,leaseTemplateStatus,packetForAdmin,tenantPacket,leaseDocument,sendLease,tenantSign,
  tenantReportPayment,verifyLeasePayment,verifyPostSigningFunds,requestProviderOtp,signProvider,checkLeaseDeadlines
 } from '../src/longstay-signing.js';
 
@@ -154,10 +154,14 @@ test('lease editor -> preview -> separate tenant signing -> bank confirmation ->
   return Response.json({id:'a'.repeat(36)});
  };
  try{
+  const emptyStatus=await leaseTemplateStatus(uri('lease-template-status'),mock.env);
+  assert.equal((await emptyStatus.json()).templateSaved,false);
   const result=await prepareLease(formRequest('lease-prepare',leaseForm(template)),mock.env);
   assert.equal(result.status,200,await result.text().catch(()=>'')); // test won't leak data
   assert.equal((await packetForAdmin(uri('lease-status'),mock.env)).status,200);
   assert.ok(mock.templates.has('mutual-agreement-v10'));
+  const templateStatus=await leaseTemplateStatus(uri('lease-template-status'),mock.env);
+  assert.equal((await templateStatus.json()).templateSaved,true);
   const preview=await leaseDocument(uri('lease-pdf'),mock.env);
   assert.equal(preview.status,200);
   assert.equal((await PDFDocument.load(await preview.arrayBuffer())).getPageCount(),6);
