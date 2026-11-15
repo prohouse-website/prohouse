@@ -1,43 +1,48 @@
-# ProHouse Live With Us | first applicant + joint applicant
+# ProHouse rental applications, review and future lease mail merge
 
-Live primary URL: https://www.prohouse.com.au/longstay/form/livewithus/
+## Live Operations URLs
 
-Private second-person invitation page: https://www.prohouse.com.au/longstay/form/livewithus/second/#token=<one-time-private-token>
+- Operations Portal: https://www.prohouse.com.au/operations/
+- Main application: https://www.prohouse.com.au/operations/livewithus/
+- Second applicant private invitation: https://www.prohouse.com.au/operations/livewithus/second/#token=<private-token>
+- ProHouse-only decision page: https://www.prohouse.com.au/operations/livewithus/review/#token=<private-review-token>
+- The former /longstay/form/livewithus/ URLs redirect to their Operations Portal equivalents.
 
-Owner mailbox: hi@prohouse.com.au (via PROHOUSE_ADMIN_EMAILS); Resend integration uses RESEND_API_KEY and APPLICATION_FROM_EMAIL.
+## Application and notification flow
 
-## Workflow
+- Applicant 1 submits a four-step form with legal/contact/work details, photo ID category (Australian-issued driver licence or passport), *mandatory* photo ID file and proof of income, rental choices, and signature.
+- PDF, JPEG, PNG attachments only (not WebP, which pdf-lib cannot embed as a page). Maximum 5 MB each, 15 MB combined.
+- For one person, ProHouse gets **one PDF** that includes all application pages, the electronic signature and all supporting documents copied as PDF pages. The email contains an owner-only link to approve/reject.
+- For two people, applicant 1 enters **only applicant 2's email**. ProHouse gets an interim single PDF with applicant 1 attachments. Applicant 1 gets an acknowledgement. Applicant 2 gets a **48-hour invitation** with applicant 1's name, email and shared rental preferences. It excludes first applicant's occupation, work-from-home, employer/school, income, signature and all uploaded files. Applicant 1 is warned exactly what is shared.
+- Applicant 2 enters their legal/contact/work details, ID category, own mandatory files, declaration and signature. The service retrieves applicant 1's sent PDF from the authenticated Resend outbound-attachments API, copies only its supporting-document pages, and adds them to a joint application summary and applicant 2's supporting-document pages. ProHouse gets this **one final PDF**, with all uploaded evidence from both people, and a private approve/reject link. Applicant 1 and applicant 2 receive completion emails.
+- Email delivery to hi@prohouse.com.au uses RESEND_API_KEY and APPLICATION_FROM_EMAIL. Applicant stage notifications never attach ID or income files. If the first applicant's PDF cannot be retrieved, the second submission does not falsely report a successful combined application.
+- Invitation token is random (256 bits), kept hashed in D1. It is provided in URL fragment, not normal page request. Invitation automatically rejects late submissions after 48 hours. D1 holds applicant 1 text/signature temporarily, and clears them after both applicants submit.
+- Staff review link is a distinct hashed 256-bit capability, only emailed to ProHouse. It expires after **30 days**, displays the application data, and requires a separate button click to approve/reject. The POST decision uses a conditional pending-only database transition. Applicant(s) and ProHouse receive status emails. Approval is **only permission to prepare a lease**, not an executed tenancy or guaranteed move-in.
+- A separate private longstay_reviews row stores approved/rejected application text for subsequent lease data merge. Cleanup currently deletes review rows after 90 days. Confirm retention requirements before moving to production-scale tenancy document management. No photo IDs are stored in D1. First applicant's merged PDF can be fetched from Resend after submission, and the finished package stays in ProHouse's email inbox.
 
-1. Person 1 completes the screening, contact/work details, property and room selection, rental preferences, signature and mandatory photo ID **plus** proof of income. Allowed PDF, JPEG, PNG, WebP, maximum 5 MB per file, 15 MB combined. Optional extra files. On successful owner delivery, owner receives the first-person PDF with signature and all uploaded documents; person 1 receives a receipt.
-2. If Person 1 selected two people, the first submission needs **only Person 2's email**. The system stores invitation metadata and Person 1's completed text fields and PNG signature in the dedicated private D1 database, but never their uploaded documents. Person 2 receives a 21-day, unguessable 256-bit link, with the values Person 1 entered (including first applicant's contact, occupation, income and shared rental details), but no files or signature. Applicant 1 explicitly consents to sharing their entered data. Person 1 and ProHouse receive a second-applicant-invited status email. If the invitation fails, both are alerted.
-3. Person 2 opens the private link and fills out their own legal name, phone, occupation, working-from-home status, employer/school, weekly income, photo ID and proof of income, declarations and signature. They cannot change Person 1's data. Person 2 submits to /api/longstay/coapplicant, where the system creates a **joint PDF with both signatures**. ProHouse receives the completed PDF and person 2 documents; person 1 documents are in the initial email. Both applicants are emailed completion notifications, and the first applicant's temporary application data and signature are removed from D1.
-4. Person 1, person 2 and ProHouse get stage-related emails. Status and delivery errors are logged server-side. The system has a daily scheduled cleanup of expired D1 invitations and completed metadata.
+## Future lease-template input: what ProHouse must upload/provide
 
-## Endpoints
+**1. Actual lease master files.** Supply your latest master lease as DOCX or fillable PDF, ideally separately for NSW and Victoria. Provide annexures, special conditions, house rules, inventory/furniture schedules, privacy/consent terms, any optional parking or inclusions addendum, and the statutory documents/disclosures required for each state. A scan-only PDF is usable but requires manual positional field-mapping.
 
-- POST /api/longstay/application: first applicant form submission, with multipart files.
-- GET /api/longstay/invitation?token=...: temporary preview of first person's entered text fields for the invited applicant only. Not indexed; cache disabled. The emailed link carries the token in the URL fragment, preventing it from being sent in ordinary page request URLs.
-- POST /api/longstay/coapplicant: complete second applicant with invite token, required documents, signature; updates DB to completed, sends attachments by Resend.
-- Database: dedicated production D1 binding LONGSTAY_DB (prohouse-longstay-applications), isolated preview database; schema in schema/longstay-applications.sql.
-- Optional Cloudflare edge rate limit LONGSTAY_FORM_LIMIT (5 submissions per IP per minute).
+**2. Legal party data.** Landlord/lessor's correct legal entity (not just trading name), ACN/ABN if relevant, authorised agent and contact/service address, agent signing representative and signature workflow. Confirm whether ProHouse is owner, managing agent or head tenant for each property and rental arrangement.
 
-## Properties / room mappings
+**3. Property-specific constants.** Full street address, unit number, postcode, state, room identifier, whether the arrangement is a rooming house, boarding house, co-tenancy or ordinary residential tenancy, common areas/room descriptions, included appliances, electricity/internet/water arrangement, rent payment details, residential bond scheme/amount and optional services.
 
-- VIC - Oakden Crescent, St. Albans: Master room with ensuite; Left room near stairway; Right room near bathroom
-- NSW - Guess Avenue, Wolli Creek: Room near entrance; Master bedroom with ensuite; Small room near kitchen
-- NSW - Arncliffe Street, Wolli Creek: Room 1; Room 2 (near kitchen); Room 3 (near entrance)
-- Other: a manually entered property and room
+**4. Terms that cannot be inferred from the application.** Accepted (not merely *proposed*) weekly rent; agreed commencement/end dates; exact fixed term; bond amount; billing/payment arrangements; occupant(s); permitted visitors; utilities/inclusions; any lawful special conditions; and any approval dependencies. These need confirmation before mail merge, not blind copying from proposed rent or preferred move-in date.
 
-Length: 3 / 6 / 12 months, or custom text. Weekly rent input is the amount the applicant wishes to pay. The display calculates fortnight, four-week and calendar-month equivalents.
+**5. Preferred signing process.** Who signs first (ProHouse or tenant), how signatures are gathered and verified, whether each co-applicant signs separately, how to present the document for review, email sender/recipients, what to do on decline, and whether signed leases are archived and for how long.
 
-## Future PDF mail merge
+After the templates are attached, use `src/longstay-pdf-template.js` for fillable PDF AcroForms or implement position overlays for flat PDFs. Use application fields exported in `src/longstay-application.js`, and only use rows in `longstay_reviews` whose status is `approved`. The existing code **does not** automatically issue, sign, or send lease documents; that must be implemented after verifying the templates and Australian state requirements.
 
-src/longstay-pdf-template.js includes a fillable PDF merge helper for a future branded application template. src/longstay-application.js exports canonical `applicationFields` and a branded PDF summary with both e-signatures. After the user uploads the template, map AcroForm field names (or positional coordinates for flat PDFs), wire the template and deploy. This part needs the actual PDF template before it can be completed.
+## Current Cloudflare resources
 
-## Security / compliance considerations
+- D1 binding LONGSTAY_DB: production prohouse-longstay-applications; independent preview database.
+- Table longstay_applications contains invitations, first emailed-PDF ID and first-summary page count; longstay_reviews stores staff decisions and approved applicant text.
+- Cloudflare Workers rate limit LONGSTAY_FORM_LIMIT; daily cleanup.
+- R2 is **not enabled** on this Cloudflare account. Instead the joint document merger reads applicant 1's sent PDF from the existing Resend email attachment, authenticated server-side; no public application files are exposed.
 
-- Applicant files go to ProHouse's restricted mailbox only. No R2 file URLs, no long-term document storage within D1. Email copies are subject to mailbox and Resend retention; apply mailbox access controls and internal document-deletion procedures.
-- Only a token hash is persisted, never the raw invitation token. Expiration after 21 days. Invitations can be redeemed only once; concurrent submissions cannot both deliver.
-- ProHouse has not automatically approved a tenant or executed a lease; the eventual agreement is subject to NSW or Victorian residential tenancy law.
-- The website requires applicant consent to share first applicant text fields with the nominated invitee. Verify the invitee email address carefully. Identity documents and signatures are not included in the invitation.
-- This deployment does not send followup reminders automatically and does not include an admin resend-invitation dashboard.
+## Security and operational caveats
+
+- Never post, log, or share any private invitation or approval token. A staff link is *bearer access*; whoever obtains it before it is used can review or decide the application. For greater security, add Cloudflare Access/staff login before multi-user use.
+- The internal form is not a tenancy agreement. Any lease must be separately prepared and signed according to NSW/Victorian requirements.
+- Real mailbox acceptance and the Resend attachment retrieval should be tested with non-sensitive synthetic documents before relying on unattended joint PDF delivery. Automated workflow tests use mocked Resend and PDF pages.
