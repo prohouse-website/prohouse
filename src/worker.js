@@ -1,6 +1,6 @@
 import { onRequestPost } from './survey.js';
 import { generateMutualLeaseDraft } from './longstay-lease.js';
-import { prepareLease,packetForAdmin,tenantPacket,leaseDocument,sendLease,tenantSign,tenantReportPayment,verifyLeasePayment,verifyPostSigningFunds,requestProviderOtp,signProvider,checkLeaseDeadlines } from './longstay-signing.js';
+import { prepareLease,leaseTemplateStatus,packetForAdmin,tenantPacket,leaseDocument,sendLease,tenantSign,tenantReportPayment,verifyLeasePayment,verifyPostSigningFunds,requestProviderOtp,signProvider,checkLeaseDeadlines } from './longstay-signing.js';
 import { getLongStayReview, decideLongStayReview } from './longstay-review.js';
 import { submitLongStayFirst, submitLongStaySecond, getLongStayInvitation, cleanupLongStayInvitations } from './longstay-workflow.js';
 import { startSignatureHandoff, signatureHandoffStatus, saveMobileSignature, cleanupSignatureSessions } from './longstay-signature-handoff.js';
@@ -51,6 +51,7 @@ export default {
     if (path === '/api/longstay/lease-draft') return generateMutualLeaseDraft(request, env);
     if (path === '/api/longstay/lease-prepare') return prepareLease(request,env);
     if (path === '/api/longstay/lease-status') return packetForAdmin(request,env);
+    if (path === '/api/longstay/lease-template-status') return leaseTemplateStatus(request,env);
     if (path === '/api/longstay/tenant') return tenantPacket(request,env);
     if (path === '/api/longstay/lease-pdf') return leaseDocument(request,env);
     if (path === '/api/longstay/lease-send') return sendLease(request,env);
