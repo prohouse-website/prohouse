@@ -150,6 +150,23 @@ export async function prepareLease(request,env){
     {reference:review.reference,status:'draft',settings,previewAvailable:true});
  }catch(e){console.error('Lease preparation failed',e?.message);return reply(400,e.message||'Could not prepare lease.')}
 }
+export async function leaseTemplateStatus(request,env){
+ if(request.method!=='GET')return reply(405,'Method not allowed.');
+ const review=await adminRow(request,env);
+ if(!review)return reply(403,'Approved private ProHouse review link required.');
+ try{
+  const saved=await env.LONGSTAY_DB.prepare(
+    'SELECT template_name,updated_at FROM longstay_lease_templates WHERE template_name=?'
+  ).bind(DB_TEMPLATE).first();
+  return reply(200,saved?'A master lease PDF is saved.':'No master lease PDF has been saved yet.',{
+   templateSaved:!!saved,
+   templateUpdatedAt:saved?.updated_at||null
+  });
+ }catch(e){
+  console.error('Master PDF status lookup failed',e?.message);
+  return reply(503,'Could not verify saved master PDF. Please try again.');
+ }
+}
 export async function packetForAdmin(request,env){
  const review=await adminRow(request,env);if(!review)return reply(403,'Invalid staff review link.');
  const packet=await currentPacket(env,review.reference);
