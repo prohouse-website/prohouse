@@ -173,6 +173,9 @@ test('lease editor -> preview -> separate tenant signing -> bank confirmation ->
   assert.ok(invited.every(x=>x.text.includes('SCHEDULE A, the LAST PAGE')));
   assert.ok(invited.every(x=>x.text.toLowerCase().includes('commonwealth bank')));
   assert.ok(invited.every(x=>x.text.includes('ONE WEEK of rent')));
+  assert.ok(invited.every(x=>x.text.includes('CANCELLATION / WITHDRAWAL')));
+  assert.ok(invited.every(x=>x.text.includes('not legally owed will be returned')));
+  assert.ok(invited.every(x=>x.text.includes('BEFORE the ProHouse signature')));
   assert.equal(invited.length,2);
   const inviteToken=(mail)=>mail.text.match(/#token=([a-f0-9]{64})/)[1];
   const t1=inviteToken(invited[0]),t2=inviteToken(invited[1]);
@@ -180,12 +183,15 @@ test('lease editor -> preview -> separate tenant signing -> bank confirmation ->
   assert.equal((await first.json()).legalName,'ALICE EXAMPLE');
   const shown=await leaseDocument(uri('lease-pdf',t2),mock.env);assert.equal(shown.status,200);
   const wrong=await tenantSign(json('tenant-sign',{legalName:'Wrong Person',readAllPages:true,
-    agreeElectronicSign:true,agreeTerms:true,signature:sig},t1),mock.env);assert.equal(wrong.status,400);
-  const signed1=await tenantSign(json('tenant-sign',{legalName:'ALICE EXAMPLE',readAllPages:true,
+    agreeElectronicSign:true,agreeTerms:true,acknowledgeWithdrawalTerms:true,signature:sig},t1),mock.env);assert.equal(wrong.status,400);
+  const missingAcknowledgement=await tenantSign(json('tenant-sign',{legalName:'ALICE EXAMPLE',readAllPages:true,
     agreeElectronicSign:true,agreeTerms:true,signature:sig},t1),mock.env);
+  assert.equal(missingAcknowledgement.status,400);
+  const signed1=await tenantSign(json('tenant-sign',{legalName:'ALICE EXAMPLE',readAllPages:true,
+    agreeElectronicSign:true,agreeTerms:true,acknowledgeWithdrawalTerms:true,signature:sig},t1),mock.env);
   assert.equal(signed1.status,200);
   const signed2=await tenantSign(json('tenant-sign',{legalName:'BOB EXAMPLE',readAllPages:true,
-    agreeElectronicSign:true,agreeTerms:true,signature:sig},t2),mock.env);
+    agreeElectronicSign:true,agreeTerms:true,acknowledgeWithdrawalTerms:true,signature:sig},t2),mock.env);
   assert.equal(signed2.status,200);
   assert.equal(mock.packets.get(mock.review.reference).status,'tenants_signed');
   const prematureProvider=await signProvider(json('provider-sign',{providerName:'CU NGUYEN',
