@@ -45,7 +45,7 @@ async function readFiles(form,prefix=''){
   const documents=[];let total=0;
   for(const [key,label] of fields){
     const entries=form.getAll(key);
-    if(entries.length!==1)throw Error('Please select one file per upload field.');
+    if(entries.length>1)throw Error('Please select one file per upload field.');
     const entry=entries[0];
     if(!entry||typeof entry==='string'||!entry.size)continue;
     if(entry.size>MAX_FILE)throw Error('Each document must be 5 MB or smaller.');
@@ -196,7 +196,7 @@ export async function submitLongStayFirst(request,env){
     }catch(e){console.error('Unable to create longstay invitation',e?.message);return reply(503,'Unable to create an invitation. Try again.');}
   }
   try{
-    await sendMail(env,{to:admin(env),subject:'[1/2 received] Long-stay application '+ref+' | '+firstName,
+    await sendMail(env,{to:admin(env),subject:(token?'[1/3 received] ':'[1/1 complete] ')+'Long-stay application '+ref+' | '+firstName,
       replyTo:data.email,tag:'first-received',
       text:['New Live With Us application submitted.', 'Stage: first applicant received',
         'Second applicant: '+(data.people==='Two people'?'invitation to follow':'not applicable'),summarise(data,ref),'',
@@ -215,7 +215,7 @@ export async function submitLongStayFirst(request,env){
   let invited=false;
   if(token){
     const inviteURL=new URL('/longstay/form/livewithus/second/',new URL(request.url).origin);
-    inviteURL.searchParams.set('token',token);
+    inviteURL.hash='token='+token;
     const inviteText=[
       'You have been invited to complete a joint ProHouse rental application.',
       'Invited by: '+firstName,
@@ -239,6 +239,13 @@ export async function submitLongStayFirst(request,env){
       invited=true;
       await env.LONGSTAY_DB.prepare('UPDATE longstay_applications SET invitation_sent_at=? WHERE reference=?').bind(new Date().toISOString(),ref).run();
     }catch(e){console.error('Joint application invite delivery failed',ref,e?.message);}
+    if(!invited){
+      const warning='Second applicant email invitation could not be delivered.\nReference: '+ref+'\nInvited email: '+data.secondEmail+'\nPlease contact the other applicant and ProHouse to arrange a corrected email invitation.';
+      await Promise.allSettled([
+        sendMail(env,{to:admin(env),subject:'[ACTION NEEDED] Joint application invitation '+ref,text:warning,tag:'invite-failed'}),
+        sendMail(env,{to:data.email,subject:'Action needed on your second applicant invitation | '+ref,text:warning,tag:'first-invite-failed'})
+      ]);
+    }
     if(invited){
       const update='Stage update: second applicant invitation sent.\n'+
         'Reference: '+ref+'\nInvited: '+data.secondEmail+'\nThe second applicant must submit their information and mandatory documents within 21 days.';
