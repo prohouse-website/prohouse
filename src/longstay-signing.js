@@ -288,7 +288,7 @@ export async function sendLease(request,env){
    'After paying, report the transfer reference on your signing page.',
    '',
    'Only the ProHouse administrator can verify cleared funds. A report of payment is not proof of receipt.',
-   'Your agreement is not fully executed until all tenants and ProHouse have signed.',
+   'ProHouse will countersign after required tenant signatures and bank verification, and send the completed copy. Applicable law may give an agreement legal effect before countersignature.',
    'Do not forward your personal signing link. Contact hi@prohouse.com.au if you need assistance.'
   ].join('\n');
   try{await mail(env,r.email,'Action required in 24 hours: Read, sign and pay | '+review.reference,body);}
@@ -344,7 +344,7 @@ export async function tenantSign(request,env){
  catch(e){console.error('Tenant signed owner notification failed',e?.message)}
  try{await mail(env,settings['guest'+slot+'Email'],'Your ProHouse signature was received | '+packet.reference,
    'Hello '+name+',\nYour electronic signature was recorded at '+time+' UTC.\nReference: '+packet.reference+
-   '\nThe agreement is not fully executed until all tenants and ProHouse have signed.\nProHouse');}
+   '\nProHouse will countersign and email the completed copy. Applicable state law may create binding rights earlier.\nProHouse');}
  catch(e){console.error('Tenant signature receipt failed',e?.message)}
  return reply(200,'Your electronic signature has been recorded.',{status:'signed',allSigned});
 }
