@@ -305,8 +305,11 @@ export async function sendLease(request,env){
    'After transferring, report your bank transaction reference on your signing page.',
    '',
    'ProHouse can confirm payment only after CLEARED funds appear in our bank account. A bank screenshot or transfer receipt alone is not proof of payment.',
-   'After all tenants have signed and ProHouse verifies the initial rent payment, ProHouse will countersign and send the final lease. Bond and the second week of rent will then be due before key collection.',
-   'Do not share your personal signing link. Contact hi@prohouse.com.au if you need help.'
+   'NEXT: After all named tenants sign and ProHouse confirms the first-week rent has arrived, ProHouse will countersign and email the final fully signed lease. You must complete the signing and transfer steps BEFORE the ProHouse signature.',
+   'Bond and the second week of rent will then be due before key collection.',
+   '',
+   'CANCELLATION / WITHDRAWAL: If you change your mind after submitting your signed agreement and first-week rent, ProHouse may apply that payment to rent legally due or applicable lawful lease-break costs. You may lose some or all of the first-week payment. It is NOT an automatic non-refundable penalty; any amount not legally owed will be returned, subject to the agreement and applicable state law.',
+   'Notify ProHouse promptly in writing if you decide not to proceed. Do not share your personal signing link. Contact hi@prohouse.com.au if you need help.'
   ].join('\n');
   try{await mail(env,r.email,'Congratulations! Sign your ProHouse lease and pay within 24 hours | '+review.reference,body);}
   catch(e){failed.push(r.email)}
@@ -335,8 +338,8 @@ export async function tenantSign(request,env){
  const key=slot===1?'first':'second';
  const name=settings['guest'+slot+'Name'];
  if(str(body.legalName)!==name||body.readAllPages!==true||body.agreeElectronicSign!==true||
-     body.agreeTerms!==true||!goodSignature(body.signature))
-  return reply(400,'Read all pages, confirm your exact name and consent, and provide your own signature.');
+     body.agreeTerms!==true||body.acknowledgeWithdrawalTerms!==true||!goodSignature(body.signature))
+  return reply(400,'Read all pages, acknowledge the withdrawal notice, confirm your exact name and consent, and provide your own signature.');
  if(packet[key+'_signed_at'])return reply(200,'You already signed this lease.',{status:'signed'});
  const time=iso();
  const changed=await env.LONGSTAY_DB.prepare(
