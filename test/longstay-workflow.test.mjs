@@ -201,7 +201,7 @@ test('two applicant lifecycle emails, PDF signatures and D1 cleanup',async()=>{
   assert.equal(approvalEmails.length,2);
   assert.deepEqual(approvalEmails.map(x=>x.to[0]).sort(),['first@example.com','second@example.com']);
   assert.ok(approvalEmails.every(x=>x.text.includes('Your 24-hour countdown does NOT start')));
-  assert.ok(approvalEmails.every(x=>x.text.includes('SCHEDULE A, the LAST PAGE')));
+  assert.ok(approvalEmails.every(x=>x.text.toLowerCase().includes('schedule a, the last page')));
   assert.ok(approvalEmails.every(x=>x.text.includes('Commonwealth Bank')));
   const repeatDecision=await decideLongStayReview(new Request('https://www.prohouse.com.au/api/longstay/review',{
     method:'POST',headers:{'Content-Type':'application/json',Origin:'https://www.prohouse.com.au'},
