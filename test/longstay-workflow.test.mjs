@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { deflateSync } from 'node:zlib';
 import { PDFDocument } from 'pdf-lib';
 import { submitLongStayFirst, submitLongStaySecond, getLongStayInvitation } from '../src/longstay-workflow.js';
+import { getLongStayReview, decideLongStayReview } from '../src/longstay-review.js';
 
 function crc32(bytes) {
   let c=0xffffffff;
@@ -33,7 +34,7 @@ function buildFirst({second=true,missingDocument=false,wrongRoom=false}={}){
  const f=new FormData();
  const fields={
   people:second?'Two people':'Just me',houseRules:'Yes',firstName:'TEST',lastName:'Applicant',
-  email:'first@example.com',phone:'0400000001',occupation:'Student',
+  email:'first@example.com',phone:'0400000001',photoIdType:'Passport',occupation:'Student',
   workFromHome:'No',employer:'Test School',income:'450',
   secondEmail:second?'second@example.com':'',
   property:'NSW - Arncliffe Street, Wolli Creek',room:wrongRoom?'Master room with ensuite':'Room 2 (near kitchen)',
@@ -49,7 +50,7 @@ function buildFirst({second=true,missingDocument=false,wrongRoom=false}={}){
 function buildSecond(token){
  const f=new FormData();
  const fields={
-  invitationToken:token,secondFirstName:'TEST SECOND',secondLastName:'Applicant',secondPhone:'0400000002',
+  invitationToken:token,secondIdType:'Australian-issued driver licence',secondFirstName:'TEST SECOND',secondLastName:'Applicant',secondPhone:'0400000002',
   secondOccupation:'Casual employee',secondWorkFromHome:'Sometimes',secondEmployer:'Test Business',
   secondIncome:'550',secondDeclaration:'Yes',secondPrivacyConsent:'Yes',signature
  };
@@ -65,9 +66,9 @@ function makeRequest(path,form,method='POST') {
  });
 }
 function mockEnv(){
- const rows=new Map(),sent=[];
+ const rows=new Map(),reviews=new Map(),sent=[];
  return {
-  rows,sent,
+  rows,reviews,sent,
   env:{
    RESEND_API_KEY:'unit-test-value',APPLICATION_FROM_EMAIL:'ProHouse TEST <no-reply@prohouse.com.au>',
    PROHOUSE_ADMIN_EMAILS:'hi@prohouse.com.au',
@@ -77,16 +78,30 @@ function mockEnv(){
      return {bind(...p){args.values=p;return this;},
       async first(){
        if(sql.includes('WHERE invite_hash'))return [...rows.values()].find(x=>x.invite_hash===args.values[0])||null;
+       if(sql.includes('WHERE token_hash'))return [...reviews.values()].find(x=>x.token_hash===args.values[0])||null;
        throw Error('Unexpected D1 SELECT '+sql);
       },
       async run(){
        const v=args.values||[];
+       if(sql.startsWith('INSERT INTO longstay_reviews')){
+        const [reference,token_hash,status,first_email,second_email,summary_json,created_at,expires_at]=v;
+        reviews.set(reference,{reference,token_hash,status,first_email,second_email,summary_json,created_at,expires_at});
+        return {meta:{changes:1}};
+       }
+       if(sql.startsWith('DELETE FROM longstay_reviews')){reviews.delete(v[0]);return {meta:{changes:1}};}
+       if(sql.startsWith("UPDATE longstay_reviews SET status=")){
+        const [status,decision_at,reference,token_hash]=v;
+        const row=reviews.get(reference);
+        if(!row||row.status!=='pending'||row.token_hash!==token_hash)return {meta:{changes:0}};
+        row.status=status;row.decision_at=decision_at;return {meta:{changes:1}};
+       }
        if(sql.startsWith('INSERT INTO longstay_applications')) {
         const [reference,first_email,first_name,second_email,invite_hash,first_data,first_signature,status,created_at,expires_at]=v;
         rows.set(reference,{reference,first_email,first_name,second_email,invite_hash,first_data,first_signature,status,created_at,expires_at});
         return {meta:{changes:1}};
        }
        if(sql.startsWith('DELETE FROM longstay_applications')){rows.delete(v[0]);return {meta:{changes:1}}}
+       if(sql.includes('SET first_email_id')){const row=rows.get(v[2]);row.first_email_id=v[0];row.first_summary_pages=v[1];return {meta:{changes:1}};}
        if(sql.includes('SET invitation_sent_at')){rows.get(v[1]).invitation_sent_at=v[0];return {meta:{changes:1}}}
        if(sql.includes("SET status='processing'")){const r=rows.get(v[0]);if(r?.status!=='invited')return {meta:{changes:0}};r.status='processing';return {meta:{changes:1}}}
        if(sql.includes("SET status='completed'")){const r=rows.get(v[1]);r.status='completed';r.first_data=null;r.first_signature=null;r.completed_at=v[0];return {meta:{changes:1}}}
@@ -116,9 +131,20 @@ test('property and room must match; invalid selection blocked',async()=>{
 test('two applicant lifecycle emails, PDF signatures and D1 cleanup',async()=>{
  const m=mockEnv(),original=globalThis.fetch;
  globalThis.fetch=async(url,options)=>{
-  assert.equal(url,'https://api.resend.com/emails');
+  const u=String(url);
+  if(u.includes('/emails/')&&u.endsWith('/attachments')){
+   const first=m.sent.find(x=>x.subject.includes('[1/3 received]'));
+   return Response.json({data:[{id:'file-pdf',filename:m.rows.values().next().value.reference+'-applicant-1.pdf',
+      download_url:'https://testing.example/first.pdf'}]});
+  }
+  if(u==='https://testing.example/first.pdf'){
+   const first=m.sent.find(x=>x.subject.includes('[1/3 received]'));
+   return new Response(Buffer.from(first.attachments[0].content,'base64'),{status:200,headers:{'Content-Type':'application/pdf'}});
+  }
+  assert.equal(u,'https://api.resend.com/emails');
   const payload=JSON.parse(options.body);m.sent.push(payload);
-  return new Response(JSON.stringify({id:'testing-'+m.sent.length}),{status:200,headers:{'Content-Type':'application/json'}});
+  const id='00000000-0000-4000-8000-'+String(m.sent.length).padStart(12,'0');
+  return Response.json({id});
  };
  try{
   const response=await submitLongStayFirst(makeRequest('/api/longstay/application',buildFirst()),m.env);
@@ -128,8 +154,8 @@ test('two applicant lifecycle emails, PDF signatures and D1 cleanup',async()=>{
   assert.equal(m.rows.size,1);
   const firstMail=m.sent.find(x=>x.subject.includes('[1/3 received]'));
   assert.ok(firstMail);assert.equal(firstMail.to[0],'hi@prohouse.com.au');
-  assert.equal(firstMail.attachments.length,3); // application PDF, ID, income proof
-  assert.ok((await PDFDocument.load(Buffer.from(firstMail.attachments[0].content,'base64'))).getPageCount()>=1);
+  assert.equal(firstMail.attachments.length,1); // single PDF contains summary, ID, income proof
+  assert.ok((await PDFDocument.load(Buffer.from(firstMail.attachments[0].content,'base64'))).getPageCount()>=3);
   const invite=m.sent.find(x=>x.subject.includes('Complete your ProHouse joint application'));
   assert.ok(invite);
   assert.deepEqual(invite.to,['second@example.com']);
@@ -141,16 +167,37 @@ test('two applicant lifecycle emails, PDF signatures and D1 cleanup',async()=>{
   assert.equal(get.status,200);
   const preview=await get.json();
   assert.equal(preview.firstApplicant.room,'Room 2 (near kitchen)');
-  assert.equal(preview.firstApplicant.income,'450');
+  assert.equal(preview.firstApplicant.income,undefined);
+  assert.ok(!invite.text.includes('Occupation:'));
+  assert.ok(!invite.text.includes('Work from home:'));
+  assert.ok(!invite.text.includes('Employer or school:'));
+  assert.ok(!invite.text.includes('Weekly income'));
+  assert.ok(invite.text.includes('expires in 48 hours'));
+  assert.ok(new Date(m.rows.get(first.reference).expires_at).getTime()-Date.now()<49*3600000);
   assert.equal(preview.invitedEmail,'second@example.com');
   assert.equal(m.rows.get(first.reference).first_data.includes('TEST-photo-id.png'),false);
   const secondReply=await submitLongStaySecond(makeRequest('/api/longstay/coapplicant',buildSecond(token)),m.env);
   assert.equal(secondReply.status,200);
   const final=await secondReply.json();assert.equal(final.status,'completed');
-  const combined=m.sent.find(x=>x.subject.includes('[3/3 complete]'));
+  const combined=m.sent.find(x=>x.subject.includes('[REVIEW REQUIRED] ProHouse joint'));
   assert.ok(combined);
-  assert.equal(combined.attachments.length,3); // combined PDF, second ID, second income proof
-  assert.ok((await PDFDocument.load(Buffer.from(combined.attachments[0].content,'base64'))).getPageCount()>=1);
+  assert.equal(combined.attachments.length,1); // combined PDF contains all first+second evidence
+  assert.ok((await PDFDocument.load(Buffer.from(combined.attachments[0].content,'base64'))).getPageCount()>=5);
+  const reviewLink=combined.text.match(/#token=([a-f0-9]{64})/);
+  assert.ok(reviewLink,'private review token missing');
+  const review=await getLongStayReview(new Request('https://www.prohouse.com.au/api/longstay/review?token='+reviewLink[1]),m.env);
+  assert.equal((await review.json()).status,'pending');
+  const decided=await decideLongStayReview(new Request('https://www.prohouse.com.au/api/longstay/review',{
+    method:'POST',headers:{'Content-Type':'application/json',Origin:'https://www.prohouse.com.au'},
+    body:JSON.stringify({token:reviewLink[1],decision:'approved'})
+  }),m.env);
+  assert.equal((await decided.json()).status,'approved');
+  assert.equal(m.reviews.get(first.reference).status,'approved');
+  const repeatDecision=await decideLongStayReview(new Request('https://www.prohouse.com.au/api/longstay/review',{
+    method:'POST',headers:{'Content-Type':'application/json',Origin:'https://www.prohouse.com.au'},
+    body:JSON.stringify({token:reviewLink[1],decision:'rejected'})
+  }),m.env);
+  assert.equal((await repeatDecision.json()).status,'approved');
   assert.equal(m.rows.get(first.reference).status,'completed');
   assert.equal(m.rows.get(first.reference).first_data,null);
   assert.equal(m.rows.get(first.reference).first_signature,null);
@@ -168,7 +215,9 @@ test('single applicant receives its confirmation and owner receives uploaded fil
   assert.equal((await r.json()).status,'completed');
   assert.equal(m.rows.size,0);
   assert.equal(m.sent.length,2);
-  assert.equal(m.sent[0].attachments.length,3);
+  assert.equal(m.sent[0].attachments.length,1);
+  assert.ok((await PDFDocument.load(Buffer.from(m.sent[0].attachments[0].content,'base64'))).getPageCount()>=3);
+  assert.ok(m.sent[0].text.includes('/operations/livewithus/review/#token='));
   assert.deepEqual(m.sent[1].to,['first@example.com']);
  }finally{globalThis.fetch=original}
 });
