@@ -143,6 +143,37 @@
    <div class="buttons"><button class="primary" type="submit">Sign for ProHouse & email final PDF</button></div>
   </form>
  </section>
+ <section id="postSignSection" hidden>
+  <h2>6 / Before key collection: verify cleared funds</h2>
+  <div class="warning">A bank screenshot or a pending transfer is NOT cleared funds. Confirm the second week’s rent in the ProHouse bank account and the legally required bond lodgement/payment evidence. This page does NOT release any access codes or keys. Staff must also follow all applicable tenancy and key-access laws.</div>
+  <div class="progressList">
+   <div>Second week of rent<strong id="secondWeekStatus">Not verified</strong></div>
+   <div>Rental bond / lodgement<strong id="bondStatus">Not verified</strong></div>
+   <div>Financial key-collection checklist<strong id="keyCheckStatus">Incomplete</strong></div>
+   <div>Lease status<strong id="completedLeaseStatus">Fully signed</strong></div>
+  </div>
+  <form id="secondWeekForm">
+   <h3>Verify second week rent</h3>
+   <div class="editGrid">
+    <div><label for="secondWeekAmount">Cleared amount (AUD)</label><input type="number" min="0" step=".01" id="secondWeekAmount" required></div>
+    <div><label for="secondWeekBy">Verified by (staff name)</label><input id="secondWeekBy" required></div>
+   </div>
+   <label class="checkline"><input id="secondWeekVisible" type="checkbox" required> I checked ProHouse’s actual bank account and can see the second week’s rent as cleared funds.</label>
+   <div class="buttons"><button class="primary" type="submit">Verify second week received</button></div>
+  </form>
+  <form id="bondForm">
+   <h3>Verify rental bond payment / lodgement</h3>
+   <p>Bond required: <strong id="bondDueAmount"></strong>. Record proof of payment and, where required, the government bond scheme receipt or lodgement record.</p>
+   <div class="editGrid">
+    <div><label for="bondCheckAmount">Bond amount verified (AUD)</label><input type="number" min="0" step=".01" id="bondCheckAmount" required></div>
+    <div><label for="bondCheckBy">Verified by (staff name)</label><input id="bondCheckBy" required></div>
+    <div class="wide"><label for="bondReceipt">Bond payment / RBO / RTBA reference</label><input id="bondReceipt" required maxlength="140"></div>
+   </div>
+   <label class="checkline"><input id="bondReceiptCheck" type="checkbox" required> I verified the lawful bond receipt or bond payment and appropriate lodgement records. Any money paid to ProHouse has also cleared in the relevant bank account.</label>
+   <div class="buttons"><button class="primary" type="submit">Verify rental bond</button></div>
+  </form>
+  <p class="warning" id="handoverNotice">Financial checklist not complete. Do not treat this dashboard as authority to withhold access after a tenancy has legally commenced.</p>
+ </section>
  <p id="monitorResult"></p>
 </section>
 </section>
@@ -228,6 +259,20 @@
    $('monitorDue').textContent=packet.deadlineAt?new Date(packet.deadlineAt).toLocaleString('en-AU',{dateStyle:'long',timeStyle:'short'}):'';
    $('verifySection').hidden=!packet.paymentReported||packet.paymentVerified||packet.status==='expired'||packet.status==='completed';
    $('providerSection').hidden=!(packet.firstSigned&&packet.secondSigned&&packet.paymentVerified&&packet.status==='tenants_signed');
+   $('postSignSection').hidden=packet.status!=='completed';
+   if(packet.status==='completed'){
+    $('secondWeekStatus').textContent=packet.secondWeekVerified?'Verified':'Awaiting cleared bank funds';
+    $('bondStatus').textContent=packet.bondVerified?'Verified':'Awaiting bond evidence';
+    $('keyCheckStatus').textContent=packet.keyCollectionFinancialChecksComplete?'Financial checks complete':'Not ready';
+    $('secondWeekForm').hidden=packet.secondWeekVerified;
+    $('bondForm').hidden=packet.bondVerified;
+    $('secondWeekAmount').value=Number(packet.settings.acceptedWeeklyRent||0).toFixed(2);
+    $('bondCheckAmount').value=Number(packet.bondAmount||0).toFixed(2);
+    $('bondDueAmount').textContent=new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD'}).format(Number(packet.bondAmount||0));
+    $('handoverNotice').textContent=packet.keyCollectionFinancialChecksComplete?
+      'Bond and rent financial checks completed. Arrange key collection manually for the lawful commencement date. No codes were released by this portal.':
+      'Bond and/or second-week rent verification is outstanding. A screenshot or pending transfer does not constitute bank clearance.';
+   }
    $('monitorResult').textContent=packet.status==='completed'?'Lease fully signed and emailed to tenants and ProHouse.':
     packet.status==='expired'?'24-hour deadline passed. Please contact the applicants before further action.':
     'You can refresh to check new signatures and transfer reports.';
@@ -295,6 +340,29 @@
   if(!r.ok)throw Error('Unable to load issued lease.');
   const u=URL.createObjectURL(await r.blob());window.open(u,'_blank','noopener');
  }catch(e){error(e.message)}});
+ async function savePostSigning(kind){
+  const bond=kind==='bond';
+  const requestData=bond?{
+   kind,amount:Number($('bondCheckAmount').value).toFixed(2),
+   verifiedBy:$('bondCheckBy').value,bondReference:$('bondReceipt').value,
+   confirmBondReceipt:$('bondReceiptCheck').checked
+  }:{
+   kind,amount:Number($('secondWeekAmount').value).toFixed(2),
+   verifiedBy:$('secondWeekBy').value,confirmVisibleInBank:$('secondWeekVisible').checked
+  };
+  const message=bond?'Confirm the actual lawful bond payment / lodgement evidence?':
+    'Confirm the second week of rent is cleared and VISIBLE in the ProHouse bank account?';
+  if(!confirm(message))return;
+  try{
+   const result=await request('postsign-verify',{
+    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(requestData)
+   });
+   notice(result.message);
+   await loadStatus();
+  }catch(e){error(e.message)}
+ }
+ $('secondWeekForm').addEventListener('submit',e=>{e.preventDefault();savePostSigning('second_week')});
+ $('bondForm').addEventListener('submit',e=>{e.preventDefault();savePostSigning('bond')});
  $('verifyForm').addEventListener('submit',async e=>{
   e.preventDefault();
   if(!confirm('Confirm that one full week of rent has CLEARED in your bank account?'))return;
