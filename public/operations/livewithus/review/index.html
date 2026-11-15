@@ -19,8 +19,22 @@
 .editGrid .wide{grid-column:1/-1}
 .editGrid label{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 .editGrid input,.editGrid select{display:block;width:100%;padding:12px;border-radius:9px;border:1px solid #cfd7cd;font:inherit}
-.editGrid .checkline,.checkline{display:flex;gap:10px;font-size:13px;margin:12px 0;align-items:flex-start}
-.checkline input{margin-top:4px}
+.editGrid .checkline,.checkline{display:flex!important;gap:10px;font-size:13px;margin:12px 0;align-items:flex-start;max-width:100%;min-width:0;flex-wrap:nowrap;white-space:normal;line-height:1.5}
+.checkline input[type="checkbox"],.editGrid .checkline input[type="checkbox"]{display:block;box-sizing:border-box;flex:0 0 19px;width:19px!important;height:19px!important;min-width:19px;padding:0!important;margin:1px 0 0!important;accent-color:#243d2b}
+.checkline span{display:block;flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+.editGrid .wide{min-width:0;max-width:100%}
+#draftStatus{display:none}
+#draftStatus.inlineError{display:block;color:#962b39;background:#fff0f1;border:1px solid #e3a3aa;border-radius:10px;padding:14px;font-size:13px;line-height:1.6;margin:15px 0}
+#draftStatus.inlineSuccess{display:block;color:#24482b;background:#f1f8e6;border:1px solid #c9dca8;border-radius:10px;padding:14px;font-size:13px;line-height:1.6;margin:15px 0}
+#templateStatus{font-size:13px;line-height:1.6;padding:12px 14px;border-radius:9px;margin:12px 0;background:#eff8e6;color:#24482b}
+#templateStatus.needsUpload{background:#fff6e5;color:#6c4a1b;border:1px solid #e7d2a9}
+#leaseTemplate{box-sizing:border-box}
+.previewActions{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin:17px 0}
+.previewActions a{display:inline-flex;align-items:center;justify-content:center;padding:13px 17px;text-decoration:none;border-radius:10px;border:1px solid #243d2b;font-size:13px;font-weight:800}
+.previewActions a:first-child{background:#243d2b;color:white}
+.previewActions a:last-child{background:white;color:#243d2b}
+#previewSection{scroll-margin-top:24px}
+
 .buttons{display:flex;gap:12px;flex-wrap:wrap;margin:19px 0}
 .buttons button{min-width:165px}
 .warning{background:#fff6e5;color:#594728;border:1px solid #e9d7b8;border-radius:11px;padding:15px;font-size:13px;line-height:1.6;margin:17px 0}
@@ -80,21 +94,25 @@
    <div><label for="payId">PayID for one-week rent *</label><input id="payId" name="payId" required maxlength="180"></div>
    <div class="wide"><label for="bankDetails">Alternative bank BSB and account *</label><input id="bankDetails" name="bankDetails" required maxlength="180"></div>
    <div class="wide"><label for="providerSigner">Authorised ProHouse signing representative *</label><input id="providerSigner" name="providerSigner" required maxlength="180"></div>
-   <div class="wide"><label for="leaseTemplate">Six-page master PDF (required only first time)</label><input type="file" name="template" id="leaseTemplate" accept=".pdf,application/pdf">
-    <small>Use the PDF conversion of your legally reviewed agreement. Saving it allows reuse for future approved tenants.</small>
-    <label class="checkline"><input type="checkbox" name="saveTemplate" value="Yes" checked> Save this master PDF privately for future leases</label>
+   <div class="wide"><label for="leaseTemplate">Master agreement PDF (upload only once)</label>
+    <p id="templateStatus" class="needsUpload" role="status">Checking whether your master agreement is already saved…</p>
+    <input type="file" name="template" id="leaseTemplate" accept=".pdf,application/pdf" aria-describedby="templateStatus">
+    <small>First preview only: choose your complete six-page master PDF. It will be stored privately for future approved applications. If a master is already saved, leave this field empty.</small>
+    <label class="checkline"><input type="checkbox" name="saveTemplate" value="Yes" checked><span>Save the uploaded master PDF privately for future leases</span></label>
    </div>
   </div>
   <p class="warning">Rental bond amount is entered separately for the post-signing email. The uploaded Schedule A currently labels other amounts as “cleaning bond” and “holding fund”; those are not automatically treated as a statutory rental bond. Confirm the correct agreement and lawful bond process for NSW or Victoria.</p>
   <p class="warning">Proposed rent and preferred dates have been copied from the application to help you. They must be reviewed and explicitly confirmed. Editing an issued lease is not permitted; issue a new reviewed agreement instead.</p>
-  <div class="buttons"><button class="primary" id="previewButton" type="submit">Save changes & preview complete PDF</button></div>
+  <div class="buttons"><button class="primary" id="previewButton" type="submit">Save & preview the full six-page PDF</button></div>
+  <p id="draftStatus" role="alert" aria-live="polite"></p>
  </form>
- <p id="draftStatus"></p>
  <div id="previewSection" hidden>
   <h2>3 / Review the full six-page lease</h2>
   <p>Read the actual PDF below. If anything is incorrect, edit the fields above and generate a new preview before sending.</p>
   <iframe class="pdf" id="leasePreview" title="Full lease preview"></iframe>
-  <p><a href="#" id="previewDownload" target="_blank" rel="noopener" download="ProHouse-DRAFT-Lease.pdf">Download this draft</a></p>
+  <div class="previewActions"><a id="previewOpen" href="#" target="_blank" rel="noopener">Open full PDF preview</a>
+   <a href="#" id="previewDownload" target="_blank" rel="noopener" download="ProHouse-DRAFT-Lease.pdf">Download draft PDF</a></div>
+  <p style="font-size:13px;color:#66726a">On iPhone, use <strong>Open full PDF preview</strong> to scroll all six pages in the PDF viewer. No lease has been sent to tenants.</p>
   <div class="warning">The preview is stamped as a draft. When you authorise sending, the signing copy is generated from the saved master PDF with the same confirmed fields.</div>
   <div id="approvalControls">
    <label class="checkline"><input id="legalReviewed" type="checkbox"> I confirm this master agreement has been legally reviewed for this property and applicable tenancy arrangement.</label>
@@ -188,7 +206,7 @@
  const fields=['guest1Name','guest1Email','guest1Phone','guest2Name','guest2Email','guest2Phone',
   'fullAddress','rentedArea','acceptedWeeklyRent','rentFrequency','leaseStart','leaseEnd','cleaningBond',
   'holdingFund','bondAmount','internet','electricity','water','payId','bankDetails','providerSigner'];
- let review,packet,previewReady=false,pdfUrl='';
+ let review,packet,previewReady=false,pdfUrl='',savedTemplate=null;
  if(!/^[a-f0-9]{64}$/.test(token)){$('loading').hidden=true;error('Your private admin link is invalid. Open the complete link from your ProHouse email.');return;}
  async function request(path,options={}){
   const r=await fetch('/api/longstay/'+path,{credentials:'same-origin',cache:'no-store',...options,headers:{...auth,...options.headers}});
@@ -200,7 +218,31 @@
   if(!response.ok)throw Error('Could not display the protected lease PDF.');
   if(pdfUrl)URL.revokeObjectURL(pdfUrl);
   pdfUrl=URL.createObjectURL(await response.blob());
-  $('leasePreview').src=pdfUrl;$('previewDownload').href=pdfUrl;
+  $('leasePreview').src=pdfUrl;$('previewDownload').href=pdfUrl;$('previewOpen').href=pdfUrl;
+ }
+ async function refreshTemplateStatus(){
+  try{
+   const state=await request('lease-template-status');
+   savedTemplate=state.templateSaved;
+   $('templateStatus').classList.toggle('needsUpload',!savedTemplate);
+   $('templateStatus').textContent=savedTemplate?
+    'Master PDF saved securely. You do not need to choose a file again. Click Save & preview once the lease fields are complete.':
+    'No master PDF has been saved yet. Select your six-page agreement PDF above for the first preview; it will be saved for future leases.';
+   $('leaseTemplate').required=!savedTemplate;
+   return savedTemplate;
+  }catch(e){
+   savedTemplate=null;
+   $('templateStatus').classList.add('needsUpload');
+   $('templateStatus').textContent='Could not check the saved master PDF. If this is your first lease, upload the six-page agreement. '+e.message;
+   return null;
+  }
+ }
+ function showDraftMessage(message,kind='error'){
+  const element=$('draftStatus');
+  element.className=kind==='error'?'inlineError':'inlineSuccess';
+  element.textContent=message;
+  element.style.display='block';
+  element.scrollIntoView({behavior:'smooth',block:'center'});
  }
  const appRows=[['Applicant 1','firstName','lastName'],['Email','email'],['Phone','phone'],
   ['Occupation','occupation'],['Employer','employer'],['Weekly income','income'],
@@ -289,7 +331,10 @@
   $('reviewBadge').textContent='APPLICATION '+review.status.toUpperCase();
   $('applicationActions').hidden=review.status!=='pending';
   $('leaseSection').hidden=review.status!=='approved';
-  if(review.status==='approved')await loadStatus();
+  if(review.status==='approved'){
+   await refreshTemplateStatus();
+   await loadStatus();
+  }
  }catch(e){$('loading').hidden=true;error(e.message);return;}
  async function decide(decision){
   if(!confirm(decision==='approved'?'Approve this rental application to prepare a draft lease?':'Reject this application and email applicant(s)?'))return;
@@ -298,7 +343,10 @@
    review.status=r.status;$('applicationActions').hidden=true;
    $('applicationStatus').textContent='Application '+r.status+'.';
    $('reviewBadge').textContent='APPLICATION '+r.status.toUpperCase();
-   if(r.status==='approved')$('leaseSection').hidden=false;
+   if(r.status==='approved'){
+    $('leaseSection').hidden=false;
+    await refreshTemplateStatus();
+   }
    notice('Application decision saved: '+r.status+'.');
   }catch(e){error(e.message);}
  }
@@ -307,20 +355,46 @@
  $('editor').addEventListener('input',()=>{if(previewReady){previewReady=false;$('previewSection').hidden=true;$('draftStatus').textContent='Fields changed. Generate a fresh preview before sending.';}});
  $('editor').addEventListener('change',()=>{if(previewReady){previewReady=false;$('previewSection').hidden=true;$('draftStatus').textContent='Fields changed. Generate a fresh preview before sending.';}});
  $('editor').addEventListener('submit',async e=>{
-  e.preventDefault();$('error').style.display='none';
-  const invalid=[...$('editor').querySelectorAll('[required]')].find(x=>!x.checkValidity());
-  if(invalid){invalid.reportValidity();return;}
-  const button=$('previewButton');button.disabled=true;button.textContent='Preparing six-page draft…';
+  e.preventDefault();
+  $('error').style.display='none';
+  $('draftStatus').style.display='none';
+  const inputs=[...$('editor').querySelectorAll('[required]')];
+  const missing=inputs.filter(x=>!x.checkValidity());
+  if(missing.length){
+   const labels=missing.map(x=>$('editor').querySelector('label[for="'+x.id+'"]')?.textContent?.replace('*','').trim()||'Master agreement PDF');
+   showDraftMessage('Please complete these fields before previewing the PDF: '+labels.join(', ')+'. No lease has been sent.');
+   const first=missing[0];
+   first.scrollIntoView({behavior:'smooth',block:'center'});
+   first.focus({preventScroll:true});
+   first.reportValidity();
+   return;
+  }
+  if(savedTemplate!==true&&!$('leaseTemplate').files.length){
+   showDraftMessage('The master PDF has not been uploaded yet. Choose the complete six-page agreement in the Master agreement PDF field above. This is only required once.');
+   $('leaseTemplate').scrollIntoView({behavior:'smooth',block:'center'});
+   $('leaseTemplate').focus({preventScroll:true});
+   return;
+  }
+  const button=$('previewButton');button.disabled=true;button.textContent='Generating your full six-page preview…';
   try{
    const form=new FormData($('editor'));
    const response=await request('lease-prepare',{method:'POST',body:form});
    packet={status:'draft',settings:response.settings};
+   // Open the actual stored PDF before enabling any tenant-sending controls.
    await openPDF();
-   previewReady=true;$('previewSection').hidden=false;
+   previewReady=true;
+   $('previewSection').hidden=false;
    $('legalReviewed').checked=false;$('detailsConfirmed').checked=false;$('deadlineConfirmed').checked=false;
-   $('draftStatus').textContent='Draft saved. No tenant email sent. Review all six pages below.';
+   $('draftStatus').className='inlineSuccess';
+   $('draftStatus').textContent='Full six-page draft generated and saved. No email has been sent. Review the PDF below before approving the lease.';
+   $('draftStatus').style.display='block';
+   await refreshTemplateStatus();
    $('previewSection').scrollIntoView({behavior:'smooth',block:'start'});
-  }catch(e){error(e.message)}finally{button.disabled=false;button.textContent='Save changes & preview complete PDF'}
+  }catch(err){
+   showDraftMessage('PDF preview could not be generated: '+err.message+' No lease was sent. Check the fields above and try again.');
+  }finally{
+   button.disabled=false;button.textContent='Save & preview the full six-page PDF';
+  }
  });
  $('sendLease').addEventListener('click',async()=>{
   if(!previewReady){error('Review the latest PDF preview before approving.');return;}
