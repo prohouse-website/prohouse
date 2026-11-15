@@ -21,7 +21,7 @@
 <body>
 <header><div class="topbar">
   <a class="brand" href="/" aria-label="ProHouse home"><img src="/assets/prohouse-logo-transparent.png" alt="ProHouse"></a>
-  <a class="toplink" href="/longstay/form/livewithus/">Live With Us</a>
+  <a class="toplink" href="/operations/">Operations Portal</a>
 </div></header>
 <section class="hero inviteHero"><div class="heroinner">
   <div><span class="eyebrow">PROHOUSE / JOINT APPLICATION</span><h1>YOU'RE<br><span>INVITED.</span></h1>
@@ -33,7 +33,7 @@
   <h2>YOUR INVITATION</h2>
   <ol class="stepNav"><li class="active"><span class="bubble">1</span> Shared details</li>
    <li><span class="bubble">2</span> About you</li><li><span class="bubble">3</span> Sign & send</li></ol>
-  </div><div class="sideTip"><strong>Need help?</strong><p>Your invitation is private, and it expires after 21 days.</p><a href="mailto:hi@prohouse.com.au">hi@prohouse.com.au</a></div>
+  </div><div class="sideTip"><strong>Need help?</strong><p>Your invitation is private, and it expires after 48 hours.</p><a href="mailto:hi@prohouse.com.au">hi@prohouse.com.au</a></div>
  </aside>
  <div class="mainColumn">
   <div class="progressText"><span id="stepHeading">Loading invitation</span><span id="progressPct"></span></div><div class="track"><span id="trackBar" style="width:0"></span></div>
@@ -67,12 +67,14 @@
      <div class="field"><label for="secondIncome">Your weekly income (AUD) <span class="req">*</span></label><input id="secondIncome" name="secondIncome" type="number" min="0" max="9999999" step=".01" inputmode="decimal" required></div>
     </div>
     <h3 class="sectionTitle">Mandatory supporting documents</h3>
-    <p class="uploadNote">Upload a photo ID and proof of income. Only share documents relevant to your application. You may redact unnecessary bank transaction details. Accepted formats: PDF, JPG, PNG and WebP. Each file up to 5 MB; 15 MB combined.</p>
+    <p class="uploadNote">Upload a photo ID and proof of income. Only share documents relevant to your application. You may redact unnecessary bank transaction details. Accepted formats: PDF, JPG and PNG. Each file up to 5 MB; 15 MB combined.</p>
     <div class="fieldGrid">
-      <div class="field"><label for="secondId">Photo ID <span class="req">*</span></label><input id="secondId" name="secondId" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" required></div>
-      <div class="field"><label for="secondIncomeProof">Proof of income <span class="req">*</span></label><input id="secondIncomeProof" name="secondIncomeProof" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" required></div>
-      <div class="field"><label for="secondIdExtra">Extra photo ID (optional)</label><input id="secondIdExtra" name="secondIdExtra" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp"></div>
-      <div class="field"><label for="secondIncomeExtra">Additional income proof (optional)</label><input id="secondIncomeExtra" name="secondIncomeExtra" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp"></div>
+      <div class="field"><label for="secondIdType">Photo ID type <span class="req">*</span></label>
+ <select id="secondIdType" name="secondIdType" required><option value="">Choose ID type</option><option>Australian-issued driver licence</option><option>Passport</option></select></div>
+ <div class="field"><label for="secondId">Australian driver licence or passport <span class="req">*</span></label><input id="secondId" name="secondId" type="file" accept=".pdf,.jpg,.jpeg,.png" required></div>
+      <div class="field"><label for="secondIncomeProof">Proof of income <span class="req">*</span></label><input id="secondIncomeProof" name="secondIncomeProof" type="file" accept=".pdf,.jpg,.jpeg,.png" required></div>
+      <div class="field"><label for="secondIdExtra">Extra photo ID (optional)</label><input id="secondIdExtra" name="secondIdExtra" type="file" accept=".pdf,.jpg,.jpeg,.png"></div>
+      <div class="field"><label for="secondIncomeExtra">Additional income proof (optional)</label><input id="secondIncomeExtra" name="secondIncomeExtra" type="file" accept=".pdf,.jpg,.jpeg,.png"></div>
     </div>
     <div class="actions"><button type="button" class="secondary back">← Back</button><button type="button" class="primary next">Sign & send <span aria-hidden="true">→</span></button></div>
    </section>
@@ -121,9 +123,7 @@
     $('invitedEmail').value=data.invitedEmail;
     const p=data.firstApplicant;
     const pairs=[['Reference',p.reference],['First applicant',p.firstName+' '+p.lastName],
-     ['First applicant email',p.email],['Phone',p.phone],['Occupation',p.occupation==='Other'?p.occupationOther:p.occupation],
-     ['Works from home',p.workFromHome==='Other'?p.workFromHomeOther:p.workFromHome],
-     ['Employer or school',p.employer],['First applicant weekly income',new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD'}).format(Number(p.income))],
+     ['First applicant email',p.email],
      ['Property',p.property==='Other'?p.propertyOther:p.property],['Room',p.room==='Other'?p.roomOther:p.room],
      ['Move-in date',p.moveIn],['Length of stay',p.length==='Other'?p.lengthOther:p.length],
      ['Weekly rent',new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD'}).format(Number(p.weeklyRent))],
