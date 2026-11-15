@@ -3,11 +3,39 @@
   "main": "src/worker.js",
   "compatibility_date": "2026-10-05",
   "keep_vars": true,
-  "ai": { "binding": "AI" },
-  "triggers": { "crons": ["0 23 * * *"] },
+  "ai": {
+    "binding": "AI"
+  },
+  "triggers": {
+    "crons": [
+      "0 23 * * *"
+    ]
+  },
   "ratelimits": [
-    { "name": "UTILITY_SCAN_LIMIT", "namespace_id": "7013345", "simple": { "limit": 8, "period": 60 } },
-    { "name": "SHAREBILL_USAGE_LIMIT", "namespace_id": "7013355", "simple": { "limit": 45, "period": 60 } }
+    {
+      "name": "UTILITY_SCAN_LIMIT",
+      "namespace_id": "7013345",
+      "simple": {
+        "limit": 8,
+        "period": 60
+      }
+    },
+    {
+      "name": "SHAREBILL_USAGE_LIMIT",
+      "namespace_id": "7013355",
+      "simple": {
+        "limit": 45,
+        "period": 60
+      }
+    },
+    {
+      "name": "LONGSTAY_FORM_LIMIT",
+      "namespace_id": "7013375",
+      "simple": {
+        "limit": 5,
+        "period": 60
+      }
+    }
   ],
   "assets": {
     "directory": "./public",
@@ -24,10 +52,34 @@
     "ANALYTICS_FROM_EMAIL": "ProHouse Share Bill <no-reply@prohouse.com.au>"
   },
   "previews": {
-    "ai": { "binding": "AI" },
+    "ai": {
+      "binding": "AI"
+    },
     "ratelimits": [
-      { "name": "UTILITY_SCAN_LIMIT", "namespace_id": "7013346", "simple": { "limit": 8, "period": 60 } },
-      { "name": "SHAREBILL_USAGE_LIMIT", "namespace_id": "7013356", "simple": { "limit": 45, "period": 60 } }
+      {
+        "name": "UTILITY_SCAN_LIMIT",
+        "namespace_id": "7013346",
+        "simple": {
+          "limit": 8,
+          "period": 60
+        }
+      },
+      {
+        "name": "SHAREBILL_USAGE_LIMIT",
+        "namespace_id": "7013356",
+        "simple": {
+          "limit": 45,
+          "period": 60
+        }
+      },
+      {
+        "name": "LONGSTAY_FORM_LIMIT",
+        "namespace_id": "7013376",
+        "simple": {
+          "limit": 5,
+          "period": 60
+        }
+      }
     ],
     "vars": {
       "SURVEY_FROM_EMAIL": "ProHouse Survey Preview <no-reply@prohouse.com.au>",
