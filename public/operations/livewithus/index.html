@@ -122,6 +122,16 @@
     <p class="uploadNote">Use your finger or mouse to sign inside the box.</p>
     <div class="signatureWrap"><canvas id="signaturePad" aria-label="Draw your signature" role="img"></canvas>
       <div class="signatureBar"><span>Applicant e-signature</span><button type="button" id="clearSignature">Clear signature</button></div></div>
+    <div class="mobileSignatureOption" style="margin:16px 0;padding:16px;border:1px solid #cfd8ce;border-radius:12px;background:#f5faec">
+      <strong style="display:block;font-size:14px;margin-bottom:8px">Trouble signing on a laptop trackpad?</strong>
+      <p class="uploadNote" style="margin:0 0 10px">You can sign with your mouse/trackpad above, or scan a private QR code to sign with your phone. Your signature will appear here automatically.</p>
+      <button type="button" id="phoneSignatureButton" class="secondary">Sign on phone: Show QR code</button>
+      <div id="mobileSignaturePanel" hidden style="margin-top:13px">
+        <div id="mobileQr" style="display:inline-block;padding:12px;background:white;border-radius:9px"></div>
+        <p id="mobileSignatureStatus" style="font-size:12px;margin-top:9px" role="status">Scan with your phone camera. Link expires in 15 minutes.</p>
+        <p style="font-size:12px"><a id="mobileSignatureLink" href="#" target="_blank" rel="noopener">Or open this private signing link on your phone</a></p>
+      </div>
+    </div>
     <input type="hidden" id="signature" name="signature">
     <div class="alert" role="alert" id="submitError"></div>
     <div class="actions"><button type="button" class="secondary back">← Back</button><button class="primary" id="submitButton" type="submit">Send application <span aria-hidden="true">→</span></button></div>
@@ -131,6 +141,7 @@
  </div>
 </main>
 <footer><span>© ProHouse Australia · Live with us</span><span><a href="/privacy/">Privacy</a> · <a href="/contact/">Contact</a> · <a href="/">Back to website</a></span></footer>
+<script src="/assets/qrcode.min.js"></script>
 <script>
 (()=>{
  const form=document.getElementById('application'),steps=[...form.querySelectorAll('.step')],nav=[...document.querySelectorAll('.stepNav li')];
@@ -194,6 +205,55 @@
  canvas.addEventListener('pointermove',e=>{if(!dragging)return;e.preventDefault();const p=point(e);ctx.lineTo(p.x,p.y);ctx.stroke()});
  for(const eventName of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(eventName,()=>{dragging=false});
  $('clearSignature').addEventListener('click',()=>{ctx.clearRect(0,0,canvas.width,canvas.height);signed=false;$('signature').value=''});
+ let mobileSession=null,mobilePoll=null;
+ $('phoneSignatureButton').addEventListener('click',async()=>{
+  const button=$('phoneSignatureButton');button.disabled=true;button.textContent='Preparing private QR…';
+  if(mobilePoll){clearInterval(mobilePoll);mobilePoll=null;}
+  try{
+   const res=await fetch('/api/longstay/signature-session',{method:'POST',credentials:'same-origin'});
+   const data=await res.json();if(!res.ok)throw Error(data.message||'Could not start mobile signing.');
+   if(typeof QRCode!=='function')throw Error('QR code library unavailable; please refresh the page.');
+   mobileSession=data.token;
+   $('mobileSignaturePanel').hidden=false;$('mobileQr').replaceChildren();
+   new QRCode($('mobileQr'),{text:data.url,width:200,height:200,correctLevel:QRCode.CorrectLevel.M});
+   $('mobileSignatureLink').href=data.url;
+   $('mobileSignatureStatus').textContent='Scan the QR on your phone, draw and send your signature. It will arrive on this laptop automatically.';
+   async function checkMobile(){
+    if(!mobileSession)return;
+    try{
+     const status=await fetch('/api/longstay/signature-session',{
+       headers:{Authorization:'Bearer '+mobileSession},credentials:'same-origin',cache:'no-store'
+     });
+     const answer=await status.json();
+     if(!status.ok)throw Error(answer.message||'Signature link unavailable.');
+     if(!answer.signed||!answer.signature)return;
+     clearInterval(mobilePoll);mobilePoll=null;mobileSession=null;
+     const image=new Image();
+     image.onload=()=>{
+       if(!canvas.getBoundingClientRect().width){$('mobileSignatureStatus').textContent='Return to the signature step to load your phone signature.';return;}
+       signed=false;
+       resize();
+       const r=canvas.getBoundingClientRect();
+       ctx.clearRect(0,0,canvas.width,canvas.height);
+       ctx.drawImage(image,0,0,r.width,r.height);
+       signed=true;
+       $('signature').value=canvas.toDataURL('image/png');
+       $('mobileSignatureStatus').textContent='Signature imported successfully. You can now submit the application on this laptop.';
+       button.textContent='Signature received from phone';
+     };
+     image.onerror=()=>{$('mobileSignatureStatus').textContent='The phone signature could not be displayed. Please generate another code.';};
+     image.src=answer.signature;
+    }catch(e){
+     clearInterval(mobilePoll);mobilePoll=null;mobileSession=null;
+     $('mobileSignatureStatus').textContent=e.message;
+    }
+   }
+   mobilePoll=setInterval(checkMobile,3500);
+   button.textContent='Generate a new QR code';
+  }catch(e){$('mobileSignaturePanel').hidden=false;$('mobileSignatureStatus').textContent=e.message;button.textContent='Try again: Show QR code';}
+  finally{button.disabled=false;}
+ });
+
  window.addEventListener('resize',resize);resize();
  form.addEventListener('submit',async event=>{
   event.preventDefault();const alert=$('submitError');alert.classList.remove('visible');
