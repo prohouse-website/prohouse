@@ -4,14 +4,21 @@ on:
     paths:
       - 'src/longstay-application.js'
       - 'src/longstay-workflow.js'
+      - 'src/longstay-documents.js'
+      - 'src/longstay-signature-handoff.js'
       - 'src/longstay-lease.js'
       - 'src/longstay-signing.js'
       - 'src/longstay-review.js'
       - 'test/longstay-workflow.test.mjs'
+      - 'test/longstay-signature.test.mjs'
       - 'test/longstay-signing.test.mjs'
       - 'test/longstay-pages.test.mjs'
       - 'public/operations/livewithus/review/index.html'
       - 'public/operations/livewithus/sign/index.html'
+      - 'public/operations/livewithus/sign-on-phone/index.html'
+      - 'public/operations/livewithus/index.html'
+      - 'public/operations/livewithus/second/index.html'
+      - 'public/assets/qrcode.min.js'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/longstay-tests.yml'
@@ -26,4 +33,4 @@ jobs:
           node-version: '24'
           cache: 'npm'
       - run: npm ci
-      - run: node --test test/longstay-workflow.test.mjs test/longstay-signing.test.mjs test/longstay-pages.test.mjs
+      - run: node --test test/longstay-workflow.test.mjs test/longstay-signing.test.mjs test/longstay-pages.test.mjs test/longstay-signature.test.mjs
