@@ -84,7 +84,7 @@ function readSettings(form,app){
  if(!goodMail(settings.guest1Email)||(app.people==='Two people'&&
     (!goodMail(settings.guest2Email)||settings.guest2Email.toLowerCase()===settings.guest1Email.toLowerCase())))
    throw Error('Please confirm distinct, valid tenant email addresses.');
- if(!['Every week','Every 2 weeks','Every 4 weeks','Every calendar month'].includes(settings.rentFrequency))
+ if(!['Every 2 weeks','Every 4 weeks','Every calendar month'].includes(settings.rentFrequency))
    throw Error('Invalid payment frequency.');
  for(const key of ['acceptedWeeklyRent','cleaningBond','holdingFund','bondAmount'])
    if(!/^\d{1,6}(\.\d{1,2})?$/.test(settings[key]))throw Error('Check the rent and bond amounts.');
