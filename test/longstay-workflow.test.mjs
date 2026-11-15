@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { deflateSync } from 'node:zlib';
 import { PDFDocument } from 'pdf-lib';
-import { submitLongStayFirst, submitLongStaySecond, getLongStayInvitation } from '../src/longstay-workflow.js';
+import { submitLongStayFirst, submitLongStaySecond, getLongStayInvitation, cleanupLongStayInvitations } from '../src/longstay-workflow.js';
 import { getLongStayReview, decideLongStayReview } from '../src/longstay-review.js';
 import { fillMutualAgreementPDF, generateMutualLeaseDraft } from '../src/longstay-lease.js';
 
@@ -190,7 +190,10 @@ test('two applicant lifecycle emails, PDF signatures and D1 cleanup',async()=>{
   assert.ok(!invite.text.includes('Work from home:'));
   assert.ok(!invite.text.includes('Employer or school:'));
   assert.ok(!invite.text.includes('Weekly income'));
-  assert.ok(invite.text.includes('expires in 48 hours'));
+  assert.ok(invite.text.includes('automatically deleted after 48 hours'));
+  assert.ok(!invite.text.includes('expires in 48 hours'));
+  assert.ok(!invite.text.includes('must submit their information and mandatory documents within 48 hours'));
+  assert.ok(m.sent.find(x=>x.subject.startsWith('Second applicant invited')).text.includes('draft and stored documents will be deleted after 48 hours'));
   assert.ok(new Date(m.rows.get(first.reference).expires_at).getTime()-Date.now()<49*3600000);
   assert.equal(preview.invitedEmail,'second@example.com');
   assert.equal(m.rows.get(first.reference).first_data.includes('TEST-photo-id.png'),false);
@@ -276,6 +279,29 @@ test('rent payment frequency accepts fortnightly, four weekly and calendar month
  const r=await submitLongStayFirst(makeRequest('/api/longstay/application',form),m.env);
  assert.equal(r.status,400);
  assert.match((await r.json()).message,/payment frequency/);
+});
+test('expired incomplete joint draft is deleted with private encrypted PDF when invitation is opened',async()=>{
+ const m=mockEnv(),savedFetch=globalThis.fetch;
+ globalThis.fetch=async(url,options)=>{
+  const q=String(url);
+  if(q==='https://api.resend.com/emails'){const payload=JSON.parse(options.body);m.sent.push(payload);
+   return Response.json({id:'00000000-0000-4000-8000-'+String(m.sent.length).padStart(12,'0')});}
+  throw Error('Unexpected external request '+q);
+ };
+ try{
+  const first=await submitLongStayFirst(makeRequest('/api/longstay/application',buildFirst()),m.env);
+  assert.equal(first.status,200);
+  const ref=(await first.json()).reference;
+  const invite=m.sent.find(x=>x.subject.includes('Complete your ProHouse joint application'));
+  const token=invite.text.match(/#token=([a-f0-9]{64})/)[1];
+  assert.ok(m.docs.has(ref));
+  const row=m.rows.get(ref);row.expires_at=new Date(Date.now()-60_000).toISOString();
+  const result=await getLongStayInvitation(new Request('https://www.prohouse.com.au/api/longstay/invitation?token='+token),m.env);
+  assert.equal(result.status,410);
+  assert.match((await result.json()).message,/deleted after 48 hours/);
+  assert.equal(m.rows.has(ref),false);
+  assert.equal(m.docs.has(ref),false);
+ }finally{globalThis.fetch=savedFetch;}
 });
 test('single applicant receives its confirmation and owner receives uploaded files',async()=>{
  const m=mockEnv(),original=globalThis.fetch;
