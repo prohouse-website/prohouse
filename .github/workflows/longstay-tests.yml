@@ -1,0 +1,22 @@
+name: Long-stay application tests
+on:
+  push:
+    paths:
+      - 'src/longstay-application.js'
+      - 'src/longstay-workflow.js'
+      - 'test/longstay-workflow.test.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/longstay-tests.yml'
+  workflow_dispatch:
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+      - run: npm ci
+      - run: node --test test/longstay-workflow.test.mjs
