@@ -71,22 +71,36 @@ export async function decideLongStayReview(request,env){
   ).bind(decision,decisionAt,row.reference,row.token_hash).run();
   if(!changed.meta?.changes)return response(409,'This application has already been reviewed.');
   const approved=decision==='approved';
-  const heading=approved?'Application approved for lease preparation':'Application not approved';
+  const heading=approved?'Congratulations! Your ProHouse rental application is approved':'Application not approved';
   const note=approved?
-    'Your rental application has been approved for the next stage. This is NOT a lease, booking confirmation, or permission to move in. ProHouse will contact you when the actual lease and signing process are ready.':
+    [
+      'Congratulations! Your application has been approved to proceed to lease preparation.',
+      '',
+      'NEXT: ProHouse will prepare the agreement and email each tenant an individual signing link.',
+      'From the time THAT signing email is sent, you will have 24 hours to:',
+      '1. Read and electronically sign the entire lease; and',
+      '2. Transfer ONE WEEK of agreed rent in advance by bank transfer.',
+      '',
+      'Bank BSB/account details and PayID will be on Schedule A, the LAST PAGE of your lease.',
+      'We recommend PayID where available, except that Commonwealth Bank first-time transfers to a new payee may be delayed by security checks, typically up to 24 hours and sometimes longer (up to 24–48 hours in some circumstances). If possible, use another bank that can make the transfer promptly.',
+      'Payment is confirmed only when cleared funds appear in the ProHouse bank account.',
+      'Do not send money until you have received and checked your actual lease and verified the payee.',
+      '',
+      'IMPORTANT: Your 24-hour countdown does NOT start with this approval message. It starts when ProHouse sends the signing links. This application approval does not create or execute a lease or authorise key collection.'
+    ].join('\n'):
     'Thank you for your interest. After reviewing the application, ProHouse is unable to proceed with this rental application.';
   const body=heading+'\n\nReference: '+row.reference+'\n\n'+note+'\n\nContact hi@prohouse.com.au with questions.';
   const targets=[row.first_email,...(row.second_email?[row.second_email]:[])];
   let notified=0;
   for(const recipient of targets){
-    try{await notify(env,recipient,'ProHouse rental application update | '+row.reference,body);notified++}
+    try{await notify(env,recipient,(approved?'Congratulations! Your ProHouse application is approved | ':'ProHouse application update | ')+row.reference,body);notified++}
     catch(e){console.error('Applicant decision notice failed',row.reference,recipient,e?.message)}
   }
   try{
     const adminEmails=env.PROHOUSE_ADMIN_EMAILS?.split(',').map(x=>x.trim()).filter(Boolean)||['hi@prohouse.com.au'];
     await notify(env,adminEmails,'[REVIEW '+decision.toUpperCase()+'] ProHouse '+row.reference,
       'Decision saved: '+decision+'\nReference: '+row.reference+'\nNotification emails sent: '+notified+'/'+targets.length+'\n'+
-      (approved?'Next: provide your lease template and field mapping; no lease has yet been generated or signed.':'No lease will be prepared.'));
+      (approved?'Next: edit, preview and approve the full lease in the private ProHouse Operations review page. The 24-hour deadline starts only when signing links are sent.':'No lease will be prepared.'));
   }catch(e){console.error('Admin review confirmation failed',row.reference,e?.message)}
   return response(200,'Review saved.',{reference:row.reference,status:decision,notificationsSent:notified,notificationsTotal:targets.length});
 }
