@@ -1,5 +1,6 @@
 import { onRequestPost } from './survey.js';
 import { generateMutualLeaseDraft } from './longstay-lease.js';
+import { prepareLease,packetForAdmin,tenantPacket,leaseDocument,sendLease,tenantSign,tenantReportPayment,verifyLeasePayment,signProvider,checkLeaseDeadlines } from './longstay-signing.js';
 import { getLongStayReview, decideLongStayReview } from './longstay-review.js';
 import { submitLongStayFirst, submitLongStaySecond, getLongStayInvitation, cleanupLongStayInvitations } from './longstay-workflow.js';
 import { cleanerPortal } from './cleaner-portal.js';
@@ -44,6 +45,15 @@ export default {
     if (path === '/api/longstay/invitation') return getLongStayInvitation(request, env);
     if (path === '/api/longstay/coapplicant') return submitLongStaySecond(request, env);
     if (path === '/api/longstay/lease-draft') return generateMutualLeaseDraft(request, env);
+    if (path === '/api/longstay/lease-prepare') return prepareLease(request,env);
+    if (path === '/api/longstay/lease-status') return packetForAdmin(request,env);
+    if (path === '/api/longstay/tenant') return tenantPacket(request,env);
+    if (path === '/api/longstay/lease-pdf') return leaseDocument(request,env);
+    if (path === '/api/longstay/lease-send') return sendLease(request,env);
+    if (path === '/api/longstay/tenant-sign') return tenantSign(request,env);
+    if (path === '/api/longstay/tenant-payment') return tenantReportPayment(request,env);
+    if (path === '/api/longstay/payment-verify') return verifyLeasePayment(request,env);
+    if (path === '/api/longstay/provider-sign') return signProvider(request,env);
     if (path === '/api/longstay/review') return request.method==='GET'
       ? getLongStayReview(request,env) : decideLongStayReview(request,env);
     if (path === '/api/survey') {
@@ -76,6 +86,8 @@ export default {
     return env.ASSETS.fetch(request);
   },
   async scheduled(_event, env, ctx) {
+    ctx.waitUntil(checkLeaseDeadlines(env).catch(e=>console.error('Lease expiry check failed',e?.message)));
+    if(_event.cron==='0 * * * *')return;
     ctx.waitUntil(cleanupLongStayInvitations(env));
     ctx.waitUntil(sendShareBillDailySummary(env).then(out=>{
       if(!out.sent && out.reason!=='Already emailed')
