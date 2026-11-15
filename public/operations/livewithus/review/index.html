@@ -1,0 +1,99 @@
+<!doctype html><html lang="en-AU"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#e8ff76">
+<title>Review Rental Application | ProHouse Operations</title>
+<link rel="icon" href="/favicon.png">
+<link rel="stylesheet" href="/assets/livewithus.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap">
+<style>.review{max-width:850px;margin:35px auto 75px;padding:0 18px}
+.reviewHead{background:var(--lime);padding:32px;border-radius:17px 17px 0 0}
+.reviewHead h1{font:800 clamp(43px,7vw,68px)/.93 "Barlow Condensed";margin:11px 0}
+.reviewBody{background:#fff;border:1px solid var(--line);border-radius:0 0 17px 17px;padding:clamp(22px,4vw,45px)}
+.reviewBody h2{font:800 30px "Barlow Condensed"}
+.details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.details div{padding:14px;border:1px solid var(--line);border-radius:9px;background:#fafcf9;overflow-wrap:anywhere}
+.details small{display:block;font-size:11px;color:var(--grey)}
+.details strong{font-size:13px}
+.decisions{display:flex;flex-wrap:wrap;gap:12px;margin:24px 0 8px}
+.decisionReject{background:#fff;color:#a0222c;border-color:#be6065}
+.disclosure{background:#fff6ec;padding:15px;border:1px solid #f1d7b0;border-radius:10px;font-size:13px;margin:18px 0}
+.status{font-size:13px;font-weight:700;margin:15px 0;line-height:1.6}
+@media(max-width:570px){.details{grid-template-columns:1fr}.decisions button{width:100%}}
+</style>
+</head><body>
+<header><div class="topbar"><a class="brand" href="/operations/"><img src="/assets/prohouse-logo-transparent.png" alt="ProHouse"></a><a class="toplink" href="/operations/">Operations Portal</a></div></header>
+<main class="review">
+<div class="reviewHead"><span class="eyebrow">PROHOUSE / PRIVATE STAFF REVIEW</span>
+<h1>RENTAL<br>APPLICATION REVIEW.</h1><p>Use the private link from the ProHouse application email.</p></div>
+<div class="reviewBody">
+ <p class="status" id="loading">Checking your review invitation…</p>
+ <div class="alert" id="reviewError" role="alert"></div>
+ <section id="reviewPanel" hidden>
+  <p class="eyebrow">APPLICATION <span id="reference"></span></p>
+  <h2>Check the application</h2>
+  <p>Review the complete application PDF and uploaded identification documents in your email before deciding. This page shows the submitted field data.</p>
+  <div class="details" id="reviewFields"></div>
+  <div class="disclosure">Approval here means <strong>approved to proceed to lease preparation</strong>. It does not issue a lease, guarantee a room, authorise occupation or sign anything on ProHouse’s behalf. A separate lease template and signing process are required.</div>
+  <div class="decisions" id="reviewActions">
+   <button type="button" class="primary" id="approveButton">Approve for lease preparation</button>
+   <button type="button" class="secondary decisionReject" id="rejectButton">Reject application</button>
+  </div>
+  <p class="status" id="decisionStatus" role="status"></p>
+ </section>
+</div>
+</main>
+<footer><span>© ProHouse Australia · Confidential application review</span><a href="/operations/">Operations Portal</a></footer>
+<script>
+(async()=>{
+ const $=id=>document.getElementById(id);
+ const token=new URLSearchParams(location.hash.slice(1)).get('token')||'';
+ history.replaceState(null,'',location.pathname);
+ const error=msg=>{$('loading').hidden=true;$('reviewError').textContent=msg;$('reviewError').classList.add('visible')};
+ if(!/^[a-f0-9]{64}$/.test(token)){error('The private approval link is missing or invalid. Open the complete link from your ProHouse email.');return;}
+ const rows=[
+  ['Reference','reference'],['Applicants','people'],['First name','firstName'],['Family name','lastName'],
+  ['First applicant email','email'],['Phone','phone'],['ID type','photoIdType'],
+  ['Occupation','occupation'],['Employer or school','employer'],['Weekly income','income'],
+  ['Second applicant email','secondEmail'],['Second first name','secondFirstName'],
+  ['Second family name','secondLastName'],['Second phone','secondPhone'],['Second ID type','secondIdType'],
+  ['Second occupation','secondOccupation'],['Second employer or school','secondEmployer'],['Second weekly income','secondIncome'],
+  ['Property','property'],['Other property','propertyOther'],['Room','room'],['Other room','roomOther'],
+  ['Preferred move-in','moveIn'],['Stay length','length'],['Other duration','lengthOther'],
+  ['Proposed weekly rent','weeklyRent'],['Rent frequency','payFrequency'],['Linen and towels','linen']
+ ];
+ let result;
+ try{
+  const res=await fetch('/api/longstay/review?token='+token,{cache:'no-store',credentials:'same-origin'});
+  result=await res.json();if(!res.ok)throw Error(result.message||'Review link unavailable.');
+ }catch(e){error(e.message);return;}
+ $('loading').hidden=true;$('reviewPanel').hidden=false;
+ $('reference').textContent=result.reference;
+ for(const [label,key] of rows){const value=key==='reference'?result.reference:result.applicant[key];if(value===undefined||value===null||String(value).trim()==='')continue;
+  const div=document.createElement('div'),sm=document.createElement('small'),strong=document.createElement('strong');
+  sm.textContent=label;strong.textContent=String(value);div.append(sm,strong);$('reviewFields').appendChild(div);
+ }
+ function showDecision(status,notice=''){
+  $('decisionStatus').textContent=notice||'Decision saved: '+status+'.';
+  $('reviewActions').hidden=true;
+ }
+ if(result.status!=='pending'){showDecision(result.status,'Already reviewed: '+result.status+'.');return;}
+ async function decide(decision){
+  const message=decision==='approved'
+    ?'Approve this application for lease preparation? This does not generate or sign a lease.'
+    :'Reject this application? Both applicants (if applicable) will be emailed.';
+  if(!confirm(message))return;
+  $('approveButton').disabled=true;$('rejectButton').disabled=true;
+  $('decisionStatus').textContent='Saving decision and notifying applicants…';
+  try{
+   const res=await fetch('/api/longstay/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,decision}),credentials:'same-origin'});
+   const data=await res.json();if(!res.ok)throw Error(data.message||'Could not save decision.');
+   showDecision(data.status,'Saved: '+data.status+'. Email notices sent to '+(data.notificationsSent??0)+' applicant(s).'+
+    (data.status==='approved'?' Lease document generation will be set up when ProHouse uploads its lease template.':''));
+  }catch(e){$('decisionStatus').textContent=e.message;$('approveButton').disabled=false;$('rejectButton').disabled=false}
+ }
+ $('approveButton').addEventListener('click',()=>decide('approved'));
+ $('rejectButton').addEventListener('click',()=>decide('rejected'));
+})();
+</script></body></html>
