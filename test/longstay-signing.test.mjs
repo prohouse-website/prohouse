@@ -86,7 +86,7 @@ function mockApp(){
       if(sql.includes('SET payment_verified_at=')){
        entry.payment_verified_at=p[0];entry.payment_verified_by=p[1];return{meta:{changes:1}};
       }
-      if(sql.includes("status='provider_signing'")){
+      if(sql.includes("SET status='provider_signing'")){
        entry.status='provider_signing';entry.provider_signature=p[0];entry.provider_signed_at=p[1];return{meta:{changes:1}};
       }
       if(sql.includes("status='completed'")){
