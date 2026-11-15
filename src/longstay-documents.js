@@ -51,7 +51,7 @@ export async function loadFirstPackage(env,reference){
  const n=Number(count?.chunks||0);
  if(!n)return null; // old invitations can still fall back to the original email
  if(n>32)throw Error('Unexpected document chunk count.');
- const parts=[],total=0;
+ const parts=[];let total=0;
  for(let i=0;i<n;i++){
   const row=await env.LONGSTAY_DB.prepare(
    'SELECT ciphertext FROM longstay_application_documents WHERE reference=? AND part=?'
