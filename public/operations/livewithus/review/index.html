@@ -1,181 +1,322 @@
 <!doctype html><html lang="en-AU"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer">
-<meta name="theme-color" content="#e8ff76">
-<title>Review Rental Application | ProHouse Operations</title>
-<link rel="icon" href="/favicon.png">
-<link rel="stylesheet" href="/assets/livewithus.css">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap">
-<style>.review{max-width:850px;margin:35px auto 75px;padding:0 18px}
-.reviewHead{background:var(--lime);padding:32px;border-radius:17px 17px 0 0}
-.reviewHead h1{font:800 clamp(43px,7vw,68px)/.93 "Barlow Condensed";margin:11px 0}
-.reviewBody{background:#fff;border:1px solid var(--line);border-radius:0 0 17px 17px;padding:clamp(22px,4vw,45px)}
-.reviewBody h2{font:800 30px "Barlow Condensed"}
-.details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.details div{padding:14px;border:1px solid var(--line);border-radius:9px;background:#fafcf9;overflow-wrap:anywhere}
-.details small{display:block;font-size:11px;color:var(--grey)}
+<title>Review & Issue Rental Lease | ProHouse Operations</title>
+<link rel="icon" href="/favicon.png"><link rel="stylesheet" href="/assets/livewithus.css">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+.review{max-width:1040px;margin:30px auto 65px;padding:0 20px}
+.reviewHero{background:var(--lime);border-radius:17px;padding:28px}
+.reviewHero h1{font:800 clamp(45px,6vw,74px)/.93 "Barlow Condensed";margin:13px 0}
+.reviewCard{background:#fff;border-radius:16px;border:1px solid var(--line);margin:22px 0;padding:clamp(18px,4vw,33px)}
+.reviewCard h2{font:800 33px "Barlow Condensed";margin:0 0 12px}
+.details{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.details div{padding:12px;border:1px solid var(--line);border-radius:10px;overflow-wrap:anywhere;background:#fafcf8}
+.details small{display:block;color:var(--grey);font-size:11px}
 .details strong{font-size:13px}
-.decisions{display:flex;flex-wrap:wrap;gap:12px;margin:24px 0 8px}
-.decisionReject{background:#fff;color:#a0222c;border-color:#be6065}
-.disclosure{background:#fff6ec;padding:15px;border:1px solid #f1d7b0;border-radius:10px;font-size:13px;margin:18px 0}
-.status{font-size:13px;font-weight:700;margin:15px 0;line-height:1.6}
-@media(max-width:570px){.details{grid-template-columns:1fr}.decisions button{width:100%}}
-.leasePanel{padding-top:28px;margin-top:30px;border-top:1px solid var(--line)}
-.leasePanel .leaseGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:20px 0}
-.leasePanel label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}
-.leasePanel input,.leasePanel select{display:block;width:100%;padding:13px 12px;border:1px solid #cfd8cd;border-radius:9px;margin-top:5px;min-height:45px}
-.leasePanel .wide{grid-column:1/-1}
-.leasePanel .draftNote{padding:15px;background:#fff8ea;border-radius:11px;color:#624d1d;font-size:13px;margin:13px 0}
-@media(max-width:570px){.leasePanel .leaseGrid{grid-template-columns:1fr}}
-</style>
-</head><body>
+.stage{display:inline-block;border-radius:7px;padding:5px 10px;background:#eff7db;font-size:11px;font-weight:800;letter-spacing:.05em}
+.editGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.editGrid .wide{grid-column:1/-1}
+.editGrid label{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
+.editGrid input,.editGrid select{display:block;width:100%;padding:12px;border-radius:9px;border:1px solid #cfd7cd;font:inherit}
+.editGrid .checkline,.checkline{display:flex;gap:10px;font-size:13px;margin:12px 0;align-items:flex-start}
+.checkline input{margin-top:4px}
+.buttons{display:flex;gap:12px;flex-wrap:wrap;margin:19px 0}
+.buttons button{min-width:165px}
+.warning{background:#fff6e5;color:#594728;border:1px solid #e9d7b8;border-radius:11px;padding:15px;font-size:13px;line-height:1.6;margin:17px 0}
+.error{color:#a42b3a;background:#fff1f1;border:1px solid #e6b1b6;padding:12px;border-radius:10px;display:none;margin:12px 0}
+.ok{background:#f1f8e6;padding:12px;border:1px solid #c9dca8;border-radius:10px;margin:12px 0;display:none}
+.pdf{width:100%;height:590px;border:1px solid var(--line);border-radius:9px}
+.progressList{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.progressList div{background:#f3f7e9;padding:12px;border-radius:10px;font-size:12px}
+.progressList strong{display:block;margin-top:6px;font-size:14px}
+.signatureWrap canvas{touch-action:none}
+@media(max-width:680px){.details,.editGrid{grid-template-columns:1fr}.progressList{grid-template-columns:repeat(2,1fr)}.pdf{height:450px}}
+</style></head><body>
 <header><div class="topbar"><a class="brand" href="/operations/"><img src="/assets/prohouse-logo-transparent.png" alt="ProHouse"></a><a class="toplink" href="/operations/">Operations Portal</a></div></header>
 <main class="review">
-<div class="reviewHead"><span class="eyebrow">PROHOUSE / PRIVATE STAFF REVIEW</span>
-<h1>RENTAL<br>APPLICATION REVIEW.</h1><p>Use the private link from the ProHouse application email.</p></div>
-<div class="reviewBody">
- <p class="status" id="loading">Checking your review invitation…</p>
- <div class="alert" id="reviewError" role="alert"></div>
- <section id="reviewPanel" hidden>
-  <p class="eyebrow">APPLICATION <span id="reference"></span></p>
-  <h2>Check the application</h2>
-  <p>Review the complete application PDF and uploaded identification documents in your email before deciding. This page shows the submitted field data.</p>
-  <div class="details" id="reviewFields"></div>
-  <div class="disclosure">Approval here means <strong>approved to proceed to lease preparation</strong>. It does not issue a lease, guarantee a room, authorise occupation or sign anything on ProHouse’s behalf. A separate lease template and signing process are required.</div>
-  <div class="decisions" id="reviewActions">
-   <button type="button" class="primary" id="approveButton">Approve for lease preparation</button>
-   <button type="button" class="secondary decisionReject" id="rejectButton">Reject application</button>
-  </div>
-  <p class="status" id="decisionStatus" role="status"></p>
-  <section id="leasePanel" class="leasePanel" hidden>
-   <h2>Prepare Schedule A draft</h2>
-   <p>The applicant’s names, emails, phone numbers and selected room are merged automatically. Confirm the agreed financial and lease details below. The source agreement’s first five pages remain unchanged.</p>
-   <p class="draftNote"><strong>Not ready for signing:</strong> the uploaded mutual agreement contains clauses requiring legal review for NSW and Victoria, including eviction without a tribunal/court order. All generated PDFs are stamped “DRAFT / LEGAL REVIEW REQUIRED”. Application signatures will never be reused as lease signatures.</p>
-   <form id="leaseForm" enctype="multipart/form-data" novalidate>
-    <div class="leaseGrid">
-     <div class="wide"><label for="leaseTemplate">Mutual agreement PDF template (six pages)</label><input type="file" id="leaseTemplate" name="template" accept=".pdf,application/pdf"><small>First use: upload the PDF converted from your supplied Word agreement. Tick below to save it privately; future approved applications can reuse it automatically without reuploading.</small>
-     <label class="checkline" style="margin-top:12px"><input type="checkbox" name="saveTemplate" value="Yes" checked><span>Save this template for future approved applicants</span></label></div>
-     <div class="wide"><label for="fullAddress">Agreed full property address *</label><input id="fullAddress" name="fullAddress" required maxlength="180" placeholder="Unit / street number, street, suburb, state and postcode"></div>
-     <div><label for="acceptedWeeklyRent">Approved weekly rent (AUD) *</label><input id="acceptedWeeklyRent" name="acceptedWeeklyRent" required inputmode="decimal" type="number" min="1" step=".01" placeholder="Confirm, not just proposed rent"></div>
-     <div><label for="rentFrequency">Agreed rent payment interval *</label><select id="rentFrequency" name="rentFrequency" required><option>Every week</option><option>Every 2 weeks</option><option>Every 4 weeks</option><option>Every calendar month</option></select></div>
-     <div><label for="leaseStart">Agreed commencement date *</label><input id="leaseStart" name="leaseStart" type="date" required></div>
-     <div><label for="leaseEnd">Agreed end date *</label><input id="leaseEnd" name="leaseEnd" type="date" required></div>
-     <div><label for="cleaningBond">Refundable cleaning bond (AUD) *</label><input id="cleaningBond" name="cleaningBond" type="number" inputmode="decimal" min="0" step=".01" required placeholder="Enter 0 if none"></div>
-     <div><label for="holdingFund">Refundable holding fund (AUD) *</label><input id="holdingFund" name="holdingFund" type="number" inputmode="decimal" min="0" step=".01" required placeholder="Enter 0 if none"></div>
-     <div><label for="internet">Internet charges *</label><input id="internet" name="internet" value="$30 per calendar month" maxlength="180" required></div>
-     <div><label for="electricity">Electricity and gas *</label><input id="electricity" name="electricity" value="Equally split" maxlength="180" required></div>
-     <div><label for="water">Water *</label><input id="water" name="water" value="Equally split" maxlength="180" required></div>
-     <div><label for="bankDetails">Bank BSB and account *</label><input id="bankDetails" name="bankDetails" value="067 873 – 1998 7232" maxlength="180" required></div>
-     <div class="wide"><label for="providerSigner">Provider / agent representative's printed name *</label><input id="providerSigner" name="providerSigner" maxlength="180" required></div>
-    </div>
-    <div class="alert" id="leaseError" role="alert"></div>
-    <button class="primary" type="submit" id="leaseButton">Generate draft agreement PDF</button>
-    <p class="status" id="leaseResult" role="status"></p>
-   </form>
-  </section>
- </section>
+<div class="reviewHero"><span class="eyebrow">PROHOUSE / PRIVATE ADMIN WORKFLOW</span><h1>REVIEW. EDIT.<br>APPROVE. SIGN.</h1><p>Approve an application, edit Schedule A, preview the complete lease, then send for separate tenant signatures.</p></div>
+<div class="error" id="error" role="alert"></div><div class="ok" id="notice" role="status"></div>
+<p id="loading">Checking your private review link…</p>
+<section id="content" hidden>
+<div class="reviewCard"><span class="stage" id="reviewBadge">APPLICATION REVIEW</span>
+<h2>1 / Application details</h2>
+<p>These are the details submitted by the applicants. Check supporting documents in your original ProHouse email before approving.</p>
+<div class="details" id="appDetails"></div>
+<div id="applicationActions" class="buttons">
+ <button class="primary" id="approveApplication" type="button">Approve application</button>
+ <button class="secondary" id="rejectApplication" type="button">Reject application</button>
+</div><p id="applicationStatus"></p>
 </div>
-</main>
-<footer><span>© ProHouse Australia · Confidential application review</span><a href="/operations/">Operations Portal</a></footer>
+<section id="leaseSection" hidden>
+<div class="reviewCard">
+ <span class="stage">LEASE EDITOR</span><h2>2 / Check and edit every prefilled field</h2>
+ <p>All available applicant details are filled in below. You can change every field before preparing the lease. The original application remains unchanged for audit purposes.</p>
+ <div class="warning"><strong>Legal review required.</strong> Your uploaded mutual agreement contains terms about eviction without court or tribunal process and rent fees. The document must be reviewed for the applicable NSW/Victorian tenancy or rooming arrangement before release. It is not automatically safe to send merely because Schedule A has been populated.</div>
+ <form id="editor" enctype="multipart/form-data" novalidate>
+  <div class="editGrid">
+   <div><label for="guest1Name">Tenant 1 legal name *</label><input id="guest1Name" name="guest1Name" required maxlength="180"></div>
+   <div><label for="guest1Email">Tenant 1 email *</label><input id="guest1Email" name="guest1Email" type="email" required></div>
+   <div><label for="guest1Phone">Tenant 1 phone *</label><input id="guest1Phone" name="guest1Phone" required maxlength="60"></div>
+   <div id="coLabel" class="wide"><strong>Second tenant (only if two people are applying)</strong></div>
+   <div class="coField"><label for="guest2Name">Tenant 2 legal name *</label><input id="guest2Name" name="guest2Name"></div>
+   <div class="coField"><label for="guest2Email">Tenant 2 email *</label><input id="guest2Email" name="guest2Email" type="email"></div>
+   <div class="coField"><label for="guest2Phone">Tenant 2 phone *</label><input id="guest2Phone" name="guest2Phone"></div>
+   <div class="wide"><label for="fullAddress">Full property address *</label><input id="fullAddress" name="fullAddress" required maxlength="180"></div>
+   <div><label for="rentedArea">Rented room/area *</label><input id="rentedArea" name="rentedArea" required maxlength="180"></div>
+   <div><label for="acceptedWeeklyRent">Agreed weekly rent (AUD) *</label><input id="acceptedWeeklyRent" name="acceptedWeeklyRent" type="number" min="1" step=".01" required></div>
+   <div><label for="rentFrequency">Agreed rent payment schedule *</label><select id="rentFrequency" name="rentFrequency" required>
+    <option>Every week</option><option>Every 2 weeks</option><option>Every 4 weeks</option><option>Every calendar month</option></select></div>
+   <div><label for="leaseStart">Agreed start date *</label><input id="leaseStart" name="leaseStart" type="date" required></div>
+   <div><label for="leaseEnd">Agreed end date *</label><input id="leaseEnd" name="leaseEnd" type="date" required></div>
+   <div><label for="cleaningBond">Cleaning bond (AUD) *</label><input id="cleaningBond" name="cleaningBond" type="number" min="0" step=".01" required></div>
+   <div><label for="holdingFund">Holding fund (AUD) *</label><input id="holdingFund" name="holdingFund" type="number" min="0" step=".01" required></div>
+   <div><label for="internet">Internet charges *</label><input id="internet" name="internet" required maxlength="180"></div>
+   <div><label for="electricity">Electricity and gas *</label><input id="electricity" name="electricity" required maxlength="180"></div>
+   <div><label for="water">Water charges *</label><input id="water" name="water" required maxlength="180"></div>
+   <div><label for="payId">PayID for one-week rent *</label><input id="payId" name="payId" required maxlength="180"></div>
+   <div class="wide"><label for="bankDetails">Alternative bank BSB and account *</label><input id="bankDetails" name="bankDetails" required maxlength="180"></div>
+   <div class="wide"><label for="providerSigner">Authorised ProHouse signing representative *</label><input id="providerSigner" name="providerSigner" required maxlength="180"></div>
+   <div class="wide"><label for="leaseTemplate">Six-page master PDF (required only first time)</label><input type="file" name="template" id="leaseTemplate" accept=".pdf,application/pdf">
+    <small>Use the PDF conversion of your legally reviewed agreement. Saving it allows reuse for future approved tenants.</small>
+    <label class="checkline"><input type="checkbox" name="saveTemplate" value="Yes" checked> Save this master PDF privately for future leases</label>
+   </div>
+  </div>
+  <p class="warning">Proposed rent and preferred dates have been copied from the application to help you. They must be reviewed and explicitly confirmed. Editing an issued lease is not permitted; issue a new reviewed agreement instead.</p>
+  <div class="buttons"><button class="primary" id="previewButton" type="submit">Save changes & preview complete PDF</button></div>
+ </form>
+ <p id="draftStatus"></p>
+ <div id="previewSection" hidden>
+  <h2>3 / Review the full six-page lease</h2>
+  <p>Read the actual PDF below. If anything is incorrect, edit the fields above and generate a new preview before sending.</p>
+  <iframe class="pdf" id="leasePreview" title="Full lease preview"></iframe>
+  <p><a href="#" id="previewDownload" target="_blank" rel="noopener" download="ProHouse-DRAFT-Lease.pdf">Download this draft</a></p>
+  <div class="warning">The preview is stamped as a draft. When you authorise sending, the signing copy is generated from the saved master PDF with the same confirmed fields.</div>
+  <div id="approvalControls">
+   <label class="checkline"><input id="legalReviewed" type="checkbox"> I confirm this master agreement has been legally reviewed for this property and applicable tenancy arrangement.</label>
+   <label class="checkline"><input id="detailsConfirmed" type="checkbox"> I have read the preview and confirm all tenant names, email addresses, rent, dates and terms are correct.</label>
+   <label class="checkline"><input id="deadlineConfirmed" type="checkbox"> Send separate tenant signing links with a 24-hour deadline to sign and report one week's rent payment.</label>
+   <div class="buttons"><button class="primary" id="sendLease" type="button">Approve final lease & email tenants</button></div>
+  </div>
+ </div>
+</div>
+</section>
+<section id="monitor" class="reviewCard" hidden>
+ <span class="stage">LEASE SENT</span><h2>4 / Tenant signatures and rent payment</h2>
+ <div class="progressList">
+  <div>Tenant 1 signature<strong id="firstStatus">Pending</strong></div>
+  <div>Tenant 2 signature<strong id="secondStatus">Pending</strong></div>
+  <div>Rent transfer report<strong id="paymentStatus">Pending</strong></div>
+  <div>Bank verification<strong id="bankStatus">Pending</strong></div>
+ </div>
+ <p><strong>Deadline:</strong> <span id="monitorDue"></span></p>
+ <div class="buttons"><button type="button" class="secondary" id="refreshStatus">Refresh application status</button>
+  <button type="button" class="secondary" id="downloadCurrent">Open issued or signed PDF</button></div>
+ <section id="verifySection" hidden>
+  <h2>Verify cleared payment</h2><p>Payment was reported under bank reference <strong id="reportedRef"></strong>. Check your actual bank transaction before confirming.</p>
+  <form id="verifyForm">
+   <div class="editGrid">
+    <div><label for="verifiedAmount">One week rent received (exact AUD amount)</label><input id="verifiedAmount" required type="number" step=".01"></div>
+    <div><label for="verifiedBy">Name of ProHouse staff verifying</label><input id="verifiedBy" required></div>
+   </div>
+   <label class="checkline"><input id="bankStatement" required type="checkbox"> I have personally checked the bank account and verified the full cleared payment.</label>
+   <button class="primary" type="submit">Mark one-week rent verified</button>
+  </form>
+ </section>
+ <section id="providerSection" hidden>
+  <h2>5 / ProHouse signs last</h2><p>Both tenant signatures and your independently verified payment are required.</p>
+  <form id="providerForm">
+   <div class="editGrid"><div class="wide"><label for="providerName">Authorised signer’s exact legal name</label><input id="providerName" required></div></div>
+   <label class="checkline"><input id="providerRead" type="checkbox" required> I am authorised to sign for ProHouse and have read this final agreement.</label>
+   <div class="signatureWrap"><canvas id="providerSignature" role="img" aria-label="ProHouse representative signature"></canvas>
+    <div class="signatureBar"><span>Sign with finger or mouse</span><button id="clearProvider" type="button">Clear</button></div></div>
+   <div class="buttons"><button class="primary" type="submit">Sign for ProHouse & email final PDF</button></div>
+  </form>
+ </section>
+ <p id="monitorResult"></p>
+</section>
+</section>
+</main><footer><span>ProHouse Australia / Private agreement operations</span><a href="/operations/">Operations Portal</a></footer>
 <script>
 (async()=>{
- const $=id=>document.getElementById(id);
- const token=new URLSearchParams(location.hash.slice(1)).get('token')||'';
+ const $=id=>document.getElementById(id),token=new URLSearchParams(location.hash.slice(1)).get('token')||'';
  history.replaceState(null,'',location.pathname);
- const error=msg=>{$('loading').hidden=true;$('reviewError').textContent=msg;$('reviewError').classList.add('visible')};
- if(!/^[a-f0-9]{64}$/.test(token)){error('The private approval link is missing or invalid. Open the complete link from your ProHouse email.');return;}
- const rows=[
-  ['Reference','reference'],['Applicants','people'],['First name','firstName'],['Family name','lastName'],
-  ['First applicant email','email'],['Phone','phone'],['ID type','photoIdType'],
-  ['Occupation','occupation'],['Employer or school','employer'],['Weekly income','income'],
-  ['Second applicant email','secondEmail'],['Second first name','secondFirstName'],
-  ['Second family name','secondLastName'],['Second phone','secondPhone'],['Second ID type','secondIdType'],
-  ['Second occupation','secondOccupation'],['Second employer or school','secondEmployer'],['Second weekly income','secondIncome'],
-  ['Property','property'],['Other property','propertyOther'],['Room','room'],['Other room','roomOther'],
-  ['Preferred move-in','moveIn'],['Stay length','length'],['Other duration','lengthOther'],
-  ['Proposed weekly rent','weeklyRent'],['Rent frequency','payFrequency'],['Linen and towels','linen']
- ];
- let result;
+ const error=msg=>{$('error').textContent=msg;$('error').style.display='block';};
+ const notice=msg=>{$('notice').textContent=msg;$('notice').style.display='block';$('error').style.display='none';};
+ const auth={'Authorization':'Bearer '+token};
+ const fields=['guest1Name','guest1Email','guest1Phone','guest2Name','guest2Email','guest2Phone',
+  'fullAddress','rentedArea','acceptedWeeklyRent','rentFrequency','leaseStart','leaseEnd','cleaningBond',
+  'holdingFund','internet','electricity','water','payId','bankDetails','providerSigner'];
+ let review,packet,previewReady=false,pdfUrl='';
+ if(!/^[a-f0-9]{64}$/.test(token)){$('loading').hidden=true;error('Your private admin link is invalid. Open the complete link from your ProHouse email.');return;}
+ async function request(path,options={}){
+  const r=await fetch('/api/longstay/'+path,{credentials:'same-origin',cache:'no-store',...options,headers:{...auth,...options.headers}});
+  if(!r.ok){const body=await r.json().catch(()=>({}));throw Error(body.message||'Request failed.');}
+  return r.json();
+ }
+ async function openPDF(){
+  const response=await fetch('/api/longstay/lease-pdf',{headers:auth,credentials:'same-origin',cache:'no-store'});
+  if(!response.ok)throw Error('Could not display the protected lease PDF.');
+  if(pdfUrl)URL.revokeObjectURL(pdfUrl);
+  pdfUrl=URL.createObjectURL(await response.blob());
+  $('leasePreview').src=pdfUrl;$('previewDownload').href=pdfUrl;
+ }
+ const appRows=[['Applicant 1','firstName','lastName'],['Email','email'],['Phone','phone'],
+  ['Occupation','occupation'],['Employer','employer'],['Weekly income','income'],
+  ['Second applicant','secondFirstName','secondLastName'],['Second email','secondEmail'],
+  ['Second phone','secondPhone'],['Property','property'],['Room','room'],
+  ['Move-in preference','moveIn'],['Stay length','length'],['Proposed weekly rent','weeklyRent'],
+  ['Payment preference','payFrequency']];
+ function drawApplication(app){
+  const box=$('appDetails');box.replaceChildren();
+  for(const [label,...keys] of appRows){
+   const value=keys.map(k=>app[k]||'').join(' ').trim();if(!value)continue;
+   const d=document.createElement('div'),s=document.createElement('small'),b=document.createElement('strong');
+   s.textContent=label;b.textContent=value;d.append(s,b);box.append(d);
+  }
+ }
+ function fillEditor(app,settings){
+  const base={
+   guest1Name:[app.firstName,app.lastName].filter(Boolean).join(' '),guest1Email:app.email,guest1Phone:app.phone,
+   guest2Name:[app.secondFirstName,app.secondLastName].filter(Boolean).join(' '),
+   guest2Email:app.secondEmail,guest2Phone:app.secondPhone,
+   fullAddress:app.property?.includes('Guess Avenue')?'15 Guess Avenue, Wolli Creek NSW 2205':
+    app.property?.includes('Arncliffe Street')?'G01/52-62 Arncliffe Street, Wolli Creek NSW 2205':'',
+   rentedArea:app.room==='Other'?app.roomOther:app.room,
+   acceptedWeeklyRent:app.weeklyRent,leaseStart:app.moveIn,leaseEnd:'',
+   cleaningBond:'0',holdingFund:'0',rentFrequency:app.payFrequency||'Every 2 weeks',
+   internet:'$30 per calendar month',electricity:'Equally split',water:'Equally split',
+   payId:'hi@prohouse.com.au',bankDetails:'067 873 - 1998 7232',providerSigner:''
+  };
+  if(!settings&&app.moveIn){
+   const m=/^(\d+) months$/.exec(app.length||'');
+   if(m){const end=new Date(app.moveIn+'T00:00:00Z');end.setUTCMonth(end.getUTCMonth()+Number(m[1]));end.setUTCDate(end.getUTCDate()-1);base.leaseEnd=end.toISOString().slice(0,10);}
+  }
+  const all={...base,...settings};for(const k of fields)if($(k))$(k).value=all[k]||'';
+  const isTwo=app.people==='Two people';
+  for(const e of document.querySelectorAll('.coField'))e.hidden=!isTwo;
+  $('coLabel').hidden=!isTwo;
+  for(const k of ['guest2Name','guest2Email','guest2Phone'])$(k).required=isTwo;
+  $('verifiedAmount').value=Number(all.acceptedWeeklyRent||0).toFixed(2);
+  $('providerName').value=all.providerSigner||'';
+ }
+ async function loadStatus(){
+  packet=await request('lease-status');
+  $('monitor').hidden=!['sent','tenants_signed','expired','provider_signing','completed'].includes(packet.status);
+  if(packet.status==='draft'&&!previewReady){
+   fillEditor(review.applicant,packet.settings);
+   previewReady=true;$('previewSection').hidden=false;
+   await openPDF().catch(e=>error(e.message));
+  }
+  if(!$('monitor').hidden){
+   $('leaseSection').hidden=true;
+   $('firstStatus').textContent=packet.firstSigned?'Signed':'Waiting';
+   $('secondStatus').textContent=packet.secondSigned?'Signed / not applicable':'Waiting';
+   $('paymentStatus').textContent=packet.paymentReported?'Reported':'Waiting';
+   $('bankStatus').textContent=packet.paymentVerified?'Verified':'Not verified';
+   $('reportedRef').textContent=packet.paymentReference||'';
+   $('monitorDue').textContent=packet.deadlineAt?new Date(packet.deadlineAt).toLocaleString('en-AU',{dateStyle:'long',timeStyle:'short'}):'';
+   $('verifySection').hidden=!packet.paymentReported||packet.paymentVerified||packet.status==='expired'||packet.status==='completed';
+   $('providerSection').hidden=!(packet.firstSigned&&packet.secondSigned&&packet.paymentVerified&&packet.status==='tenants_signed');
+   $('monitorResult').textContent=packet.status==='completed'?'Lease fully signed and emailed to tenants and ProHouse.':
+    packet.status==='expired'?'24-hour deadline passed. Please contact the applicants before further action.':
+    'You can refresh to check new signatures and transfer reports.';
+  }
+  return packet;
+ }
  try{
-  const res=await fetch('/api/longstay/review?token='+token,{cache:'no-store',credentials:'same-origin'});
-  result=await res.json();if(!res.ok)throw Error(result.message||'Review link unavailable.');
- }catch(e){error(e.message);return;}
- $('loading').hidden=true;$('reviewPanel').hidden=false;
- $('reference').textContent=result.reference;
- for(const [label,key] of rows){const value=key==='reference'?result.reference:result.applicant[key];if(value===undefined||value===null||String(value).trim()==='')continue;
-  const div=document.createElement('div'),sm=document.createElement('small'),strong=document.createElement('strong');
-  sm.textContent=label;strong.textContent=String(value);div.append(sm,strong);$('reviewFields').appendChild(div);
- }
- function showDecision(status,notice=''){
-  $('decisionStatus').textContent=notice||'Decision saved: '+status+'.';
-  $('reviewActions').hidden=true;
- }
- const leaseForm=$('leaseForm');
- const rentPrefs={'Every week':'Every week','Every 2 weeks':'Every 2 weeks','Every 4 weeks':'Every 4 weeks','Every calendar month':'Every calendar month'};
- if(rentPrefs[result.applicant.payFrequency])$('rentFrequency').value=result.applicant.payFrequency;
- // Intentionally don't accept proposed weekly rent, dates or deposits automatically.
- $('acceptedWeeklyRent').placeholder='Applicant proposed 
+  const r=await fetch('/api/longstay/review?token='+token,{cache:'no-store',credentials:'same-origin'});
+  review=await r.json();if(!r.ok)throw Error(review.message||'Private review not found.');
+  $('loading').hidden=true;$('content').hidden=false;
+  drawApplication(review.applicant);
+  fillEditor(review.applicant);
+  $('applicationStatus').textContent=review.status==='pending'?'Awaiting your application decision.':'Application '+review.status+'.';
+  $('reviewBadge').textContent='APPLICATION '+review.status.toUpperCase();
+  $('applicationActions').hidden=review.status!=='pending';
+  $('leaseSection').hidden=review.status!=='approved';
+  if(review.status==='approved')await loadStatus();
+ }catch(e){$('loading').hidden=true;error(e.message);return;}
  async function decide(decision){
-  const message=decision==='approved'
-    ?'Approve this application for lease preparation? This does not generate or sign a lease.'
-    :'Reject this application? Both applicants (if applicable) will be emailed.';
-  if(!confirm(message))return;
-  $('approveButton').disabled=true;$('rejectButton').disabled=true;
-  $('decisionStatus').textContent='Saving decision and notifying applicants…';
+  if(!confirm(decision==='approved'?'Approve this rental application to prepare a draft lease?':'Reject this application and email applicant(s)?'))return;
   try{
-   const res=await fetch('/api/longstay/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,decision}),credentials:'same-origin'});
-   const data=await res.json();if(!res.ok)throw Error(data.message||'Could not save decision.');
-   showDecision(data.status,'Saved: '+data.status+'. Email notices sent to '+(data.notificationsSent??0)+' applicant(s).');
-   if(data.status==='approved')$('leasePanel').hidden=false;
-  }catch(e){$('decisionStatus').textContent=e.message;$('approveButton').disabled=false;$('rejectButton').disabled=false}
+   const r=await request('review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,decision})});
+   review.status=r.status;$('applicationActions').hidden=true;
+   $('applicationStatus').textContent='Application '+r.status+'.';
+   $('reviewBadge').textContent='APPLICATION '+r.status.toUpperCase();
+   if(r.status==='approved')$('leaseSection').hidden=false;
+   notice('Application decision saved: '+r.status+'.');
+  }catch(e){error(e.message);}
  }
- leaseForm.addEventListener('submit',async e=>{
-  e.preventDefault();
-  $('leaseError').classList.remove('visible');
-  const invalid=[...leaseForm.querySelectorAll('input,select')].find(x=>!x.checkValidity());
+ $('approveApplication').addEventListener('click',()=>decide('approved'));
+ $('rejectApplication').addEventListener('click',()=>decide('rejected'));
+ $('editor').addEventListener('input',()=>{if(previewReady){previewReady=false;$('previewSection').hidden=true;$('draftStatus').textContent='Fields changed. Generate a fresh preview before sending.';}});
+ $('editor').addEventListener('change',()=>{if(previewReady){previewReady=false;$('previewSection').hidden=true;$('draftStatus').textContent='Fields changed. Generate a fresh preview before sending.';}});
+ $('editor').addEventListener('submit',async e=>{
+  e.preventDefault();$('error').style.display='none';
+  const invalid=[...$('editor').querySelectorAll('[required]')].find(x=>!x.checkValidity());
   if(invalid){invalid.reportValidity();return;}
-  const button=$('leaseButton');button.disabled=true;button.textContent='Merging Schedule A…';
-  $('leaseResult').textContent='';
+  const button=$('previewButton');button.disabled=true;button.textContent='Preparing six-page draft…';
   try{
-   const formData=new FormData(leaseForm);formData.set('token',token);
-   const result=await fetch('/api/longstay/lease-draft',{method:'POST',body:formData,credentials:'same-origin'});
-   if(!result.ok){const error=await result.json();throw Error(error.message||'Unable to create draft.');}
-   const blob=await result.blob(),url=URL.createObjectURL(blob),a=document.createElement('a');
-   a.href=url;a.download='ProHouse-Mutual-Agreement-DRAFT-'+(result?.reference||$('reference').textContent)+'.pdf';
-   document.body.appendChild(a);a.click();a.remove();
-   $('leaseResult').textContent='Draft PDF generated. It is not signed and must be legally reviewed.';
-  }catch(error){$('leaseError').textContent=error.message;$('leaseError').classList.add('visible')}
-  finally{button.disabled=false;button.textContent='Generate draft agreement PDF'}
+   const form=new FormData($('editor'));
+   const response=await request('lease-prepare',{method:'POST',body:form});
+   packet={status:'draft',settings:response.settings};
+   await openPDF();
+   previewReady=true;$('previewSection').hidden=false;
+   $('legalReviewed').checked=false;$('detailsConfirmed').checked=false;$('deadlineConfirmed').checked=false;
+   $('draftStatus').textContent='Draft saved. No tenant email sent. Review all six pages below.';
+   $('previewSection').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){error(e.message)}finally{button.disabled=false;button.textContent='Save changes & preview complete PDF'}
  });
- $('approveButton').addEventListener('click',()=>decide('approved'));
- $('rejectButton').addEventListener('click',()=>decide('rejected'));
-})();
-</script></body></html>+(result.applicant.weeklyRent||'?')+' / week. Confirm agreed rate.';
- $('leaseStart').value='';
- const prop=result.applicant.property||'';
- if(prop.includes('Guess Avenue'))$('fullAddress').placeholder='Confirm: 15 Guess Avenue, Wolli Creek NSW 2205';
- if(prop.includes('Arncliffe Street'))$('fullAddress').placeholder='Confirm: G01/52–62 Arncliffe Street, Wolli Creek NSW 2205';
- if(result.status!=='pending'){
-  showDecision(result.status,'Already reviewed: '+result.status+'.');
-  if(result.status==='approved')$('leasePanel').hidden=false;
-  return;
- }
- async function decide(decision){
-  const message=decision==='approved'
-    ?'Approve this application for lease preparation? This does not generate or sign a lease.'
-    :'Reject this application? Both applicants (if applicable) will be emailed.';
-  if(!confirm(message))return;
-  $('approveButton').disabled=true;$('rejectButton').disabled=true;
-  $('decisionStatus').textContent='Saving decision and notifying applicants…';
+ $('sendLease').addEventListener('click',async()=>{
+  if(!previewReady){error('Review the latest PDF preview before approving.');return;}
+  if(!$('legalReviewed').checked||!$('detailsConfirmed').checked||!$('deadlineConfirmed').checked){error('Confirm legal review, final data and the 24-hour deadline.');return;}
+  if(!confirm('APPROVE LEASE AND EMAIL each tenant a separate 24-hour signing/payment link?'))return;
+  const button=$('sendLease');button.disabled=true;button.textContent='Sending lease…';
   try{
-   const res=await fetch('/api/longstay/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,decision}),credentials:'same-origin'});
-   const data=await res.json();if(!res.ok)throw Error(data.message||'Could not save decision.');
-   showDecision(data.status,'Saved: '+data.status+'. Email notices sent to '+(data.notificationsSent??0)+' applicant(s).'+
-    (data.status==='approved'?' Lease document generation will be set up when ProHouse uploads its lease template.':''));
-  }catch(e){$('decisionStatus').textContent=e.message;$('approveButton').disabled=false;$('rejectButton').disabled=false}
+   const data=await request('lease-send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    confirmLeaseReviewed:true,confirmTermsFinal:true,confirm24Hours:true})});
+   notice(data.message+' Deadline: '+new Date(data.deadlineAt).toLocaleString('en-AU'));
+   await loadStatus();
+  }catch(e){error(e.message);button.disabled=false;button.textContent='Approve final lease & email tenants'}
+ });
+ $('refreshStatus').addEventListener('click',async()=>{try{await loadStatus();notice('Status updated.')}catch(e){error(e.message)}});
+ $('downloadCurrent').addEventListener('click',async()=>{try{
+  const r=await fetch('/api/longstay/lease-pdf',{headers:auth,credentials:'same-origin',cache:'no-store'});
+  if(!r.ok)throw Error('Unable to load issued lease.');
+  const u=URL.createObjectURL(await r.blob());window.open(u,'_blank','noopener');
+ }catch(e){error(e.message)}});
+ $('verifyForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  if(!confirm('Confirm that one full week of rent has CLEARED in your bank account?'))return;
+  try{
+   const response=await request('payment-verify',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({confirmBankStatement:$('bankStatement').checked,verifiedBy:$('verifiedBy').value,
+     verifiedAmount:Number($('verifiedAmount').value).toFixed(2)})});
+   notice(response.message);await loadStatus();
+  }catch(e){error(e.message)}
+ });
+ const canvas=$('providerSignature'),ctx=canvas.getContext('2d');let drawn=false,drawing=false;
+ function resize(){
+  const rect=canvas.getBoundingClientRect(),d=devicePixelRatio||1,prior=drawn?canvas.toDataURL('image/png'):null;
+  canvas.width=Math.round(rect.width*d);canvas.height=Math.round(rect.height*d);
+  ctx.setTransform(d,0,0,d,0,0);ctx.strokeStyle='#182820';ctx.lineWidth=2.5;ctx.lineCap='round';ctx.lineJoin='round';
+  if(prior){const img=new Image();img.onload=()=>ctx.drawImage(img,0,0,rect.width,rect.height);img.src=prior;}
  }
- $('approveButton').addEventListener('click',()=>decide('approved'));
- $('rejectButton').addEventListener('click',()=>decide('rejected'));
+ const point=e=>{const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}};
+ canvas.addEventListener('pointerdown',e=>{drawn=true;drawing=true;canvas.setPointerCapture(e.pointerId);const p=point(e);ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x+.1,p.y+.1);ctx.stroke()});
+ canvas.addEventListener('pointermove',e=>{if(!drawing)return;const p=point(e);ctx.lineTo(p.x,p.y);ctx.stroke()});
+ for(const name of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(name,()=>{drawing=false});
+ $('clearProvider').addEventListener('click',()=>{ctx.clearRect(0,0,canvas.width,canvas.height);drawn=false});
+ addEventListener('resize',resize);resize();
+ $('providerForm').addEventListener('submit',async e=>{
+  e.preventDefault();if(!drawn){error('Draw the provider signature.');return;}
+  if(!confirm('Sign this lease on behalf of ProHouse and email the FINAL signed PDF to all tenants?'))return;
+  try{
+   const result=await request('provider-sign',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({providerName:$('providerName').value,confirmRead:$('providerRead').checked,
+     signature:canvas.toDataURL('image/png')})});
+   notice(result.message);await loadStatus();
+  }catch(e){error(e.message)}
+ });
 })();
 </script></body></html>
