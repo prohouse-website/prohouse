@@ -62,7 +62,7 @@ const properties=[
 ];
 const settingsKeys=['guest1Name','guest1Email','guest1Phone','guest2Name','guest2Email','guest2Phone',
  'fullAddress','rentedArea','acceptedWeeklyRent','leaseStart','leaseEnd','cleaningBond','holdingFund',
- 'rentFrequency','internet','electricity','water','bankDetails','payId','providerSigner'];
+ 'rentFrequency','internet','electricity','water','bankDetails','payId','providerSigner','bondAmount'];
 function readSettings(form,app){
  const settings=Object.fromEntries(settingsKeys.map(k=>[k,str(form.get(k),240)]));
  if(app.people!=='Two people'){
@@ -70,7 +70,7 @@ function readSettings(form,app){
  }
  const required=['guest1Name','guest1Email','guest1Phone','fullAddress','rentedArea','acceptedWeeklyRent',
   'leaseStart','leaseEnd','cleaningBond','holdingFund','rentFrequency','internet','electricity',
-  'water','bankDetails','payId','providerSigner'];
+  'water','bankDetails','payId','providerSigner','bondAmount'];
  if(app.people==='Two people')required.push('guest2Name','guest2Email','guest2Phone');
  if(required.some(k=>!settings[k]))throw Error('Review and complete every required prefilled lease field.');
  if(!goodMail(settings.guest1Email)||(app.people==='Two people'&&
@@ -78,9 +78,10 @@ function readSettings(form,app){
    throw Error('Please confirm distinct, valid tenant email addresses.');
  if(!['Every week','Every 2 weeks','Every 4 weeks','Every calendar month'].includes(settings.rentFrequency))
    throw Error('Invalid payment frequency.');
- for(const key of ['acceptedWeeklyRent','cleaningBond','holdingFund'])
+ for(const key of ['acceptedWeeklyRent','cleaningBond','holdingFund','bondAmount'])
    if(!/^\d{1,6}(\.\d{1,2})?$/.test(settings[key]))throw Error('Check the rent and bond amounts.');
  if(Number(settings.acceptedWeeklyRent)<=0)throw Error('Weekly rent must be greater than zero.');
+ if(Number(settings.bondAmount)<0)throw Error('Bond amount cannot be negative. Confirm the lawful amount separately from any cleaning bond.');
  for(const key of ['leaseStart','leaseEnd'])
    if(!/^\d{4}-\d{2}-\d{2}$/.test(settings[key])||Number.isNaN(Date.parse(settings[key]+'T12:00:00Z')))
      throw Error('Confirm valid lease start and end dates.');
@@ -166,7 +167,7 @@ export async function tenantPacket(request,env){
   reference:packet.reference,status:packet.status,slot,
   legalName:settings['guest'+slot+'Name'],email:settings['guest'+slot+'Email'],
   property:settings.fullAddress,rentedArea:settings.rentedArea,
-  weeklyRent:settings.acceptedWeeklyRent,payId:settings.payId,
+  weeklyRent:settings.acceptedWeeklyRent,payId:settings.payId,bondAmount:settings.bondAmount,
   bankDetails:settings.bankDetails,
   dueAt:packet.deadline_at,sentAt:packet.sent_at,
   signed:!!packet[slot===1?'first_signed_at':'second_signed_at'],
