@@ -1,9 +1,11 @@
 import { buildApplicationPDF, applicationFields } from './longstay-application.js';
 import { combineApplicationPDF } from './longstay-package.js';
+import { saveFirstPackage, loadFirstPackage, deleteFirstPackage } from './longstay-documents.js';
 import { createReview, cancelReview } from './longstay-review.js';
 
-// Deliberately don't store ID and income documents in D1. Only their filenames
-// travel in email/PDF; the document bytes go to ProHouse's Resend mailbox.
+// For joint applications, the first applicant's combined PDF is temporarily stored
+// as encrypted D1 chunks for up to the invitation window, then deleted.
+// The documents are NEVER exposed by the second-applicant invitation API.
 const MAX_REQUEST = 19 * 1024 * 1024;
 const MAX_FILE = 5 * 1024 * 1024;
 const MAX_FILES_TOTAL = 15 * 1024 * 1024;
@@ -133,7 +135,7 @@ function validateShared(data){
   if(!['3 months','6 months','12 months','Other'].includes(data.length))throw Error('Please choose a length of stay.');
   if(data.length==='Other'&&!data.lengthOther)throw Error('Please specify your length of stay.');
   if(!/^\d{4}-\d{2}-\d{2}$/.test(data.moveIn)||Number.isNaN(Date.parse(data.moveIn)))throw Error('Please select a valid move-in date.');
-  if(!['Every week','Every 2 weeks','Every 4 weeks','Every calendar month'].includes(data.payFrequency))
+  if(!['Every 2 weeks','Every 4 weeks','Every calendar month'].includes(data.payFrequency))
     throw Error('Please select a payment frequency.');
   if(!(Number(data.weeklyRent)>0&&Number(data.weeklyRent)<=100000))throw Error('Enter your proposed weekly rent.');
   if(!['Yes','No, I will use my own','Other'].includes(data.linen))throw Error('Please select a linen preference.');
@@ -189,6 +191,9 @@ export async function getLongStayInvitation(request,env){
 }
 async function cleanupPending(env){
   if(env.LONGSTAY_DB){
+    await env.LONGSTAY_DB.prepare(
+      "DELETE FROM longstay_application_documents WHERE reference IN (SELECT reference FROM longstay_applications WHERE status='completed' OR expires_at < ?) OR created_at < ?"
+    ).bind(new Date(Date.now()-48*3600000).toISOString(),new Date(Date.now()-5*86400000).toISOString()).run();
     await env.LONGSTAY_DB.prepare("DELETE FROM longstay_applications WHERE expires_at < datetime('now','-7 days') OR (status='completed' AND completed_at < datetime('now','-14 days'))").run();
     await env.LONGSTAY_DB.prepare("DELETE FROM longstay_reviews WHERE created_at < datetime('now','-90 days')").run();
   }
@@ -210,8 +215,6 @@ export async function submitLongStayFirst(request,env){
     if(data.people==='Two people'&&(!emailValid(data.secondEmail)||data.secondEmail.toLowerCase()===data.email.toLowerCase()))
       throw Error('Please enter the other applicant’s own email address.');
     validApplicant(data);
-    if(!['Australian-issued driver licence','Passport'].includes(data.photoIdType))
-      throw Error('Select Australian-issued driver licence or passport.');
     validateShared(data);
   }catch(e){return reply(400,e.message);}
   const signature=clean(form.get('signature'),550000);
@@ -240,6 +243,15 @@ export async function submitLongStayFirst(request,env){
     try{reviewLink=await createReview(env,ref,data,request)}
     catch(e){console.error('Unable to create longstay review',e?.message);return reply(503,'Unable to create approval link. Try again.');}
   }
+  if(token){
+    try{await saveFirstPackage(env,ref,firstPackage.bytes);}
+    catch(e){
+      console.error('Cannot escrow first applicant PDF',ref,e?.message);
+      await deleteFirstPackage(env,ref).catch(()=>{});
+      await env.LONGSTAY_DB.prepare('DELETE FROM longstay_applications WHERE reference=?').bind(ref).run().catch(()=>{});
+      return reply(503,'Could not securely store documents for the joint application. Please try again.');
+    }
+  }
   try{
     const sent=await sendMail(env,{to:admin(env),
       subject:(token?'[1/3 received] ':'[REVIEW REQUIRED] ')+'Long-stay application '+ref+' | '+firstName,
@@ -251,13 +263,15 @@ export async function submitLongStayFirst(request,env){
       ].join('\n'),
       attachments:[{filename:ref+'-applicant-1.pdf',content:pdfBase64(firstPackage.bytes),content_type:'application/pdf'}]});
     if(token){
-      const delivered=await sent.json();
-      if(!/^[a-f0-9-]{20,}$/.test(delivered.id||''))throw Error('Missing email id needed for document retrieval.');
+      const delivered=await sent.json().catch(()=>({}));
       await env.LONGSTAY_DB.prepare('UPDATE longstay_applications SET first_email_id=?, first_summary_pages=? WHERE reference=?')
-        .bind(delivered.id,firstPackage.summaryPages,ref).run();
+        .bind(/^[a-f0-9-]{20,}$/.test(delivered.id||'')?delivered.id:null,firstPackage.summaryPages,ref).run();
     }
   }catch(e){
-    if(token)await env.LONGSTAY_DB.prepare('DELETE FROM longstay_applications WHERE reference=?').bind(ref).run().catch(()=>{});
+    if(token){
+      await deleteFirstPackage(env,ref).catch(()=>{});
+      await env.LONGSTAY_DB.prepare('DELETE FROM longstay_applications WHERE reference=?').bind(ref).run().catch(()=>{});
+    }
     if(reviewLink)await cancelReview(env,ref).catch(()=>{});
     return reply(502,'Could not deliver the merged application PDF. Please try again.');
   }
@@ -332,13 +346,11 @@ export async function submitLongStaySecond(request,env){
   if(row.expires_at<new Date().toISOString())return reply(410,'Your invitation has expired.');
   if(row.status==='completed')return reply(200,'This invitation has already been completed.',{reference:row.reference,status:'completed'});
   if(row.status!=='invited')return reply(409,'Application is already being processed.');
-  const extraKeys=['secondIdType','secondFirstName','secondLastName','secondPhone','secondOccupation','secondOccupationOther',
+  const extraKeys=['secondFirstName','secondLastName','secondPhone','secondOccupation','secondOccupationOther',
     'secondWorkFromHome','secondWorkFromHomeOther','secondEmployer','secondIncome','secondDeclaration','secondPrivacyConsent'];
   const extra=Object.fromEntries(extraKeys.map(k=>[k,clean(form.get(k))]));
   try{
     validApplicant(extra,'second');
-    if(!['Australian-issued driver licence','Passport'].includes(extra.secondIdType))
-      throw Error('Select Australian-issued driver licence or passport.');
     if(extra.secondDeclaration!=='Yes'||extra.secondPrivacyConsent!=='Yes')
     throw Error('Please accept the declarations.');}
   catch(e){return reply(400,e.message)}
@@ -347,16 +359,30 @@ export async function submitLongStaySecond(request,env){
   let documents;try{documents=await readFiles(form,'second')}catch(e){return reply(400,e.message)}
   const original=JSON.parse(row.first_data||'{}');
   const combined={...original,...extra,secondEmail:row.second_email};
-  let pdf;
+  let pdf,allDocumentsInOnePDF=false;
   try{
-    const firstPackage=await retrieveFirstPackage(env,row.reference,row.first_email_id);
     const summary=await buildApplicationPDF(combined,documents,row.reference,row.first_signature,signature);
-    pdf=await combineApplicationPDF(summary,documents,{
-      priorPdf:firstPackage,priorSummaryPages:row.first_summary_pages
-    });
+    let firstPackage=null;
+    try{
+      firstPackage=await loadFirstPackage(env,row.reference);
+      if(!firstPackage)firstPackage=await retrieveFirstPackage(env,row.reference,row.first_email_id);
+    }catch(e){
+      console.warn('Original first-person PDF retrieval failed; proceeding with safely separated evidence',row.reference,e?.message);
+    }
+    if(firstPackage){
+      try{
+        pdf=await combineApplicationPDF(summary,documents,{
+          priorPdf:firstPackage,priorSummaryPages:row.first_summary_pages
+        });
+        allDocumentsInOnePDF=true;
+      }catch(e){
+        console.warn('Could not append first-person PDF; preserving second submission and original owner email',row.reference,e?.message);
+      }
+    }
+    if(!pdf)pdf=await combineApplicationPDF(summary,documents);
   }catch(e){
     console.error('Second applicant document packaging error',row.reference,e?.message);
-    return reply(502,'Unable to retrieve the first applicant documents and combine the PDF. Please contact ProHouse.');
+    return reply(400,'Could not read an uploaded document. Please use an unprotected PDF, JPG or PNG and try again.');
   }
   // The pending -> processing transition prevents duplicate concurrent submissions.
   const changed=await env.LONGSTAY_DB.prepare("UPDATE longstay_applications SET status='processing' WHERE reference=? AND status='invited'")
@@ -372,14 +398,16 @@ export async function submitLongStaySecond(request,env){
     'Applicant 1: '+row.first_name+' <'+row.first_email+'>',
     'Applicant 2: '+extra.secondFirstName+' '+extra.secondLastName+' <'+row.second_email+'>',
     '',appText(combined),'',
-    'One PDF is attached. It includes the final joint summary, both signatures and ALL uploaded supporting documents.',
+    allDocumentsInOnePDF?
+      'ONE merged PDF is attached containing both signatures and ALL supporting documents.':
+      'IMPORTANT: The attached PDF contains the completed joint form, both signatures, and SECOND-applicant documents only. The FIRST-applicant ID and income files were delivered in the EARLIER ProHouse admin email [1/3 received] for this same reference. Review BOTH email attachments before approving. The first applicant documents could not be combined automatically.',
     '',
     'Private link to APPROVE or REJECT this application:',
     reviewLink,
     'Do not forward. Approval moves the application to lease preparation and does not itself create a lease.'
   ].join('\n');
   try{
-    await sendMail(env,{to:admin(env),subject:'[REVIEW REQUIRED] ProHouse joint application '+row.reference,
+    await sendMail(env,{to:admin(env),subject:(allDocumentsInOnePDF?'[REVIEW REQUIRED] ':'[REVIEW REQUIRED: TWO PDF EMAILS] ')+'ProHouse joint application '+row.reference,
       replyTo:row.second_email,tag:'second-complete',text:stage3,
       attachments:[{filename:row.reference+'-joint-complete.pdf',content:pdfBase64(pdf.bytes),content_type:'application/pdf'}]});
   }catch(e){
@@ -389,6 +417,7 @@ export async function submitLongStaySecond(request,env){
   }
   await env.LONGSTAY_DB.prepare("UPDATE longstay_applications SET status='completed',first_data=NULL,first_signature=NULL,completed_at=? WHERE reference=? AND status='processing'")
     .bind(new Date().toISOString(),row.reference).run();
+  await deleteFirstPackage(env,row.reference).catch(e=>console.warn('Pending document cleanup failed',row.reference,e?.message));
   const done=['ProHouse joint rental application completed.','Reference: '+row.reference,'',
     'Both applicants have now submitted their details and mandatory documents.',
     'The ProHouse team has been emailed the completed application and will review it.',
@@ -400,5 +429,6 @@ export async function submitLongStaySecond(request,env){
   ]);
   notifications.forEach((r,i)=>{if(r.status==='rejected')console.error('Longstay completion notification failed',row.reference,i)});
   return reply(200,'Your joint application has been submitted to ProHouse.',
-    {reference:row.reference,status:'completed',notificationsSent:notifications.every(x=>x.status==='fulfilled')});
+    {reference:row.reference,status:'completed',documentsCombined:allDocumentsInOnePDF,
+      notificationsSent:notifications.every(x=>x.status==='fulfilled')});
 }
