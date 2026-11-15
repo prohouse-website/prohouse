@@ -2,7 +2,7 @@
 
 Source supplied by ProHouse: `Mutual rental agreement-v9 090924.docx` (document itself displays `v10-20261125` on page 1). The document is SIX A4 pages. Pages 1-5 are "Mutual rental agreement - Terms and Conditions". Page 6 is `Schedule A`; it is a table containing empty cells and signature lines, **not native Word form controls**. Map only the Schedule A value cells. Never replace clauses 1-5 during mail merge without explicit owner authorisation.
 
-A Word merge-ready DOCX and six-page PDF copy were produced in this conversation. The live website's private owner approval page now includes `Prepare Schedule A draft`; it accepts the *six-page PDF conversion of the uploaded Word document* plus approved financial/term values. It currently requires that PDF to be selected by staff for each draft: the binary source file is not automatically stored in the website repository. All generated PDFs have a visible legal-review draft footer, and are **not emailed to tenants automatically**.
+A Word merge-ready DOCX and six-page PDF copy were produced in this conversation. The live website's private owner approval page now includes `Prepare Schedule A draft`; it accepts the *six-page PDF conversion of the uploaded Word document* plus approved financial/term values. On its first use, staff uploads the converted PDF, then selects **Save this template for future approved applicants**. The Worker stores the PDF in the private LONGSTAY_DB table `longstay_lease_templates`, letting subsequent approved applicants generate their draft without reuploading. The original DOCX uploaded to ChatGPT is not itself stored in the repository or deployed to Cloudflare. Future legal template revisions require a new approved-template upload. All generated PDFs have a visible legal-review draft footer, and are **not emailed to tenants automatically**.
 
 ## Source Schedule A to approved-application mapping
 
@@ -45,3 +45,13 @@ This is not legal advice. Do **not** send the current source agreement for signi
 - NSW Fair Trading residential agreement guidance and Consumer Affairs Victoria residential and rooming-house agreement guidance should be considered, and the applicable classification confirmed for each property.
 
 The current deployment is an **internal draft generator only**. Lease document sending, e-signature, bond handling, and legal compliance are not represented as implemented.
+
+## One-time template installation
+
+1. Download the six-page original-layout PDF conversion supplied in this ChatGPT response.
+2. Approve a submitted application in its emailed private `/operations/livewithus/review/` link.
+3. Scroll to **Prepare Schedule A draft**. Choose that PDF the first time, leave **Save this template** checked, and confirm all agreement values.
+4. Generate the draft PDF. The verified PDF template is saved privately and may be reused for later approved applications without reuploading.
+5. Send nothing for signing until an appropriately qualified lawyer approves a legally compliant document for the relevant state and arrangement.
+
+The prepared placeholders in the merge-ready DOCX are an editable offline reference. The web generator merges directly into an uploaded PDF copy of the original agreement and does not claim to be a full native DOCX mail-merge engine.
