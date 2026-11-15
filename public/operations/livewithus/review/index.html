@@ -69,6 +69,9 @@
     <option>Every week</option><option>Every 2 weeks</option><option>Every 4 weeks</option><option>Every calendar month</option></select></div>
    <div><label for="leaseStart">Agreed start date *</label><input id="leaseStart" name="leaseStart" type="date" required></div>
    <div><label for="leaseEnd">Agreed end date *</label><input id="leaseEnd" name="leaseEnd" type="date" required></div>
+   <div><label for="bondAmount">Rental bond amount (AUD) *</label>
+    <input id="bondAmount" name="bondAmount" type="number" min="0" step=".01" placeholder="Confirm the lawful bond amount" required>
+    <small>This is separate from the cleaning bond. Specify the actual statutory/contractual rental bond; use the appropriate bond lodgement process.</small></div>
    <div><label for="cleaningBond">Cleaning bond (AUD) *</label><input id="cleaningBond" name="cleaningBond" type="number" min="0" step=".01" required></div>
    <div><label for="holdingFund">Holding fund (AUD) *</label><input id="holdingFund" name="holdingFund" type="number" min="0" step=".01" required></div>
    <div><label for="internet">Internet charges *</label><input id="internet" name="internet" required maxlength="180"></div>
@@ -82,6 +85,7 @@
     <label class="checkline"><input type="checkbox" name="saveTemplate" value="Yes" checked> Save this master PDF privately for future leases</label>
    </div>
   </div>
+  <p class="warning">Rental bond amount is entered separately for the post-signing email. The uploaded Schedule A currently labels other amounts as “cleaning bond” and “holding fund”; those are not automatically treated as a statutory rental bond. Confirm the correct agreement and lawful bond process for NSW or Victoria.</p>
   <p class="warning">Proposed rent and preferred dates have been copied from the application to help you. They must be reviewed and explicitly confirmed. Editing an issued lease is not permitted; issue a new reviewed agreement instead.</p>
   <div class="buttons"><button class="primary" id="previewButton" type="submit">Save changes & preview complete PDF</button></div>
  </form>
@@ -152,7 +156,7 @@
  const auth={'Authorization':'Bearer '+token};
  const fields=['guest1Name','guest1Email','guest1Phone','guest2Name','guest2Email','guest2Phone',
   'fullAddress','rentedArea','acceptedWeeklyRent','rentFrequency','leaseStart','leaseEnd','cleaningBond',
-  'holdingFund','internet','electricity','water','payId','bankDetails','providerSigner'];
+  'holdingFund','bondAmount','internet','electricity','water','payId','bankDetails','providerSigner'];
  let review,packet,previewReady=false,pdfUrl='';
  if(!/^[a-f0-9]{64}$/.test(token)){$('loading').hidden=true;error('Your private admin link is invalid. Open the complete link from your ProHouse email.');return;}
  async function request(path,options={}){
@@ -190,7 +194,7 @@
     app.property?.includes('Arncliffe Street')?'G01/52-62 Arncliffe Street, Wolli Creek NSW 2205':'',
    rentedArea:app.room==='Other'?app.roomOther:app.room,
    acceptedWeeklyRent:app.weeklyRent,leaseStart:app.moveIn,leaseEnd:'',
-   cleaningBond:'0',holdingFund:'0',rentFrequency:app.payFrequency||'Every 2 weeks',
+   cleaningBond:'0',holdingFund:'0',bondAmount:'',rentFrequency:app.payFrequency||'Every 2 weeks',
    internet:'$30 per calendar month',electricity:'Equally split',water:'Equally split',
    payId:'hi@prohouse.com.au',bankDetails:'067 873 - 1998 7232',providerSigner:''
   };
