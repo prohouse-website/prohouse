@@ -41,6 +41,12 @@
     },
     "d1_databases": [
       {
+        "binding": "LONGSTAY_DB",
+        "database_name": "prohouse-longstay-applications-preview",
+        "database_id": "fab94e28-8373-414e-9c11-20f51aeb73cf",
+        "preview_database_id": "fab94e28-8373-414e-9c11-20f51aeb73cf"
+      },
+      {
         "binding": "SHAREBILL_ANALYTICS_DB",
         "database_name": "prohouse-sharebill-analytics-preview",
         "database_id": "edb3beb3-cb60-4d50-9aaf-a523fc4b27ff",
@@ -56,6 +62,12 @@
     ]
   },
   "d1_databases": [
+    {
+      "binding": "LONGSTAY_DB",
+      "database_name": "prohouse-longstay-applications",
+      "database_id": "186905a3-ff12-4fb2-883b-ba9e0c8b2c12",
+      "preview_database_id": "fab94e28-8373-414e-9c11-20f51aeb73cf"
+    },
     {
       "binding": "SHAREBILL_ANALYTICS_DB",
       "database_name": "prohouse-sharebill-analytics",
