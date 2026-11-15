@@ -184,19 +184,41 @@ export async function getLongStayInvitation(request,env){
   const row=await fetchInvitation(token,env);
   if(!row)return reply(404,'Invitation not found. Contact ProHouse for a new invitation.');
   if(row.status==='completed')return reply(200,'This application has already been completed.',{status:'completed',reference:row.reference});
-  if(row.expires_at<new Date().toISOString())return reply(410,'This invitation has expired. Please contact ProHouse.');
+  if(row.expires_at<=new Date().toISOString()){
+    await deleteExpiredDraft(env,row);
+    return reply(410,'This unfinished joint application was deleted after 48 hours. Please start a new application.');
+  }
   if(row.status!=='invited')return reply(409,'This invitation is being processed. Please try again shortly.');
   const data=JSON.parse(row.first_data||'{}');
   return reply(200,'Invitation ready.',{status:'invited',firstApplicant:privatePreview(data,row.reference),invitedEmail:row.second_email});
 }
-async function cleanupPending(env){
-  if(env.LONGSTAY_DB){
-    await env.LONGSTAY_DB.prepare(
-      "DELETE FROM longstay_application_documents WHERE reference IN (SELECT reference FROM longstay_applications WHERE status='completed' OR expires_at < ?) OR created_at < ?"
-    ).bind(new Date(Date.now()-48*3600000).toISOString(),new Date(Date.now()-5*86400000).toISOString()).run();
-    await env.LONGSTAY_DB.prepare("DELETE FROM longstay_applications WHERE expires_at < datetime('now','-7 days') OR (status='completed' AND completed_at < datetime('now','-14 days'))").run();
-    await env.LONGSTAY_DB.prepare("DELETE FROM longstay_reviews WHERE created_at < datetime('now','-90 days')").run();
+// Expire only incomplete joint drafts. Approved/completed application records
+// have separate retention rules and must not be deleted by this 48h cleanup.
+async function deleteExpiredDraft(env,row){
+  if(row.status!=='invited'||row.expires_at>new Date().toISOString())return false;
+  const deleted=await env.LONGSTAY_DB.prepare(
+    "DELETE FROM longstay_applications WHERE reference=? AND status='invited' AND expires_at<=?"
+  ).bind(row.reference,new Date().toISOString()).run();
+  if(deleted.meta?.changes){
+    await deleteFirstPackage(env,row.reference);
+    return true;
   }
+  return false;
+}
+async function cleanupPending(env){
+  if(!env.LONGSTAY_DB)return;
+  const now=new Date().toISOString();
+  // Clear encrypted PDF bytes while the draft references still exist.
+  await env.LONGSTAY_DB.prepare(
+    "DELETE FROM longstay_application_documents WHERE reference IN (SELECT reference FROM longstay_applications WHERE status='invited' AND expires_at<=? OR status='completed') OR created_at<?"
+  ).bind(now,new Date(Date.now()-5*86400000).toISOString()).run();
+  await env.LONGSTAY_DB.prepare(
+    "DELETE FROM longstay_applications WHERE status='invited' AND expires_at<=?"
+  ).bind(now).run();
+  await env.LONGSTAY_DB.prepare(
+    "DELETE FROM longstay_applications WHERE status='completed' AND completed_at < datetime('now','-14 days')"
+  ).run();
+  await env.LONGSTAY_DB.prepare("DELETE FROM longstay_reviews WHERE created_at < datetime('now','-90 days')").run();
 }
 export async function cleanupLongStayInvitations(env){try{await cleanupPending(env);}catch(e){console.warn('Longstay cleanup error',e?.message)}}
 export async function submitLongStayFirst(request,env){
@@ -299,8 +321,10 @@ export async function submitLongStayFirst(request,env){
       'You must complete your own legal name, contact details, occupation, work/study information, income and supporting documents.',
       'The first applicant’s ID, proof-of-income documents and signature are not included in this email or shared with you.',
       '',
-      'Complete your application using this private invitation link (expires in 48 hours):',
+      'Complete your part of the joint application using this private invitation link:',
       inviteURL.toString(),
+      '',
+      'IMPORTANT: If the joint application is not completed, the unfinished draft and temporarily stored documents will be automatically deleted after 48 hours. A new application will then be required.',
       '',
       'Do not forward this link. If you did not expect this, ignore it and contact hi@prohouse.com.au.'
     ].join('\n');
@@ -318,7 +342,7 @@ export async function submitLongStayFirst(request,env){
     }
     if(invited){
       const update='Stage update: second applicant invitation sent.\n'+
-        'Reference: '+ref+'\nInvited: '+data.secondEmail+'\nThe second applicant must submit their information and mandatory documents within 48 hours.';
+        'Reference: '+ref+'\nInvited: '+data.secondEmail+'\nIf the joint application remains unfinished, the temporary draft and stored documents will be deleted after 48 hours.';
       await Promise.allSettled([
         sendMail(env,{to:admin(env),subject:'[2/3 invited] ProHouse '+ref,text:update,tag:'second-invited-update'}),
         sendMail(env,{to:data.email,subject:'Second applicant invited | '+ref,
@@ -343,8 +367,11 @@ export async function submitLongStaySecond(request,env){
   const token=clean(form.get('invitationToken'),70);
   const row=await fetchInvitation(token,env);
   if(!row)return reply(404,'Your invitation was not found.');
-  if(row.expires_at<new Date().toISOString())return reply(410,'Your invitation has expired.');
   if(row.status==='completed')return reply(200,'This invitation has already been completed.',{reference:row.reference,status:'completed'});
+  if(row.expires_at<=new Date().toISOString()){
+    await deleteExpiredDraft(env,row);
+    return reply(410,'The unfinished joint application was deleted after 48 hours. Please start a new application.');
+  }
   if(row.status!=='invited')return reply(409,'Application is already being processed.');
   const extraKeys=['secondFirstName','secondLastName','secondPhone','secondOccupation','secondOccupationOther',
     'secondWorkFromHome','secondWorkFromHomeOther','secondEmployer','secondIncome','secondDeclaration','secondPrivacyConsent'];
