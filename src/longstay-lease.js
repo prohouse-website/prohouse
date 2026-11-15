@@ -117,7 +117,7 @@ export async function generateMutualLeaseDraft(request,env){
    'rentFrequency','internet','electricity','water','bankDetails','providerSigner'];
  const settings=Object.fromEntries(keys.map(k=>[k,text(form.get(k),180)]));
  if(keys.some(k=>!settings[k]))return json(400,'Confirm every lease value, including rent, dates, bond, charges and provider representative.');
- if(!['Every week','Every 2 weeks','Every 4 weeks','Every calendar month'].includes(settings.rentFrequency))
+ if(!['Every 2 weeks','Every 4 weeks','Every calendar month'].includes(settings.rentFrequency))
    return json(400,'Please confirm the rent payment frequency.');
  if(['acceptedWeeklyRent','cleaningBond','holdingFund'].some(k=>!validMoney(settings[k])))
    return json(400,'Enter valid agreed rent and bond amounts.');
