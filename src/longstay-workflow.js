@@ -77,6 +77,28 @@ async function readFiles(form,prefix=''){
     if(!documents.some(d=>d.key===key))throw Error('A photo ID and proof of income are both required.');
   return documents;
 }
+async function retrieveFirstPackage(env,reference,emailId) {
+  if(!/^[a-f0-9-]{20,}$/.test(emailId||''))throw Error('Missing original submission reference.');
+  const endpoint='https://api.resend.com/emails/'+emailId+'/attachments';
+  const headers={Authorization:'Bearer '+env.RESEND_API_KEY};
+  const result=await fetch(endpoint,{headers});
+  if(!result.ok)throw Error('The original application attachment could not be retrieved.');
+  const list=await result.json();
+  let attachment=(list.data||[]).find(d=>d.filename===reference+'-applicant-1.pdf');
+  if(!attachment)throw Error('First applicant merged PDF was not found.');
+  if(!attachment.download_url){
+    const detail=await fetch(endpoint+'/'+encodeURIComponent(attachment.id),{headers});
+    if(!detail.ok)throw Error('Original PDF attachment link unavailable.');
+    attachment=await detail.json();
+  }
+  const uri=new URL(attachment.download_url||'');
+  if(uri.protocol!=='https:')throw Error('Invalid document download URL.');
+  const file=await fetch(uri.toString(),{redirect:'follow'});
+  if(!file.ok)throw Error('Original application PDF download failed.');
+  const bytes=new Uint8Array(await file.arrayBuffer());
+  if(bytes.length<10||bytes.length>19*1024*1024)throw Error('Original document size invalid.');
+  return bytes;
+}
 const appText=data=>applicationFields.map(([key,label])=>label+': '+(data[key]||'(not provided)')).join('\n');
 const attachmentsFrom=docs=>docs.map(d=>({filename:d.filename,content:pdfBase64(d.bytes),content_type:d.type}));
 async function sendMail(env,{to,subject,text,attachments=[],replyTo,tag}){
@@ -196,14 +218,16 @@ export async function submitLongStayFirst(request,env){
   if(!okSignature(signature))return reply(400,'Please provide your signature.');
   let documents;try{documents=await readFiles(form)}catch(e){return reply(400,e.message)}
   const ref='LH-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'-'+crypto.randomUUID().slice(0,8).toUpperCase();
-  let pdf;try{pdf=await buildApplicationPDF(data,documents,ref,signature)}
-  catch(e){console.error('Longstay PDF error',e?.message);return reply(500,'Unable to generate your application PDF.')}
-  const applicationPackage=[
-    {filename:ref+'-applicant-1.pdf',content:pdfBase64(pdf),content_type:'application/pdf'},
-    ...attachmentsFrom(documents)
-  ];
+  let firstPackage;
+  try{
+    const summary=await buildApplicationPDF(data,documents,ref,signature);
+    firstPackage=await combineApplicationPDF(summary,documents);
+  }catch(e){
+    console.error('Longstay document package error',e?.message);
+    return reply(400,e.message||'Unable to merge your supporting documents.');
+  }
   const firstName=(data.firstName+' '+data.lastName).trim();
-  let token=null;
+  let token=null,reviewLink=null;
   if(data.people==='Two people'){
     token=[...crypto.getRandomValues(new Uint8Array(32))].map(x=>x.toString(16).padStart(2,'0')).join('');
     const inviteHash=await hashToken(token);
@@ -212,15 +236,31 @@ export async function submitLongStayFirst(request,env){
       await env.LONGSTAY_DB.prepare('INSERT INTO longstay_applications (reference,first_email,first_name,second_email,invite_hash,first_data,first_signature,status,created_at,expires_at) VALUES (?,?,?,?,?,?,?,?,?,?)')
         .bind(ref,data.email,firstName,data.secondEmail,inviteHash,JSON.stringify(data),signature,'invited',now.toISOString(),expiry.toISOString()).run();
     }catch(e){console.error('Unable to create longstay invitation',e?.message);return reply(503,'Unable to create an invitation. Try again.');}
+  }else{
+    try{reviewLink=await createReview(env,ref,data,request)}
+    catch(e){console.error('Unable to create longstay review',e?.message);return reply(503,'Unable to create approval link. Try again.');}
   }
   try{
-    await sendMail(env,{to:admin(env),subject:(token?'[1/3 received] ':'[1/1 complete] ')+'Long-stay application '+ref+' | '+firstName,
+    const sent=await sendMail(env,{to:admin(env),
+      subject:(token?'[1/3 received] ':'[REVIEW REQUIRED] ')+'Long-stay application '+ref+' | '+firstName,
       replyTo:data.email,tag:'first-received',
-      text:['New Live With Us application submitted.', 'Stage: first applicant received',
-        'Second applicant: '+(data.people==='Two people'?'invitation to follow':'not applicable'),summarise(data,ref),'',
-        appText(data),'','Both a completed PDF and mandatory supporting files are attached.'].join('\n'),
-      attachments:applicationPackage});
-  }catch(e){if(token)await env.LONGSTAY_DB.prepare('DELETE FROM longstay_applications WHERE reference=?').bind(ref).run().catch(()=>{});return reply(502,'Could not deliver documents. Please try again.')}
+      text:['New Live With Us application submitted.','Stage: '+(token?'first applicant received, second applicant to be invited':'ready for approval/rejection'),
+        summarise(data,ref),'',appText(data),'',
+        'ONE PDF is attached, including the signed application and every supporting document.',
+        ...(reviewLink?['','Private review link (approve or reject):',reviewLink,'Do not forward this link.']:[])
+      ].join('\n'),
+      attachments:[{filename:ref+'-applicant-1.pdf',content:pdfBase64(firstPackage.bytes),content_type:'application/pdf'}]});
+    if(token){
+      const delivered=await sent.json();
+      if(!/^[a-f0-9-]{20,}$/.test(delivered.id||''))throw Error('Missing email id needed for document retrieval.');
+      await env.LONGSTAY_DB.prepare('UPDATE longstay_applications SET first_email_id=?, first_summary_pages=? WHERE reference=?')
+        .bind(delivered.id,firstPackage.summaryPages,ref).run();
+    }
+  }catch(e){
+    if(token)await env.LONGSTAY_DB.prepare('DELETE FROM longstay_applications WHERE reference=?').bind(ref).run().catch(()=>{});
+    if(reviewLink)await cancelReview(env,ref).catch(()=>{});
+    return reply(502,'Could not deliver the merged application PDF. Please try again.');
+  }
   const firstReceipt=['Hello '+data.firstName+',',
     'We received your ProHouse Live With Us application.','',summarise(data,ref),'',
     data.people==='Two people'?'We are inviting the second applicant to complete their own details and supporting documents.':'Our team will review your application.',
