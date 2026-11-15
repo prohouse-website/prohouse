@@ -126,7 +126,13 @@
  <section id="providerSection" hidden>
   <h2>5 / ProHouse signs last</h2><p>Both tenant signatures and your independently verified payment are required.</p>
   <form id="providerForm">
-   <div class="editGrid"><div class="wide"><label for="providerName">Authorised signer’s exact legal name</label><input id="providerName" required></div></div>
+   <div class="warning">For security, a six-digit code is emailed to the ProHouse administrator before the final provider signature. The code is valid for 10 minutes.</div>
+   <div class="buttons"><button type="button" class="secondary" id="requestSigningCode">Email signing code to ProHouse</button></div>
+   <p id="codeStatus" role="status"></p>
+   <div class="editGrid">
+    <div><label for="providerName">Authorised signer's exact legal name</label><input id="providerName" required></div>
+    <div><label for="verificationCode">Six-digit email verification code</label><input id="verificationCode" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" autocomplete="one-time-code" required></div>
+   </div>
    <label class="checkline"><input id="providerRead" type="checkbox" required> I am authorised to sign for ProHouse and have read this final agreement.</label>
    <div class="signatureWrap"><canvas id="providerSignature" role="img" aria-label="ProHouse representative signature"></canvas>
     <div class="signatureBar"><span>Sign with finger or mouse</span><button id="clearProvider" type="button">Clear</button></div></div>
@@ -308,13 +314,21 @@
  for(const name of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(name,()=>{drawing=false});
  $('clearProvider').addEventListener('click',()=>{ctx.clearRect(0,0,canvas.width,canvas.height);drawn=false});
  addEventListener('resize',resize);resize();
+ $('requestSigningCode').addEventListener('click',async()=>{
+  const b=$('requestSigningCode');b.disabled=true;
+  try{
+   const response=await request('provider-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+   $('codeStatus').textContent=response.message;
+   notice('Check hi@prohouse.com.au for your six-digit code.');
+  }catch(e){error(e.message)}finally{b.disabled=false}
+ });
  $('providerForm').addEventListener('submit',async e=>{
   e.preventDefault();if(!drawn){error('Draw the provider signature.');return;}
   if(!confirm('Sign this lease on behalf of ProHouse and email the FINAL signed PDF to all tenants?'))return;
   try{
    const result=await request('provider-sign',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({providerName:$('providerName').value,confirmRead:$('providerRead').checked,
-     signature:canvas.toDataURL('image/png')})});
+     verificationCode:$('verificationCode').value,signature:canvas.toDataURL('image/png')})});
    notice(result.message);await loadStatus();
   }catch(e){error(e.message)}
  });
