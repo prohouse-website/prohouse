@@ -62,7 +62,7 @@ async function readFiles(form,prefix=''){
     if(entry.size>MAX_FILE)throw Error('Each document must be 5 MB or smaller.');
     total+=entry.size;
     if(total>MAX_FILES_TOTAL)throw Error('Your documents exceed the 15 MB combined limit.');
-    if(!MIME.has(entry.type.toLowerCase()))throw Error('Upload PDF, JPG, PNG or WebP files only.');
+    if(!MIME.has(entry.type.toLowerCase()))throw Error('Upload PDF, JPG or PNG files only.');
     const bytes=new Uint8Array(await entry.arrayBuffer());
     const looksPdf=bytes.length>=5&&[37,80,68,70,45].every((x,i)=>bytes[i]===x);
     const looksJpg=bytes.length>=3&&bytes[0]===255&&bytes[1]===216&&bytes[2]===255;
