@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Live With Us | Long-Stay Rental Application | ProHouse Sydney</title>
+<meta name="description" content="Apply for a ProHouse room in Sydney or Melbourne. Submit your supporting documents and invite a second applicant securely.">
+<meta name="theme-color" content="#e8ff76">
+<link rel="canonical" href="https://www.prohouse.com.au/operations/livewithus/">
+<link rel="icon" href="/favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/livewithus.css">
+</head>
+<body>
+<header><div class="topbar">
+ <a class="brand" href="/" aria-label="ProHouse home"><img src="/assets/prohouse-logo-transparent.png" alt="ProHouse"></a>
+ <a class="toplink" href="/operations/">Operations Portal <span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-4px"><path d="M5 19 19 5M5 5h14v14"/></svg></span></a>
+</div></header>
+<section class="hero"><div class="heroinner">
+ <div><span class="eyebrow">PROHOUSE / LONG-STAY LIVING</span>
+ <h1>LIVE<br><span>WITH US.</span></h1>
+ <p>Make yourself at home. Tell us about your preferred room and we’ll review your application.</p></div>
+ <aside class="heroBadge"><span>SYDNEY + MELBOURNE</span><strong>YOUR ROOM.<br>YOUR NEXT CHAPTER.</strong><small>One easy application. A real home.</small></aside>
+</div></section>
+<main class="shell">
+ <aside class="sidebar" aria-label="Application progress"><div class="sideCard">
+  <h2>YOUR APPLICATION</h2>
+  <ol class="stepNav">
+   <li class="active"><span class="bubble">1</span> Screen</li>
+   <li><span class="bubble">2</span> About you</li>
+   <li><span class="bubble">3</span> Your room</li>
+   <li><span class="bubble">4</span> Sign & send</li>
+  </ol>
+ </div><div class="sideTip"><strong>Have a question?</strong><p>Need help finding the right room? We’re happy to talk.</p><a href="mailto:hi@prohouse.com.au">hi@prohouse.com.au</a></div></aside>
+ <div class="mainColumn">
+  <div class="progressText"><span id="stepHeading">Step 1 of 4</span><span id="progressPct">25% complete</span></div><div class="track"><span id="trackBar"></span></div>
+  <form id="application" class="formCard" method="post" action="/api/longstay/application" enctype="multipart/form-data" novalidate>
+   <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
+   <section class="step active" data-step="0">
+    <span class="stepMarker">01 / SCREENING</span><h2>Who’s moving in?</h2>
+    <p class="stepLead">Start with how many people will apply and live in the room.</p>
+    <div class="field"><span>How many people are included in this application? <span class="req">*</span></span>
+     <div class="options"><label class="option"><input type="radio" name="people" value="Just me" required checked> Just me</label><label class="option"><input type="radio" name="people" value="Two people" required> Two people</label></div></div>
+    <div class="note"><strong>Sharing a home, not renting the whole apartment.</strong>
+     <p>You will have your own room, with shared living and kitchen spaces. For a single-occupant application, friends and partners can visit while you are home.</p>
+     <p>The current housemate guideline is up to two overnight visits per week. Any guest arrangements are subject to your eventual agreement and applicable law.</p></div>
+    <label class="checkline"><input type="checkbox" name="houseRules" value="Yes" required><span>I understand the shared-house arrangement and guest guideline. <span class="req">*</span></span></label>
+    <div class="actions"><button type="button" class="primary next">Continue <span aria-hidden="true">→</span></button></div>
+   </section>
+   <section class="step" data-step="1">
+    <span class="stepMarker">02 / APPLICANT DETAILS</span><h2>Tell us about you.</h2>
+    <p class="stepLead">Enter your details and upload the two required supporting documents.</p>
+    <h3 class="sectionTitle">Main applicant</h3>
+    <div class="fieldGrid">
+     <div class="field"><label for="firstName">First name <span class="req">*</span></label><input id="firstName" name="firstName" autocomplete="given-name" maxlength="90" required></div>
+     <div class="field"><label for="lastName">Family name <span class="req">*</span></label><input id="lastName" name="lastName" autocomplete="family-name" maxlength="90" required></div>
+     <div class="field"><label for="email">Email <span class="req">*</span></label><input id="email" type="email" name="email" autocomplete="email" required maxlength="254"></div>
+     <div class="field"><label for="phone">Phone <span class="req">*</span></label><input id="phone" type="tel" name="phone" autocomplete="tel" maxlength="30" required></div>
+     <div class="field"><label for="occupation">Occupation <span class="req">*</span></label><select id="occupation" name="occupation" required><option value="">Select an option</option><option>Full-time employee</option><option>Part-time employee</option><option>Casual employee</option><option>Self-employed</option><option>Student</option><option>Other</option></select></div>
+     <div class="field conditional" id="occupationOtherWrap" hidden><label for="occupationOther">Tell us your occupation</label><input name="occupationOther" id="occupationOther" maxlength="150"></div>
+     <div class="field"><label for="workFromHome">Do you work from home? <span class="req">*</span></label><select id="workFromHome" name="workFromHome" required><option value="">Select an option</option><option>Yes</option><option>No</option><option>Sometimes</option><option>Other</option></select></div>
+     <div class="field conditional" id="workFromHomeOtherWrap" hidden><label for="workFromHomeOther">Work from home details</label><input id="workFromHomeOther" name="workFromHomeOther" maxlength="150"></div>
+     <div class="field"><label for="employer">Employer or school name <span class="req">*</span></label><input name="employer" id="employer" maxlength="180" required></div>
+     <div class="field"><label for="income">Your weekly income (AUD) <span class="req">*</span></label><input id="income" name="income" type="number" min="0" max="9999999" step=".01" inputmode="decimal" required></div>
+    </div>
+    <h3 class="uploadTitle">Supporting documents</h3>
+    <p class="uploadNote">An Australian-issued driver licence or passport and proof of income are required. Additional documents are optional. Please redact unnecessary bank transactions and identity numbers where possible. PDF, JPG or PNG; maximum 5 MB per file and 15 MB combined.</p>
+    <div class="fieldGrid">
+     <div class="field"><label for="incomeProof1">Proof of income <span class="req">*</span></label><input type="file" id="incomeProof1" name="incomeProof1" required accept=".pdf,.jpg,.jpeg,.png"></div>
+     <div class="field"><label for="incomeProof2">Extra proof of income (optional)</label><input type="file" id="incomeProof2" name="incomeProof2" accept=".pdf,.jpg,.jpeg,.png"></div>
+     <div class="field"><label for="photoIdType">Photo ID type <span class="req">*</span></label>
+ <select id="photoIdType" name="photoIdType" required><option value="">Choose ID type</option><option>Australian-issued driver licence</option><option>Passport</option></select></div>
+ <div class="field"><label for="photoId1">Australian driver licence or passport <span class="req">*</span></label><input type="file" id="photoId1" name="photoId1" required accept=".pdf,.jpg,.jpeg,.png"></div>
+     <div class="field"><label for="photoId2">Extra photo ID (optional)</label><input type="file" id="photoId2" name="photoId2" accept=".pdf,.jpg,.jpeg,.png"></div>
+    </div>
+    <div class="conditional" id="secondApplicant" hidden><div class="divider"></div>
+     <h3 class="sectionTitle">Invite your second applicant</h3>
+     <p class="uploadNote">Only their email is needed now. Once you submit, we’ll email them your shared room preferences and a private link to complete their own legal details, work information, required documents and signature.</p>
+     <div class="field"><label for="secondEmail">Second applicant’s email <span class="req">*</span></label><input type="email" id="secondEmail" name="secondEmail" maxlength="254" autocomplete="off"></div>
+    </div>
+    <div class="actions"><button type="button" class="secondary back">← Back</button><button type="button" class="primary next">Continue <span aria-hidden="true">→</span></button></div>
+   </section>
+   <section class="step" data-step="2">
+    <span class="stepMarker">03 / ROOM PREFERENCES</span><h2>Find your place.</h2>
+    <p class="stepLead">Let us know where, when and how you would like to live with ProHouse.</p>
+    <div class="fieldGrid">
+     <div class="field"><label for="property">Property <span class="req">*</span></label><select id="property" name="property" required><option value="">Select a property</option><option>VIC - Oakden Crescent, St. Albans</option><option>NSW - Guess Avenue, Wolli Creek</option><option>NSW - Arncliffe Street, Wolli Creek</option><option>Other</option></select></div>
+     <div class="field conditional" id="propertyOtherWrap" hidden><label for="propertyOther">Which property?</label><input id="propertyOther" name="propertyOther" maxlength="150"></div>
+     <div class="field"><label for="room">Rental room <span class="req">*</span></label><select id="room" name="room" required disabled><option value="">Choose a property first</option></select></div>
+     <div class="field conditional" id="roomOtherWrap" hidden><label for="roomOther">Preferred room</label><input id="roomOther" name="roomOther" maxlength="150"></div>
+     <div class="field"><label for="moveIn">Preferred move-in date <span class="req">*</span></label><input type="date" id="moveIn" name="moveIn" required></div>
+     <div class="field"><label for="length">Length of stay <span class="req">*</span></label><select id="length" name="length" required><option value="">Select a length</option><option>3 months</option><option>6 months</option><option>12 months</option><option>Other</option></select></div>
+     <div class="field conditional" id="lengthOtherWrap" hidden><label for="lengthOther">Other length of stay <span class="req">*</span></label><input name="lengthOther" id="lengthOther" placeholder="e.g. 9 months" maxlength="150"></div>
+     <div class="field"><label for="weeklyRent">Weekly rent you wish to pay (AUD) <span class="req">*</span></label><input id="weeklyRent" name="weeklyRent" inputmode="decimal" type="number" min="1" step=".01" required placeholder="Your proposed weekly rent"></div>
+     <div class="field"><label for="payFrequency">Preferred payment frequency <span class="req">*</span></label><select name="payFrequency" id="payFrequency" required><option value="">Select frequency</option><option>Every week</option><option>Every 2 weeks</option><option>Every 4 weeks</option><option>Every calendar month</option></select></div>
+    </div>
+    <div class="note"><strong>Rent overview</strong>
+     <div class="priceGrid">
+      <div class="priceBox"><span>Fortnight</span><strong id="fortnightEquivalent">—</strong></div>
+      <div class="priceBox"><span>4 weeks</span><strong id="fourWeeksEquivalent">—</strong></div>
+      <div class="priceBox"><span>Calendar month</span><strong id="monthEquivalent">—</strong></div>
+     </div>
+    </div>
+    <div class="field"><span>Do you require bed linen, towels and blanket? <span class="req">*</span></span>
+     <div class="options"><label class="option"><input type="radio" name="linen" value="Yes" required> Yes, please</label><label class="option"><input type="radio" name="linen" value="No, I will use my own"> No, I’ll bring my own</label><label class="option"><input type="radio" name="linen" value="Other"> Other</label></div></div>
+    <div class="field conditional" id="linenOtherWrap" hidden><label for="linenOther">Other linen preference</label><input id="linenOther" name="linenOther" maxlength="150"></div>
+    <div class="actions"><button type="button" class="secondary back">← Back</button><button type="button" class="primary next">Review application <span aria-hidden="true">→</span></button></div>
+   </section>
+   <section class="step" data-step="3">
+    <span class="stepMarker">04 / REVIEW & DECLARATION</span><h2>Ready to make it home?</h2>
+    <p class="stepLead">Double-check your details, read the declaration and sign before sending your application to ProHouse.</p>
+    <div class="summary" id="reviewSummary" aria-live="polite"></div>
+    <h3 class="sectionTitle">Application declaration</h3>
+    <div class="policy">
+      <p><strong>Accurate information.</strong> I confirm the details provided are true to the best of my knowledge, and I authorise ProHouse to review them for this rental application.</p>
+      <p><strong>Rental terms.</strong> Payment, bond, rent reviews, guests and termination will be governed by the final written agreement and applicable state law (NSW or Victoria). A rental application does not create a lease or guarantee approval. A bond is not automatically a substitute for rent.</p>
+      <p><strong>Privacy.</strong> ProHouse will receive my application and the required uploaded documents by email for assessment. If two people apply, the second applicant will receive a private invitation showing only my name, email and shared rental preferences. My occupation, working arrangements, employer, income, signature and uploaded documents will not be shared. I should only provide documents relevant to my application. I can contact <a href="mailto:hi@prohouse.com.au">hi@prohouse.com.au</a> about my information. <a href="/privacy/" target="_blank" rel="noopener">Read the privacy policy</a>.</p>
+    </div>
+    <label class="checkline"><input type="checkbox" id="declaration" name="declaration" value="Yes" required><span>I have read and agree to the application declaration above. <span class="req">*</span></span></label>
+    <div style="height:10px"></div>
+    <label class="checkline"><input type="checkbox" id="privacyConsent" name="privacyConsent" value="Yes" required><span>I consent to ProHouse receiving my application details, electronic signature and any uploaded documents by email for rental assessment. <span class="req">*</span></span></label>
+    <h3 class="sectionTitle">Your signature <span class="req">*</span></h3>
+    <p class="uploadNote">Use your finger or mouse to sign inside the box.</p>
+    <div class="signatureWrap"><canvas id="signaturePad" aria-label="Draw your signature" role="img"></canvas>
+      <div class="signatureBar"><span>Applicant e-signature</span><button type="button" id="clearSignature">Clear signature</button></div></div>
+    <input type="hidden" id="signature" name="signature">
+    <div class="alert" role="alert" id="submitError"></div>
+    <div class="actions"><button type="button" class="secondary back">← Back</button><button class="primary" id="submitButton" type="submit">Send application <span aria-hidden="true">→</span></button></div>
+   </section>
+   <div class="success" id="successPanel" aria-live="polite"><div class="check">✓</div><h2>YOU'RE ALL SET.</h2><p id="successMessage">We’ve received your application and sent it to the ProHouse team.</p><p><strong id="reference"></strong></p><p>Keep this reference for any follow-up.</p><a href="/" class="primary" style="display:inline-block;text-decoration:none;margin-top:18px">Back to ProHouse</a></div>
+  </form>
+ </div>
+</main>
+<footer><span>© ProHouse Australia · Live with us</span><span><a href="/privacy/">Privacy</a> · <a href="/contact/">Contact</a> · <a href="/">Back to website</a></span></footer>
+<script>
+(()=>{
+ const form=document.getElementById('application'),steps=[...form.querySelectorAll('.step')],nav=[...document.querySelectorAll('.stepNav li')];
+ let current=0;const $=id=>document.getElementById(id);
+ function showStep(index){
+  current=index;steps.forEach((step,i)=>{step.classList.toggle('active',i===index);step.setAttribute('aria-hidden',i!==index?'true':'false')});
+  nav.forEach((item,i)=>{item.classList.toggle('active',i===index);item.classList.toggle('done',i<index)});
+  $('stepHeading').textContent='Step '+(index+1)+' of 4';
+  $('progressPct').textContent=((index+1)*25)+'% complete';$('trackBar').style.width=((index+1)*25)+'%';
+  document.querySelector('.mainColumn').scrollIntoView({behavior:'smooth',block:'start'});
+ }
+ function validateStep(){
+  for(const input of steps[current].querySelectorAll('input,select,textarea')){
+   if(input.closest('[hidden]')||input.type==='hidden')continue;
+   if(!input.checkValidity()){input.reportValidity();input.focus();return false;}
+  }
+  return true;
+ }
+ for(const button of form.querySelectorAll('.next'))button.addEventListener('click',()=>{if(validateStep()){if(current===2)renderSummary();showStep(current+1)}});
+ for(const button of form.querySelectorAll('.back'))button.addEventListener('click',()=>showStep(current-1));
+ function toggle(id,show){$(id).hidden=!show}
+ function updatePeople(){const two=form.elements.people.value==='Two people';toggle('secondApplicant',two);$('secondEmail').required=two;if(!two)$('secondEmail').value='';}
+ for(const radio of form.querySelectorAll('[name=people]'))radio.addEventListener('change',updatePeople);
+ updatePeople();
+ const roomsByProperty={
+  'VIC - Oakden Crescent, St. Albans':['Master room with ensuite','Left room near stairway','Right room near bathroom'],
+  'NSW - Guess Avenue, Wolli Creek':['Room near entrance','Master bedroom with ensuite','Small room near kitchen'],
+  'NSW - Arncliffe Street, Wolli Creek':['Room 1','Room 2 (near kitchen)','Room 3 (near entrance)'],
+  'Other':['Other']
+ };
+ function refreshRooms(){
+  const property=$('property').value,room=$('room');
+  room.replaceChildren(new Option(property?'Select a room':'Choose a property first',''));
+  for(const name of roomsByProperty[property]||[])room.add(new Option(name,name));
+  room.disabled=!property;toggle('roomOtherWrap',false);$('roomOther').required=false;
+ }
+ for(const [field,value,wrap] of [['occupation','Other','occupationOtherWrap'],['workFromHome','Other','workFromHomeOtherWrap'],['property','Other','propertyOtherWrap'],['room','Other','roomOtherWrap'],['length','Other','lengthOtherWrap']]){
+  $(field).addEventListener('change',()=>{
+   const chosen=$(field).value===value;toggle(wrap,chosen);
+   const fieldInWrap=$(wrap).querySelector('input');if(fieldInWrap)fieldInWrap.required=chosen;
+   if(field==='property')refreshRooms();
+  });
+ }
+ for(const input of form.querySelectorAll('[name=linen]'))input.addEventListener('change',()=>toggle('linenOtherWrap',form.elements.linen.value==='Other'));
+ const money=v=>Number.isFinite(v)&&v>0?new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD',maximumFractionDigits:2}).format(v):'—';
+ $('weeklyRent').addEventListener('input',()=>{const w=Number($('weeklyRent').value);$('fortnightEquivalent').textContent=money(w*2);$('fourWeeksEquivalent').textContent=money(w*4);$('monthEquivalent').textContent=money(w/7*365/12)});
+ function renderSummary(){
+  const pairs=[['Applicant',(($('firstName').value+' '+$('lastName').value).trim())],['Email',$('email').value],['People',form.elements.people.value],['Property',$('property').value==='Other' ? $('propertyOther').value : $('property').value],['Room',$('room').value==='Other' ? $('roomOther').value : $('room').value],['Move-in',$('moveIn').value],['Weekly rent',money(Number($('weeklyRent').value))],['Payment preference',$('payFrequency').value],...(form.elements.people.value==='Two people'?[['Second applicant invite',$('secondEmail').value]]:[])];
+  const box=$('reviewSummary');box.replaceChildren();
+  for(const [label,value] of pairs){const div=document.createElement('div'),sm=document.createElement('small'),strong=document.createElement('strong');sm.textContent=label;strong.textContent=value||'—';div.append(sm,strong);box.append(div)}
+ }
+ const canvas=$('signaturePad'),ctx=canvas.getContext('2d');let signed=false,dragging=false;
+ function resize(){const rect=canvas.getBoundingClientRect();const oldSigned=signed,oldImage=oldSigned?canvas.toDataURL('image/png'):null;
+  const scale=window.devicePixelRatio||1;canvas.width=Math.round(rect.width*scale);canvas.height=Math.round(rect.height*scale);ctx.setTransform(scale,0,0,scale,0,0);
+  ctx.strokeStyle='#182820';ctx.lineWidth=2.5;ctx.lineCap='round';ctx.lineJoin='round';
+  if(oldImage){const img=new Image();img.onload=()=>ctx.drawImage(img,0,0,rect.width,rect.height);img.src=oldImage;}
+ }
+ function point(evt){const r=canvas.getBoundingClientRect();return{x:evt.clientX-r.left,y:evt.clientY-r.top}}
+ canvas.addEventListener('pointerdown',e=>{dragging=true;signed=true;canvas.setPointerCapture(e.pointerId);const p=point(e);ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x+.1,p.y+.1);ctx.stroke()});
+ canvas.addEventListener('pointermove',e=>{if(!dragging)return;const p=point(e);ctx.lineTo(p.x,p.y);ctx.stroke()});
+ for(const eventName of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(eventName,()=>{dragging=false});
+ $('clearSignature').addEventListener('click',()=>{ctx.clearRect(0,0,canvas.width,canvas.height);signed=false;$('signature').value=''});
+ window.addEventListener('resize',resize);resize();
+ form.addEventListener('submit',async event=>{
+  event.preventDefault();const alert=$('submitError');alert.classList.remove('visible');
+  if(!validateStep())return;
+  if(!signed){alert.textContent='Please draw your signature to continue.';alert.classList.add('visible');return}
+  $('signature').value=canvas.toDataURL('image/png');
+  const files=[...form.querySelectorAll('input[type=file]')].flatMap(input=>[...input.files]);const bytes=files.reduce((sum,f)=>sum+f.size,0);
+  if(files.some(f=>f.size>5*1024*1024)||bytes>15*1024*1024){alert.textContent='Each file must be under 5 MB, with a combined limit of 15 MB.';alert.classList.add('visible');return}
+  const submit=$('submitButton');submit.disabled=true;submit.textContent='Sending securely…';
+  try{const response=await fetch('/api/longstay/application',{method:'POST',body:new FormData(form),credentials:'same-origin'});
+   const result=await response.json();
+   if(!response.ok)throw Error(result.message||'The application could not be sent.');
+   steps.forEach(s=>s.classList.remove('active'));$('successPanel').classList.add('visible');$('successMessage').textContent=result.status==='awaiting_second'?'Your details and documents have been sent. The second applicant has been invited by email to complete their application. You will both receive email status updates.':result.status==='invitation_delivery_failed'?'Your documents were received, but the second applicant invitation was not delivered. Please contact ProHouse with this reference.':'Your application was sent to ProHouse. Check your email for confirmation.';$('reference').textContent='Reference: '+(result.reference||'Sent');
+   $('stepHeading').textContent='Application sent';$('progressPct').textContent='100% complete';$('trackBar').style.width='100%';nav.forEach(n=>{n.classList.remove('active');n.classList.add('done')});
+   document.querySelector('.mainColumn').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(error){alert.textContent=error.message||'Unable to send right now. Please try again.';alert.classList.add('visible');submit.disabled=false;submit.textContent='Send application →'}
+ });
+})();
+</script>
+</body></html>
