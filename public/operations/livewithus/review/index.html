@@ -288,8 +288,18 @@
   $('monitor').hidden=!['sent','tenants_signed','expired','provider_signing','completed'].includes(packet.status);
   if(packet.status==='draft'&&!previewReady){
    fillEditor(review.applicant,packet.settings);
-   previewReady=true;$('previewSection').hidden=false;
-   await openPDF().catch(e=>error(e.message));
+   try{
+    await openPDF();
+    previewReady=true;
+    $('previewSection').hidden=false;
+    $('draftStatus').className='inlineSuccess';
+    $('draftStatus').textContent='Your saved six-page draft is available below. No tenant has been emailed.';
+    $('draftStatus').style.display='block';
+   }catch(e){
+    previewReady=false;
+    $('previewSection').hidden=true;
+    showDraftMessage('The saved draft could not be displayed: '+e.message+'. Please regenerate the PDF before sending.');
+   }
   }
   if(!$('monitor').hidden){
    $('leaseSection').hidden=true;
@@ -397,7 +407,8 @@
   }
  });
  $('sendLease').addEventListener('click',async()=>{
-  if(!previewReady){error('Review the latest PDF preview before approving.');return;}
+  if(!previewReady){showDraftMessage('You must generate and open the latest complete PDF before emailing tenants.');return;}
+  if(savedTemplate!==true){showDraftMessage('Save the reusable master PDF first. A saved master is required before sending signing invitations.');return;}
   if(!$('legalReviewed').checked||!$('detailsConfirmed').checked||!$('deadlineConfirmed').checked){error('Confirm legal review, final data and the 24-hour deadline.');return;}
   if(!confirm('APPROVE LEASE AND EMAIL each tenant a separate 24-hour signing/payment link?'))return;
   const button=$('sendLease');button.disabled=true;button.textContent='Sending lease…';
