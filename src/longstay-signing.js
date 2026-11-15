@@ -65,6 +65,9 @@ const settingsKeys=['guest1Name','guest1Email','guest1Phone','guest2Name','guest
  'rentFrequency','internet','electricity','water','bankDetails','payId','providerSigner'];
 function readSettings(form,app){
  const settings=Object.fromEntries(settingsKeys.map(k=>[k,str(form.get(k),240)]));
+ if(app.people!=='Two people'){
+  settings.guest2Name='';settings.guest2Email='';settings.guest2Phone='';
+ }
  const required=['guest1Name','guest1Email','guest1Phone','fullAddress','rentedArea','acceptedWeeklyRent',
   'leaseStart','leaseEnd','cleaningBond','holdingFund','rentFrequency','internet','electricity',
   'water','bankDetails','payId','providerSigner'];
