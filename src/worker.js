@@ -93,9 +93,9 @@ export default {
   },
   async scheduled(_event, env, ctx) {
     ctx.waitUntil(checkLeaseDeadlines(env).catch(e=>console.error('Lease expiry check failed',e?.message)));
-    if(_event.cron==='0 * * * *')return;
     ctx.waitUntil(cleanupLongStayInvitations(env));
     ctx.waitUntil(cleanupSignatureSessions(env).catch(e=>console.warn('Signature session cleanup failed',e?.message)));
+    if(_event.cron==='0 * * * *')return;
     ctx.waitUntil(sendShareBillDailySummary(env).then(out=>{
       if(!out.sent && out.reason!=='Already emailed')
         console.warn('Share Bill daily email was not sent:',out.reason);
