@@ -10,11 +10,11 @@ const allowedTypes = new Set(['application/pdf', 'image/jpeg', 'image/png', 'ima
 export const applicationFields = [
   ['people','Number of applicants'], ['houseRules','Shared-house guideline accepted'],
   ['firstName','First name'], ['lastName','Family name'], ['email','Email'],
-  ['phone','Phone'], ['occupation','Occupation'], ['occupationOther','Other occupation'],
+  ['phone','Phone'], ['photoIdType','Identification type'], ['occupation','Occupation'], ['occupationOther','Other occupation'],
   ['workFromHome','Working from home'], ['workFromHomeOther','Working from home details'],
   ['employer','Employer or school'], ['income','Weekly income (AUD)'],
   ['secondEmail','Second applicant invited email'], ['secondFirstName','Second applicant first name'],
-  ['secondLastName','Second applicant family name'], ['secondPhone','Second applicant phone'],
+  ['secondLastName','Second applicant family name'], ['secondPhone','Second applicant phone'], ['secondIdType','Second applicant identification type'],
   ['secondOccupation','Second applicant occupation'], ['secondOccupationOther','Second applicant other occupation'],
   ['secondWorkFromHome','Second applicant working from home'],
   ['secondWorkFromHomeOther','Second applicant work from home details'],
@@ -117,13 +117,13 @@ export async function buildApplicationPDF(data, documents, reference, signature,
   section('Screening');
   row('Applicants', data.people); row('Housemate guideline', data.houseRules);
   section('Main applicant');
-  applicationFields.slice(2,12).forEach(([key,label])=>row(label,data[key]));
+  applicationFields.slice(2,13).forEach(([key,label])=>row(label,data[key]));
   section('Second applicant');
-  applicationFields.slice(12,24).forEach(([key,label])=>row(label,data[key]));
+  applicationFields.slice(13,26).forEach(([key,label])=>row(label,data[key]));
   section('Rental preferences');
-  applicationFields.slice(24,35).forEach(([key,label])=>row(label,data[key]));
+  applicationFields.slice(26,37).forEach(([key,label])=>row(label,data[key]));
   section('Declarations');
-  applicationFields.slice(35).forEach(([key,label])=>row(label,data[key]));
+  applicationFields.slice(37).forEach(([key,label])=>row(label,data[key]));
   section('Attached documents');
   if (!documents.length) row('Documents', 'None supplied with initial application');
   documents.forEach(({label,filename})=>row(label,filename));
