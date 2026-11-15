@@ -50,7 +50,15 @@ for (const url of urls) {
   }
   for (const [, target] of html.matchAll(/href="(\/[^"?#]*)/g)) {
     const assetTarget = target.startsWith('/vendors/') ? target.replace('/vendors/', '/cleaners/') : target;
-    assert(existsSync(resolve(publicDir, '.' + assetTarget)) || existsSync(resolve(publicDir, '.' + assetTarget, 'index.html')), `Broken internal link ${target} on ${url}`);
+    const redirected = redirectRules.find(([from, , status]) => from === target && status === '301');
+    const redirectDestination = redirected?.[1];
+    const targetExists = existsSync(resolve(publicDir, '.' + assetTarget)) ||
+      existsSync(resolve(publicDir, '.' + assetTarget, 'index.html'));
+    const redirectValid = redirectDestination && (
+      existsSync(resolve(publicDir, '.' + redirectDestination)) ||
+      existsSync(resolve(publicDir, '.' + redirectDestination, 'index.html'))
+    );
+    assert(targetExists || redirectValid, `Broken internal link ${target} on ${url}`);
   }
   if (process.argv.includes('--live')) {
     const response = await fetch(url, { signal: AbortSignal.timeout(20000) });
