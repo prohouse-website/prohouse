@@ -4,6 +4,7 @@ import { deflateSync } from 'node:zlib';
 import { PDFDocument } from 'pdf-lib';
 import { submitLongStayFirst, submitLongStaySecond, getLongStayInvitation } from '../src/longstay-workflow.js';
 import { getLongStayReview, decideLongStayReview } from '../src/longstay-review.js';
+import { fillMutualAgreementPDF, generateMutualLeaseDraft } from '../src/longstay-lease.js';
 
 function crc32(bytes) {
   let c=0xffffffff;
@@ -220,4 +221,69 @@ test('single applicant receives its confirmation and owner receives uploaded fil
   assert.ok(m.sent[0].text.includes('/operations/livewithus/review/#token='));
   assert.deepEqual(m.sent[1].to,['first@example.com']);
  }finally{globalThis.fetch=original}
+});
+
+test('approved applicant Schedule A merge produces exactly six pages without lease signatures',async()=>{
+ const doc=await PDFDocument.create();
+ for(let i=0;i<6;i++)doc.addPage([595.3,841.89]);
+ const template=new Uint8Array(await doc.save());
+ const data={
+  people:'Two people',firstName:'Taylor',lastName:'Example',email:'taylor@example.com',
+  phone:'0400000001',secondFirstName:'Jordan',secondLastName:'Example',
+  secondEmail:'jordan@example.com',secondPhone:'0400000002',
+  room:'Room 2 (near kitchen)',property:'NSW - Arncliffe Street, Wolli Creek'
+ };
+ const settings={
+  fullAddress:'G01/52-62 Arncliffe Street, Wolli Creek NSW 2205',
+  acceptedWeeklyRent:'450.00',rentFrequency:'Every 2 weeks',
+  leaseStart:'2026-12-01',leaseEnd:'2027-05-31',cleaningBond:'450',
+  holdingFund:'0',internet:'$30 per calendar month',electricity:'Equally split',
+  water:'Equally split',bankDetails:'067 873 - 1998 7232',
+  providerSigner:'ProHouse authorised agent'
+ };
+ const output=await fillMutualAgreementPDF(template,data,settings,'LH-TEST-0001');
+ const result=await PDFDocument.load(output);
+ assert.equal(result.getPageCount(),6);
+ assert.ok(output.length>template.length);
+ assert.equal(result.getTitle(),'Draft ProHouse mutual agreement - LH-TEST-0001');
+ assert.match(result.getSubject(),/not signed/i);
+});
+test('staff draft endpoint requires an approved review token and confirmed financial fields',async()=>{
+ const m=mockEnv(),original=globalThis.fetch;
+ const token='a'.repeat(64),buffer=new TextEncoder().encode(token);
+ const hash=[...new Uint8Array(await crypto.subtle.digest('SHA-256',buffer))].map(x=>x.toString(16).padStart(2,'0')).join('');
+ const data={
+  people:'Just me',firstName:'Taylor',lastName:'Example',email:'taylor@example.com',
+  phone:'0400000001',room:'Room 1',property:'NSW - Arncliffe Street, Wolli Creek'
+ };
+ const future=new Date(Date.now()+86400000).toISOString();
+ m.reviews.set('LH-TEST-0002',{reference:'LH-TEST-0002',token_hash:hash,status:'pending',
+  expires_at:future,summary_json:JSON.stringify(data)});
+ const doc=await PDFDocument.create();for(let i=0;i<6;i++)doc.addPage([595.3,841.89]);
+ const template=new Uint8Array(await doc.save());
+ const f=new FormData();
+ const fields={
+  token,fullAddress:'G01/52-62 Arncliffe Street, Wolli Creek NSW 2205',
+  acceptedWeeklyRent:'450',rentFrequency:'Every 2 weeks',
+  leaseStart:'2026-12-01',leaseEnd:'2027-05-31',
+  cleaningBond:'450',holdingFund:'0',internet:'$30 per calendar month',
+  electricity:'Equally split',water:'Equally split',bankDetails:'067 873 - 1998 7232',
+  providerSigner:'ProHouse authorised agent'
+ };
+ for(const [key,value] of Object.entries(fields))f.set(key,value);
+ f.set('template',new File([template],'Mutual Agreement.pdf',{type:'application/pdf'}));
+ const request=()=>new Request('https://www.prohouse.com.au/api/longstay/lease-draft',{
+  method:'POST',headers:{Origin:'https://www.prohouse.com.au'},body:f});
+ const forbidden=await generateMutualLeaseDraft(request(),m.env);
+ assert.equal(forbidden.status,403);
+ m.reviews.get('LH-TEST-0002').status='approved';
+ const generated=await generateMutualLeaseDraft(request(),m.env);
+ assert.equal(generated.status,200);
+ assert.equal(generated.headers.get('content-type'),'application/pdf');
+ const result=await PDFDocument.load(await generated.arrayBuffer());
+ assert.equal(result.getPageCount(),6);
+ f.set('acceptedWeeklyRent','');
+ const incomplete=await generateMutualLeaseDraft(request(),m.env);
+ assert.equal(incomplete.status,400);
+ globalThis.fetch=original;
 });
