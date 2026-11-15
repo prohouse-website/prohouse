@@ -4,7 +4,7 @@ import { PDFDocument } from 'pdf-lib';
 import { deflateSync } from 'node:zlib';
 import {
  prepareLease,packetForAdmin,tenantPacket,leaseDocument,sendLease,tenantSign,
- tenantReportPayment,verifyLeasePayment,signProvider,checkLeaseDeadlines
+ tenantReportPayment,verifyLeasePayment,requestProviderOtp,signProvider,checkLeaseDeadlines
 } from '../src/longstay-signing.js';
 
 const HOST='https://www.prohouse.com.au';
@@ -86,6 +86,11 @@ function mockApp(){
       if(sql.includes('SET payment_verified_at=')){
        entry.payment_verified_at=p[0];entry.payment_verified_by=p[1];return{meta:{changes:1}};
       }
+      if(sql.includes('SET provider_otp_hash=')){
+       entry.provider_otp_hash=p[0];entry.provider_otp_expires=p[1];entry.provider_otp_sent=p[2];entry.provider_otp_attempts=0;
+       return{meta:{changes:1}};
+      }
+      if(sql.includes('SET provider_otp_attempts=')){entry.provider_otp_attempts=(entry.provider_otp_attempts||0)+1;return{meta:{changes:1}};}
       if(sql.includes("SET status='provider_signing'")){
        entry.status='provider_signing';entry.provider_signature=p[0];entry.provider_signed_at=p[1];return{meta:{changes:1}};
       }
@@ -184,8 +189,17 @@ test('lease editor -> preview -> separate tenant signing -> bank confirmation ->
   const verified=await verifyLeasePayment(json('payment-verify',{
    verifiedAmount:'450.00',verifiedBy:'ProHouse Admin',confirmBankStatement:true}),mock.env);
   assert.equal(verified.status,200);
+  const requested=await requestProviderOtp(json('provider-otp',{}),mock.env);
+  assert.equal(requested.status,200);
+  const codeEmail=mock.sent.find(x=>x.subject.includes('countersignature code'));
+  assert.ok(codeEmail);
+  const code=codeEmail.text.match(/six-digit signing code is: ([0-9]{6})/)[1];
+  const badCode=await signProvider(json('provider-sign',{
+   providerName:'CU NGUYEN',confirmRead:true,signature:sig,verificationCode:'000000'===code?'111111':'000000'
+  }),mock.env);
+  assert.equal(badCode.status,403);
   const provider=await signProvider(json('provider-sign',{
-   providerName:'CU NGUYEN',confirmRead:true,signature:sig}),mock.env);
+   providerName:'CU NGUYEN',confirmRead:true,signature:sig,verificationCode:code}),mock.env);
   assert.equal(provider.status,200,JSON.stringify(await provider.json()));
   assert.equal(mock.packets.get(mock.review.reference).status,'completed');
   const final=await leaseDocument(uri('lease-pdf',t1),mock.env);
