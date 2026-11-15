@@ -275,24 +275,32 @@ export async function sendLease(request,env){
  ];
  const failed=[];
  for(const r of recipients){
+  const localDeadline=new Intl.DateTimeFormat('en-AU',{
+    timeZone:'Australia/Sydney',dateStyle:'full',timeStyle:'short'
+   }).format(new Date(deadline));
   const body=[
-   'Hi '+r.name+',',
-   'ProHouse has prepared your rental agreement for '+settings.fullAddress+'.',
-   'Please read all SIX pages and sign your own lease using this private link:',
-   inviteUrl(r.token),'',
-   'YOUR DEADLINE (24 hours from issue): '+deadline+' UTC',
-   'Weekly rent: $'+Number(settings.acceptedWeeklyRent).toFixed(2)+' AUD.',
-   'Please pay ONE WEEK of RENT IN ADVANCE within the same 24-hour period.',
-   'PayID: '+settings.payId,
-   'Alternative bank account: '+settings.bankDetails,
-   'Transfer reference: '+review.reference,
-   'After paying, report the transfer reference on your signing page.',
+   'Congratulations '+r.name+'! Your ProHouse rental application has been approved.',
    '',
-   'Only the ProHouse administrator can verify cleared funds. A report of payment is not proof of receipt.',
-   'ProHouse will countersign after required tenant signatures and bank verification, and send the completed copy. Applicable law may give an agreement legal effect before countersignature.',
-   'Do not forward your personal signing link. Contact hi@prohouse.com.au if you need assistance.'
+   'Your agreement for '+settings.fullAddress+' is now ready to review and sign.',
+   'Please open this PRIVATE link, read every page, and sign with your own signature:',
+   inviteUrl(r.token),
+   '',
+   'ACTION REQUIRED WITHIN 24 HOURS OF THIS EMAIL:',
+   '1. Read and electronically sign the full six-page lease.',
+   '2. Make a bank transfer for ONE WEEK of rent in advance: AUD $'+Number(settings.acceptedWeeklyRent).toFixed(2)+'.',
+   'Deadline: '+localDeadline+' (Sydney/Melbourne time).',
+   '',
+   'PAYMENT DETAILS: The PayID, BSB and bank account are listed on SCHEDULE A, the LAST PAGE of the lease.',
+   'RECOMMENDED: Use PayID '+settings.payId+' where your bank supports fast transfer. Verify the recipient name before paying.',
+   'COMMONWEALTH BANK: First-time payments to a new payee may be delayed for security checks, usually up to 24 hours and sometimes longer, including 24–48 hours in certain circumstances. If possible, use another bank that can transfer promptly or contact ProHouse before the deadline.',
+   'Use transfer reference: '+review.reference+'. This is ONE week of rent for the rental agreement, not per tenant.',
+   'After transferring, report your bank transaction reference on your signing page.',
+   '',
+   'ProHouse can confirm payment only after CLEARED funds appear in our bank account. A bank screenshot or transfer receipt alone is not proof of payment.',
+   'After all tenants have signed and ProHouse verifies the initial rent payment, ProHouse will countersign and send the final lease. Bond and the second week of rent will then be due before key collection.',
+   'Do not share your personal signing link. Contact hi@prohouse.com.au if you need help.'
   ].join('\n');
-  try{await mail(env,r.email,'Action required in 24 hours: Read, sign and pay | '+review.reference,body);}
+  try{await mail(env,r.email,'Congratulations! Sign your ProHouse lease and pay within 24 hours | '+review.reference,body);}
   catch(e){failed.push(r.email)}
  }
  try{await mail(env,admins(env),'[LEASE SENT] '+review.reference,
@@ -464,11 +472,39 @@ export async function signProvider(request,env){
   return reply(500,'Could not complete the signed agreement PDF.');
  }
  const addresses=[settings.guest1Email,...(settings.guest2Email?[settings.guest2Email]:[])];
+ const bond=Number(settings.bondAmount||0);
+ const week=Number(settings.acceptedWeeklyRent||0);
+ const propertyState=JSON.parse(p.application_json||'{}').property?.startsWith('VIC')?'VIC':
+   JSON.parse(p.application_json||'{}').property?.startsWith('NSW')?'NSW':'';
+ const bondProcess=propertyState==='NSW'
+   ?'ProHouse will provide NSW Rental Bonds Online or other legally required bond lodgement instructions.'
+   :propertyState==='VIC'
+    ?'ProHouse will provide the Victorian RTBA bond lodgement/payment instructions.'
+    :'ProHouse will provide the correct bond payment or lodgement instructions for your rental arrangement.';
+ const finalMessage=[
+   'Congratulations! Your ProHouse rental agreement is now signed by all tenants and the ProHouse representative.',
+   '',
+   'Your FULLY SIGNED lease is attached, including the electronic-signature audit record.',
+   'Reference: '+p.reference,
+   'Property: '+settings.fullAddress,
+   '',
+   'BEFORE KEY COLLECTION, PLEASE COMPLETE BOTH PAYMENTS:',
+   '1. RENTAL BOND: AUD $'+bond.toFixed(2)+'. '+bondProcess,
+   '   The bond is separate from rent. Follow the official bond instructions provided to you. Do not transfer the bond to the rent PayID unless a lawful and verified separate arrangement is expressly provided.',
+   '2. SECOND WEEK OF RENT: AUD $'+week.toFixed(2)+'. Pay by bank transfer using the PayID, BSB or account shown on Schedule A (the LAST PAGE of your signed lease).',
+   '   PayID '+settings.payId+' is recommended where available. Commonwealth Bank transfers to a new payee may be delayed by security checks.',
+   '   Transfer reference: '+p.reference+'.',
+   '',
+   'IMPORTANT: ProHouse will only arrange key collection after the SECOND WEEK rent has CLEARED and is VISIBLE in the ProHouse bank account, the first week rent is verified, and the bond has been paid and appropriately receipted/lodged.',
+   'A bank transfer screenshot, pending payment or proof of initiation is not enough.',
+   'This email alone does not authorise collection of keys or access codes. We will confirm access arrangements separately once the payments and required bond records have been verified.',
+   '',
+   'Please retain the attached signed agreement.',
+   'Questions? Contact hi@prohouse.com.au.'
+ ].join('\n');
  try{
-  for(const to of addresses)await mail(env,to,'Your fully signed ProHouse rental agreement | '+p.reference,
-   'Your rental agreement is now signed by the tenants and ProHouse.\nAttached is your fully signed copy with the electronic signature audit page.\nReference: '+p.reference+
-   '\nPlease retain the agreement. Contact hi@prohouse.com.au for any questions.',
-   {name:'ProHouse-Fully-Signed-'+p.reference+'.pdf',pdf:finalPdf});
+  for(const to of addresses)await mail(env,to,'Your fully signed ProHouse lease | Bond and second-week rent required before keys | '+p.reference,
+   finalMessage,{name:'ProHouse-Fully-Signed-'+p.reference+'.pdf',pdf:finalPdf});
   await mail(env,admins(env),'[FULLY SIGNED] Lease '+p.reference,
    'All tenants and the authorised ProHouse representative have signed.\nOne-week rent is marked bank-verified.\nReference: '+p.reference+
    '\nThe fully signed agreement is attached for your records.',
