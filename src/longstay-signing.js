@@ -53,6 +53,14 @@ function summary(packet){
   firstSignedAt:packet.first_signed_at,secondSignedAt:packet.second_signed_at,
   paymentReported:!!packet.payment_reported_at,paymentReference:packet.payment_reference||'',
   paymentVerified:!!packet.payment_verified_at,paymentVerifiedAt:packet.payment_verified_at,
+  secondWeekVerified:!!packet.second_week_verified_at,
+  secondWeekVerifiedAt:packet.second_week_verified_at,
+  bondVerified:!!packet.bond_record_verified_at||Number(data.bondAmount||0)===0,
+  bondReference:packet.bond_reference||'',
+  bondAmount:data.bondAmount||'0',
+  keyCollectionFinancialChecksComplete:packet.status==='completed'&&!!packet.payment_verified_at&&
+    !!packet.second_week_verified_at&&
+    (!!packet.bond_record_verified_at||Number(data.bondAmount||0)===0),
   providerSigned:!!packet.provider_signed_at,completedAt:packet.completed_at};
 }
 const properties=[
@@ -518,6 +526,94 @@ export async function signProvider(request,env){
   "UPDATE longstay_lease_packets SET status='completed',final_pdf=?,completed_at=?,updated_at=? WHERE reference=? AND status='provider_signing'"
  ).bind(finalPdf,iso(),iso(),p.reference).run();
  return reply(200,'Fully signed lease emailed to all tenants and ProHouse.',{reference:p.reference,status:'completed'});
+}
+export async function verifyPostSigningFunds(request,env){
+ if(request.method!=='POST')return reply(405,'Method not allowed.');
+ if(request.headers.get('Origin')!==new URL(request.url).origin)return reply(403,'Private ProHouse review page required.');
+ const review=await adminRow(request,env);
+ if(!review)return reply(403,'Approved ProHouse review link required.');
+ const packet=await currentPacket(env,review.reference);
+ if(!packet||packet.status!=='completed'||!packet.payment_verified_at)
+   return reply(409,'Complete all signatures and verify the first week of rent before post-signing checks.');
+ let body;try{body=await request.json()}catch{return reply(400,'Invalid payment verification.')}
+ const settings=JSON.parse(packet.settings_json);
+ const kind=body.kind,verifier=str(body.verifiedBy,100),amount=str(body.amount,30);
+ if(!['second_week','bond'].includes(kind)||verifier.length<2)
+   return reply(400,'Select rent or bond and enter the name of the ProHouse verifier.');
+ const expected=Number(kind==='second_week'?settings.acceptedWeeklyRent:settings.bondAmount||0).toFixed(2);
+ if(!/^\d+(\.\d{1,2})?$/.test(amount)||Number(amount).toFixed(2)!==expected)
+   return reply(400,'The confirmed amount must exactly match the '+(kind==='second_week'?'second-week rent':'agreed rental bond')+': 
+ if(!env.LONGSTAY_DB)return;
+ const due=await env.LONGSTAY_DB.prepare(
+  "SELECT reference,application_json,first_signed_at,second_signed_at,payment_reported_at,deadline_at FROM longstay_lease_packets WHERE status IN ('sent','tenants_signed') AND deadline_at<? LIMIT 100"
+ ).bind(iso()).all();
+ for(const p of due.results||[]){
+  const two=JSON.parse(p.application_json).people==='Two people';
+  if(p.first_signed_at&&(!two||p.second_signed_at)&&p.payment_reported_at)continue;
+  const changed=await env.LONGSTAY_DB.prepare(
+    "UPDATE longstay_lease_packets SET status='expired',updated_at=? WHERE reference=? AND status IN ('sent','tenants_signed')"
+  ).bind(iso(),p.reference).run();
+  if(!changed.meta?.changes)continue;
+  try{await mail(env,admins(env),'[24H DEADLINE PASSED] '+p.reference,
+    'Lease invitation expired at '+p.deadline_at+' UTC.\n'+
+    'First signed: '+!!p.first_signed_at+'\nSecond signed (if required): '+!!p.second_signed_at+
+    '\nOne-week rent reported: '+!!p.payment_reported_at+
+    '\nNo automatic cancellation, penalty, eviction or money retention has been applied. Contact the applicant to decide next steps.');}
+  catch(e){console.error('Lease expiry notice failed',p.reference,e?.message)}
+ }
+}
++expected);
+ const now=iso(),reference=packet.reference;
+ if(kind==='second_week'){
+  if(body.confirmVisibleInBank!==true)return reply(400,'Only confirm after the second week rent is CLEARED and VISIBLE in the ProHouse bank account.');
+  if(packet.second_week_verified_at)return reply(200,'Second-week rent already verified.',{status:'verified'});
+  const result=await env.LONGSTAY_DB.prepare(
+    'UPDATE longstay_lease_packets SET second_week_verified_at=?,second_week_verified_by=?,updated_at=? WHERE reference=? AND status=\'completed\' AND second_week_verified_at IS NULL'
+  ).bind(now,verifier,now,reference).run();
+  if(!result.meta?.changes)return reply(409,'Second-week rent verification already recorded.');
+ }else{
+  if(Number(settings.bondAmount||0)===0)return reply(200,'No bond amount was recorded as due.',{status:'not_required'});
+  const bondReference=str(body.bondReference,140);
+  if(body.confirmBondReceipt!==true||bondReference.length<4)
+   return reply(400,'Confirm the lawful bond payment/lodgement evidence and enter its receipt or scheme reference.');
+  if(packet.bond_record_verified_at)return reply(200,'Bond record already verified.',{status:'verified'});
+  const result=await env.LONGSTAY_DB.prepare(
+    'UPDATE longstay_lease_packets SET bond_record_verified_at=?,bond_record_verified_by=?,bond_reference=?,updated_at=? WHERE reference=? AND status=\'completed\' AND bond_record_verified_at IS NULL'
+  ).bind(now,verifier,bondReference,now,reference).run();
+  if(!result.meta?.changes)return reply(409,'Bond verification already recorded.');
+ }
+ const latest=await currentPacket(env,reference);
+ const ready=!!latest.payment_verified_at&&!!latest.second_week_verified_at&&
+  (!!latest.bond_record_verified_at||Number(settings.bondAmount||0)===0)&&latest.status==='completed';
+ try{
+  await mail(env,admins(env),'[POST-SIGNING PAYMENT CHECK] '+reference,
+   'ProHouse verification saved for '+(kind==='second_week'?'SECOND WEEK RENT':'RENTAL BOND')+
+   '\nReference: '+reference+'\nVerified by: '+verifier+
+   '\nAmount: 
+ if(!env.LONGSTAY_DB)return;
+ const due=await env.LONGSTAY_DB.prepare(
+  "SELECT reference,application_json,first_signed_at,second_signed_at,payment_reported_at,deadline_at FROM longstay_lease_packets WHERE status IN ('sent','tenants_signed') AND deadline_at<? LIMIT 100"
+ ).bind(iso()).all();
+ for(const p of due.results||[]){
+  const two=JSON.parse(p.application_json).people==='Two people';
+  if(p.first_signed_at&&(!two||p.second_signed_at)&&p.payment_reported_at)continue;
+  const changed=await env.LONGSTAY_DB.prepare(
+    "UPDATE longstay_lease_packets SET status='expired',updated_at=? WHERE reference=? AND status IN ('sent','tenants_signed')"
+  ).bind(iso(),p.reference).run();
+  if(!changed.meta?.changes)continue;
+  try{await mail(env,admins(env),'[24H DEADLINE PASSED] '+p.reference,
+    'Lease invitation expired at '+p.deadline_at+' UTC.\n'+
+    'First signed: '+!!p.first_signed_at+'\nSecond signed (if required): '+!!p.second_signed_at+
+    '\nOne-week rent reported: '+!!p.payment_reported_at+
+    '\nNo automatic cancellation, penalty, eviction or money retention has been applied. Contact the applicant to decide next steps.');}
+  catch(e){console.error('Lease expiry notice failed',p.reference,e?.message)}
+ }
+}
++expected+'\nKey-collection financial checklist: '+(ready?'COMPLETE':'INCOMPLETE')+
+   '\nNo key or code has been automatically released. Ensure the agreed commencement date and all applicable statutory access duties are met.');
+ }catch(e){console.error('Post-signing verification email failed',reference,e?.message)}
+ return reply(200,ready?'Financial verification checklist complete. Arrange lawful key collection manually.':'Verification saved. Other financial checks are still pending.',
+  {status:'verified',keyCollectionFinancialChecksComplete:ready});
 }
 export async function checkLeaseDeadlines(env){
  if(!env.LONGSTAY_DB)return;
