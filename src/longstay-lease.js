@@ -29,6 +29,7 @@ function compose(data,settings){
    electricity:settings.electricity,
    water:settings.water,
    bankDetails:settings.bankDetails,
+   payId:settings.payId||'hi@prohouse.com.au',
    start:date(settings.leaseStart),end:date(settings.leaseEnd),
    bond:money(settings.cleaningBond),
    holding:money(settings.holdingFund),
@@ -50,7 +51,7 @@ export async function fillMutualAgreementPDF(templateBytes,data,settings,referen
   [169,words.guests],[181,words.emails],[194,words.phones],
   [220,words.address],[233,words.rentedArea],[269,words.rent],
   [281,words.frequency],[293,words.internet],[306,words.electricity],
-  [318,words.water],[354,words.bankDetails],[380,words.start],
+  [318,words.water],[342,words.payId],[354,words.bankDetails],[380,words.start],
   [392,words.end],[416,words.bond],[453,words.holding]
  ];
  for(const [top,value] of rows){
