@@ -3,115 +3,13 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Live With Us | Long-Stay Rental Application | ProHouse Sydney</title>
-<meta name="description" content="Apply to live with ProHouse in Sydney. Our secure long-stay room application lets you share your details, preferred move-in date and rental preferences.">
+<meta name="description" content="Apply for a ProHouse room in Sydney or Melbourne. Submit your supporting documents and invite a second applicant securely.">
 <meta name="theme-color" content="#e8ff76">
 <link rel="canonical" href="https://www.prohouse.com.au/longstay/form/livewithus/">
 <link rel="icon" href="/favicon.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-:root{--ink:#16211c;--grey:#69746e;--lime:#e8ff76;--bg:#f6f7f2;--line:#dce1da;--white:#fff;--pink:#fa9bba;--error:#b3243b;--radius:18px}
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:"DM Sans",Arial,sans-serif;font-size:15px;line-height:1.5}
-a{color:inherit}
-button,input,select,textarea{font:inherit}
-button{cursor:pointer}
-header{background:var(--lime);border-bottom:1px solid rgba(18,36,19,.12)}
-.topbar{max-width:1160px;margin:auto;min-height:85px;padding:15px 25px;display:flex;align-items:center;justify-content:space-between;gap:20px}
-.brand img{width:168px;height:auto;max-height:53px;object-fit:contain}
-.toplink{font-size:12px;font-weight:800;text-decoration:none;text-transform:uppercase;letter-spacing:.07em}
-.toplink span{font-size:18px;margin-left:9px}
-.hero{padding:62px 25px 45px;background:var(--lime);overflow:hidden}
-.heroinner{max-width:1160px;margin:auto;display:grid;grid-template-columns:1.1fr .72fr;align-items:end;gap:40px}
-.eyebrow{text-transform:uppercase;letter-spacing:.14em;font-size:11px;font-weight:800}
-.hero h1{font:800 clamp(66px,10vw,134px)/.79 "Barlow Condensed",Impact,sans-serif;letter-spacing:-.035em;margin:22px 0}
-.hero h1 span{color:transparent;-webkit-text-stroke:2px var(--ink)}
-.hero p{max-width:530px;font-size:17px;font-weight:500;margin:0 0 10px}
-.heroBadge{background:var(--ink);color:#fff;min-height:195px;padding:25px 28px;display:flex;flex-direction:column;justify-content:space-between;border-radius:18px 18px 4px 18px;transform:rotate(-2deg)}
-.heroBadge span{font-weight:700;font-size:11px;letter-spacing:.12em}
-.heroBadge strong{font:700 50px/.93 "Barlow Condensed";letter-spacing:-.02em}
-.heroBadge small{font-size:13px;color:#d3decf}
-.shell{max-width:1160px;margin:auto;padding:42px 25px 100px;display:grid;grid-template-columns:250px minmax(0,1fr);gap:36px;align-items:start}
-.sidebar{position:sticky;top:22px}
-.sideCard{border:1px solid var(--line);border-radius:var(--radius);background:#fff;padding:23px}
-.sideCard h2{font:800 23px/1 "Barlow Condensed";margin:5px 0 19px}
-.stepNav{list-style:none;padding:0;margin:0}
-.stepNav li{display:flex;align-items:center;gap:13px;color:#788178;font-size:13px;font-weight:700;padding:14px 0;border-top:1px solid var(--line)}
-.stepNav li:first-child{border-top:0}
-.stepNav .bubble{width:33px;height:33px;flex:0 0 33px;border:1px solid #cbd1ca;border-radius:50%;display:grid;place-items:center;font:800 15px "Barlow Condensed"}
-.stepNav li.active{color:var(--ink)}
-.stepNav li.active .bubble{background:var(--lime);border-color:var(--ink)}
-.stepNav li.done .bubble{background:var(--ink);border-color:var(--ink);color:var(--white)}
-.sideTip{background:var(--ink);color:#fff;margin-top:17px;border-radius:var(--radius);padding:23px}
-.sideTip strong{font-size:14px}.sideTip p{font-size:12px;color:#ced6ce;margin:10px 0 13px}.sideTip a{font-size:12px;font-weight:700;color:var(--lime)}
-.mainColumn{min-width:0}
-.progressText{display:flex;justify-content:space-between;gap:10px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin:1px 2px 10px}
-.track{height:6px;background:#dde3d9;border-radius:10px;overflow:hidden;margin:0 0 19px}
-.track>span{display:block;width:25%;height:100%;background:var(--ink);transition:width .25s}
-.formCard{border:1px solid var(--line);background:#fff;border-radius:var(--radius);padding:clamp(23px,4.5vw,54px);box-shadow:0 16px 32px rgba(29,46,29,.04)}
-.step{display:none}.step.active{display:block}
-.stepMarker{font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#55734c;font-size:11px}
-.step h2{font:800 clamp(38px,5vw,63px)/.93 "Barlow Condensed";letter-spacing:-.015em;margin:15px 0}
-.stepLead{color:#66726a;max-width:650px;margin:0 0 32px;font-size:14px}
-.sectionTitle{font:800 23px "Barlow Condensed";margin:27px 0 18px}
-.field{display:flex;flex-direction:column;gap:8px;margin-bottom:19px;min-width:0}
-.field>label,.field>span{font-size:12px;font-weight:800}
-.req{color:#a34144}
-.field input:not([type=radio]):not([type=checkbox]):not([type=file]),.field select,.field textarea{width:100%;min-height:49px;border:1px solid #cfd8ce;border-radius:10px;padding:11px 13px;background:#fff;color:var(--ink);outline:none;transition:border .15s,box-shadow .15s}
-.field input:focus,.field select:focus,.field textarea:focus{border-color:#53764d;box-shadow:0 0 0 3px #e8f4df}
-.field input[type=file]{width:100%;padding:12px;border:1px dashed #aebdb0;border-radius:10px;max-width:100%;background:#fafcf8}
-.field small{color:var(--grey);font-size:11px;line-height:1.5}
-.fieldGrid{display:grid;grid-template-columns:1fr 1fr;gap:0 17px}
-.note{background:#f2f8e5;padding:19px 20px;border-radius:12px;border:1px solid #dfeac9;margin:20px 0;font-size:13px}
-.note strong{display:block;margin-bottom:7px}
-.note p{margin:0 0 8px}
-.note p:last-child{margin-bottom:0}
-.infoNote{background:#fff4ed;border-color:#f2d5c5}
-.options{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:0 0 20px}
-.option{display:flex;align-items:center;gap:12px;padding:17px;border:1px solid #cfd8ce;border-radius:12px;font-weight:700;font-size:13px;cursor:pointer}
-.option:has(input:checked){background:#efffc6;border-color:#9eaf70}
-.option input{accent-color:#243d2b;width:18px;height:18px;flex:none}
-.checkline{display:flex;gap:12px;align-items:flex-start;background:#f8faf5;padding:16px;border-radius:10px;border:1px solid var(--line);font-size:13px}
-.checkline input{accent-color:var(--ink);width:18px;height:18px;flex:none;margin-top:2px}
-.uploadTitle{font:700 25px/1.05 "Barlow Condensed";margin:27px 0 8px}
-.uploadNote{color:var(--grey);font-size:12px;margin:0 0 16px}
-.divider{border-top:1px solid var(--line);margin:29px 0}
-.summary{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:19px 0 31px}
-.summary div{border:1px solid var(--line);border-radius:10px;padding:14px;background:#fbfcf9;min-width:0}
-.summary small{display:block;color:var(--grey);font-size:11px}
-.summary strong{font-size:13px;display:block;overflow-wrap:anywhere}
-.priceGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0 25px}
-.priceBox{padding:15px;border:1px solid var(--line);border-radius:10px;background:#fbfcf9}
-.priceBox span{font-size:11px;color:var(--grey);display:block}
-.priceBox strong{font:700 29px "Barlow Condensed"}
-.policy{background:#f6f7f3;border:1px solid var(--line);padding:20px;border-radius:12px;font-size:12px;line-height:1.8;margin-bottom:18px}
-.policy p{margin:0 0 11px}.policy p:last-child{margin:0}
-.signatureWrap{border:1px solid #cfd8ce;border-radius:12px;overflow:hidden;background:#fff}
-.signatureWrap canvas{height:160px;width:100%;display:block;touch-action:none;cursor:crosshair}
-.signatureBar{border-top:1px solid var(--line);padding:8px 12px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--grey)}
-.signatureBar button{border:0;background:none;font-size:12px;font-weight:800;text-decoration:underline;color:var(--ink);padding:4px}
-.actions{display:flex;justify-content:space-between;gap:13px;align-items:center;border-top:1px solid var(--line);margin-top:34px;padding-top:26px}
-.primary,.secondary{min-height:50px;border-radius:10px;padding:13px 21px;font-size:13px;font-weight:800;border:1px solid var(--ink);transition:transform .15s}
-.primary{background:var(--ink);color:#fff}
-.primary:hover{background:#30452f;transform:translateY(-1px)}
-.primary:disabled{opacity:.55;cursor:wait;transform:none}
-.secondary{background:#fff;color:var(--ink)}
-.secondary:hover{background:#f3f6ec}
-.actions>.primary{margin-left:auto}
-.alert{display:none;color:#9b2033;background:#fff0f0;border:1px solid #f1ced3;border-radius:10px;padding:13px;font-size:13px;margin:15px 0}
-.alert.visible{display:block}
-.hidden,.conditional[hidden]{display:none!important}
-.success{display:none;text-align:center;padding:55px 15px}
-.success.visible{display:block}
-.success .check{width:60px;height:60px;border-radius:50%;background:var(--lime);font-size:32px;font-weight:800;margin:0 auto 25px;display:grid;place-items:center}
-.success h2{font:800 57px/.95 "Barlow Condensed";margin:0 0 13px}
-.success p{color:var(--grey)}
-footer{max-width:1160px;margin:auto;padding:25px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:16px;font-size:12px;color:var(--grey)}
-footer a{font-weight:700}
-@media(max-width:880px){.heroinner{grid-template-columns:1fr}.heroBadge{transform:none;min-height:0;gap:9px}.heroBadge strong{font-size:35px}.shell{grid-template-columns:1fr}.sidebar{position:static}.sideCard{padding:15px}.sideCard h2{display:none}.stepNav{display:flex;gap:6px}.stepNav li{border:0;flex:1;display:block;text-align:center;font-size:10px;padding:5px}.stepNav .bubble{margin:0 auto 5px;width:30px;height:30px}.sideTip{display:none}}
-@media(max-width:550px){.topbar{min-height:71px;padding:12px 18px}.brand img{width:142px}.toplink{font-size:10px}.hero{padding:39px 18px 35px}.hero h1{font-size:76px}.hero p{font-size:14px}.heroBadge{display:none}.shell{padding:21px 13px 70px;gap:16px}.formCard{padding:22px 18px}.fieldGrid,.options,.summary,.priceGrid{grid-template-columns:1fr}.step h2{font-size:45px}.actions{gap:8px}.primary,.secondary{padding:12px 15px;font-size:12px}footer{padding:20px 15px;flex-direction:column;align-items:flex-start}.stepNav li{font-size:9px}}
-</style>
+<link rel="stylesheet" href="/assets/livewithus.css">
 </head>
 <body>
 <header><div class="topbar">
@@ -122,7 +20,7 @@ footer a{font-weight:700}
  <div><span class="eyebrow">PROHOUSE / LONG-STAY LIVING</span>
  <h1>LIVE<br><span>WITH US.</span></h1>
  <p>Make yourself at home. Tell us about your preferred room and we’ll review your application.</p></div>
- <aside class="heroBadge"><span>SYDNEY / WOLLI CREEK</span><strong>YOUR ROOM.<br>YOUR NEXT CHAPTER.</strong><small>One easy application. A real home.</small></aside>
+ <aside class="heroBadge"><span>SYDNEY + MELBOURNE</span><strong>YOUR ROOM.<br>YOUR NEXT CHAPTER.</strong><small>One easy application. A real home.</small></aside>
 </div></section>
 <main class="shell">
  <aside class="sidebar" aria-label="Application progress"><div class="sideCard">
@@ -151,7 +49,7 @@ footer a{font-weight:700}
    </section>
    <section class="step" data-step="1">
     <span class="stepMarker">02 / APPLICANT DETAILS</span><h2>Tell us about you.</h2>
-    <p class="stepLead">A few details help us assess the application. We’ll only request identity documents if needed for the next stage.</p>
+    <p class="stepLead">Enter your details and upload the two required supporting documents.</p>
     <h3 class="sectionTitle">Main applicant</h3>
     <div class="fieldGrid">
      <div class="field"><label for="firstName">First name <span class="req">*</span></label><input id="firstName" name="firstName" autocomplete="given-name" maxlength="90" required></div>
@@ -166,41 +64,41 @@ footer a{font-weight:700}
      <div class="field"><label for="income">Your weekly income (AUD) <span class="req">*</span></label><input id="income" name="income" type="number" min="0" max="9999999" step=".01" inputmode="decimal" required></div>
     </div>
     <h3 class="uploadTitle">Supporting documents</h3>
-    <p class="uploadNote">You can upload supporting documents now, or we can request them later. For your privacy, avoid uploading unnecessary bank transaction details or identification documents until requested. PDF, JPG, PNG or WebP, up to 5 MB per file, 15 MB combined.</p>
+    <p class="uploadNote">Photo ID and proof of income are required. Additional documents are optional. Please redact unnecessary bank transactions and identity numbers where possible. PDF, JPG, PNG or WebP; maximum 5 MB per file and 15 MB combined.</p>
     <div class="fieldGrid">
-     <div class="field"><label for="incomeProof1">Proof of income 1 (optional)</label><input type="file" id="incomeProof1" name="incomeProof1" accept=".pdf,.jpg,.jpeg,.png,.webp"></div>
-     <div class="field"><label for="incomeProof2">Proof of income 2 (optional)</label><input type="file" id="incomeProof2" name="incomeProof2" accept=".pdf,.jpg,.jpeg,.png,.webp"></div>
-     <div class="field"><label for="photoId1">Photo ID 1 (only if requested)</label><input type="file" id="photoId1" name="photoId1" accept=".pdf,.jpg,.jpeg,.png,.webp"></div>
-     <div class="field"><label for="photoId2">Photo ID 2 (only if requested)</label><input type="file" id="photoId2" name="photoId2" accept=".pdf,.jpg,.jpeg,.png,.webp"></div>
+     <div class="field"><label for="incomeProof1">Proof of income <span class="req">*</span></label><input type="file" id="incomeProof1" name="incomeProof1" required accept=".pdf,.jpg,.jpeg,.png,.webp"></div>
+     <div class="field"><label for="incomeProof2">Extra proof of income (optional)</label><input type="file" id="incomeProof2" name="incomeProof2" accept=".pdf,.jpg,.jpeg,.png,.webp"></div>
+     <div class="field"><label for="photoId1">Photo ID <span class="req">*</span></label><input type="file" id="photoId1" name="photoId1" required accept=".pdf,.jpg,.jpeg,.png,.webp"></div>
+     <div class="field"><label for="photoId2">Extra photo ID (optional)</label><input type="file" id="photoId2" name="photoId2" accept=".pdf,.jpg,.jpeg,.png,.webp"></div>
     </div>
     <div class="conditional" id="secondApplicant" hidden><div class="divider"></div>
-     <h3 class="sectionTitle">Second applicant</h3>
-     <div class="fieldGrid">
-      <div class="field"><label for="secondFirstName">First name <span class="req">*</span></label><input id="secondFirstName" name="secondFirstName" autocomplete="off" maxlength="90"></div>
-      <div class="field"><label for="secondLastName">Family name <span class="req">*</span></label><input id="secondLastName" name="secondLastName" autocomplete="off" maxlength="90"></div>
-      <div class="field"><label for="secondEmail">Email <span class="req">*</span></label><input type="email" id="secondEmail" name="secondEmail" maxlength="254"></div>
-      <div class="field"><label for="secondPhone">Phone <span class="req">*</span></label><input type="tel" id="secondPhone" name="secondPhone" maxlength="30"></div>
-      <div class="field"><label for="secondIncome">Proof of income (optional)</label><input type="file" id="secondIncome" name="secondIncome" accept=".pdf,.jpg,.jpeg,.png,.webp"></div>
-      <div class="field"><label for="secondId">Photo ID (only if requested)</label><input type="file" id="secondId" name="secondId" accept=".pdf,.jpg,.jpeg,.png,.webp"></div>
-     </div></div>
+     <h3 class="sectionTitle">Invite your second applicant</h3>
+     <p class="uploadNote">Only their email is needed now. Once you submit, we’ll email them your shared room preferences and a private link to complete their own legal details, work information, required documents and signature.</p>
+     <div class="field"><label for="secondEmail">Second applicant’s email <span class="req">*</span></label><input type="email" id="secondEmail" name="secondEmail" maxlength="254" autocomplete="off"></div>
+    </div>
     <div class="actions"><button type="button" class="secondary back">← Back</button><button type="button" class="primary next">Continue <span aria-hidden="true">→</span></button></div>
    </section>
    <section class="step" data-step="2">
     <span class="stepMarker">03 / ROOM PREFERENCES</span><h2>Find your place.</h2>
     <p class="stepLead">Let us know where, when and how you would like to live with ProHouse.</p>
     <div class="fieldGrid">
-     <div class="field"><label for="property">Property <span class="req">*</span></label><select id="property" name="property" required><option value="">Select a property</option><option>ProHouse – Sydney Airport Wolli Creek</option><option>Other</option></select></div>
+     <div class="field"><label for="property">Property <span class="req">*</span></label><select id="property" name="property" required><option value="">Select a property</option><option>VIC - Oakden Crescent, St. Albans</option><option>NSW - Guess Avenue, Wolli Creek</option><option>NSW - Arncliffe Street, Wolli Creek</option><option>Other</option></select></div>
      <div class="field conditional" id="propertyOtherWrap" hidden><label for="propertyOther">Which property?</label><input id="propertyOther" name="propertyOther" maxlength="150"></div>
-     <div class="field"><label for="room">Rental room <span class="req">*</span></label><select id="room" name="room" required><option value="">Select a room</option><option>Room 1</option><option>Room 2</option><option>Room 3</option><option>Any available room</option><option>Other</option></select></div>
+     <div class="field"><label for="room">Rental room <span class="req">*</span></label><select id="room" name="room" required disabled><option value="">Choose a property first</option></select></div>
      <div class="field conditional" id="roomOtherWrap" hidden><label for="roomOther">Preferred room</label><input id="roomOther" name="roomOther" maxlength="150"></div>
      <div class="field"><label for="moveIn">Preferred move-in date <span class="req">*</span></label><input type="date" id="moveIn" name="moveIn" required></div>
-     <div class="field"><label for="length">Length of stay <span class="req">*</span></label><select id="length" name="length" required><option value="">Select a length</option><option>Less than 3 months</option><option>3 months</option><option>6 months</option><option>12 months</option><option>More than 12 months</option><option>Flexible</option></select><small>A longer agreed fixed term may affect when rent can be reviewed, subject to applicable law.</small></div>
-     <div class="field"><label for="weeklyRent">Advertised weekly rent (AUD) <span class="req">*</span></label><input id="weeklyRent" name="weeklyRent" inputmode="decimal" type="number" min="1" step=".01" required placeholder="Enter advertised rent"><small>Please enter the rent listed for your room, not an offer above the advertised price.</small></div>
+     <div class="field"><label for="length">Length of stay <span class="req">*</span></label><select id="length" name="length" required><option value="">Select a length</option><option>3 months</option><option>6 months</option><option>12 months</option><option>Other</option></select></div>
+     <div class="field conditional" id="lengthOtherWrap" hidden><label for="lengthOther">Other length of stay <span class="req">*</span></label><input name="lengthOther" id="lengthOther" placeholder="e.g. 9 months" maxlength="150"></div>
+     <div class="field"><label for="weeklyRent">Weekly rent you wish to pay (AUD) <span class="req">*</span></label><input id="weeklyRent" name="weeklyRent" inputmode="decimal" type="number" min="1" step=".01" required placeholder="Your proposed weekly rent"></div>
      <div class="field"><label for="payFrequency">Preferred payment frequency <span class="req">*</span></label><select name="payFrequency" id="payFrequency" required><option value="">Select frequency</option><option>Every week</option><option>Every 2 weeks</option><option>Every 4 weeks</option><option>Every calendar month</option></select></div>
     </div>
-    <div class="note"><strong>Rent overview (estimate, based on advertised weekly rent)</strong><p>These are equivalent amounts, not a payment request. NSW residential tenancy rules limit rent that can be required in advance. Fee-free eligible bank transfer and Centrepay payment options are available.</p>
-    <div class="priceGrid"><div class="priceBox"><span>Weekly equivalent</span><strong id="weeklyEquivalent">—</strong></div><div class="priceBox"><span>Fortnightly equivalent</span><strong id="fortnightEquivalent">—</strong></div><div class="priceBox"><span>4-week equivalent</span><strong id="fourWeeksEquivalent">—</strong></div><div class="priceBox"><span>Calendar month equivalent</span><strong id="monthEquivalent">—</strong></div></div>
-    <small>Calendar month estimate: weekly rent ÷ 7 × 365 ÷ 12. No automatic admin fee is added.</small></div>
+    <div class="note"><strong>Rent overview</strong>
+     <div class="priceGrid">
+      <div class="priceBox"><span>Fortnight</span><strong id="fortnightEquivalent">—</strong></div>
+      <div class="priceBox"><span>4 weeks</span><strong id="fourWeeksEquivalent">—</strong></div>
+      <div class="priceBox"><span>Calendar month</span><strong id="monthEquivalent">—</strong></div>
+     </div>
+    </div>
     <div class="field"><span>Do you require bed linen, towels and blanket? <span class="req">*</span></span>
      <div class="options"><label class="option"><input type="radio" name="linen" value="Yes" required> Yes, please</label><label class="option"><input type="radio" name="linen" value="No, I will use my own"> No, I’ll bring my own</label><label class="option"><input type="radio" name="linen" value="Other"> Other</label></div></div>
     <div class="field conditional" id="linenOtherWrap" hidden><label for="linenOther">Other linen preference</label><input id="linenOther" name="linenOther" maxlength="150"></div>
@@ -213,8 +111,8 @@ footer a{font-weight:700}
     <h3 class="sectionTitle">Application declaration</h3>
     <div class="policy">
       <p><strong>Accurate information.</strong> I confirm the details provided are true to the best of my knowledge, and I authorise ProHouse to review them for this rental application.</p>
-      <p><strong>Rental terms.</strong> Payment, bond, rent reviews, guests and termination will be governed by the final written agreement and applicable NSW law. A rental application does not create a lease or guarantee approval. A bond is not automatically a substitute for rent.</p>
-      <p><strong>Privacy.</strong> ProHouse will receive my application and any uploaded documents by email for assessment. I should only provide documents relevant to my application. I can contact <a href="mailto:hi@prohouse.com.au">hi@prohouse.com.au</a> about my information. <a href="/privacy/" target="_blank" rel="noopener">Read the privacy policy</a>.</p>
+      <p><strong>Rental terms.</strong> Payment, bond, rent reviews, guests and termination will be governed by the final written agreement and applicable state law (NSW or Victoria). A rental application does not create a lease or guarantee approval. A bond is not automatically a substitute for rent.</p>
+      <p><strong>Privacy.</strong> ProHouse will receive my application and the required uploaded documents by email for assessment. If two people apply, a secure invitation will be sent to the second applicant with a summary of the first applicant’s details, excluding identity and income documents. I should only provide documents relevant to my application. I can contact <a href="mailto:hi@prohouse.com.au">hi@prohouse.com.au</a> about my information. <a href="/privacy/" target="_blank" rel="noopener">Read the privacy policy</a>.</p>
     </div>
     <label class="checkline"><input type="checkbox" id="declaration" name="declaration" value="Yes" required><span>I have read and agree to the application declaration above. <span class="req">*</span></span></label>
     <div style="height:10px"></div>
@@ -227,7 +125,7 @@ footer a{font-weight:700}
     <div class="alert" role="alert" id="submitError"></div>
     <div class="actions"><button type="button" class="secondary back">← Back</button><button class="primary" id="submitButton" type="submit">Send application <span aria-hidden="true">→</span></button></div>
    </section>
-   <div class="success" id="successPanel" aria-live="polite"><div class="check">✓</div><h2>YOU'RE ALL SET.</h2><p>We’ve received your application and sent it to the ProHouse team.</p><p><strong id="reference"></strong></p><p>Keep this reference for any follow-up.</p><a href="/" class="primary" style="display:inline-block;text-decoration:none;margin-top:18px">Back to ProHouse</a></div>
+   <div class="success" id="successPanel" aria-live="polite"><div class="check">✓</div><h2>YOU'RE ALL SET.</h2><p id="successMessage">We’ve received your application and sent it to the ProHouse team.</p><p><strong id="reference"></strong></p><p>Keep this reference for any follow-up.</p><a href="/" class="primary" style="display:inline-block;text-decoration:none;margin-top:18px">Back to ProHouse</a></div>
   </form>
  </div>
 </main>
@@ -253,18 +151,33 @@ footer a{font-weight:700}
  for(const button of form.querySelectorAll('.next'))button.addEventListener('click',()=>{if(validateStep()){if(current===2)renderSummary();showStep(current+1)}});
  for(const button of form.querySelectorAll('.back'))button.addEventListener('click',()=>showStep(current-1));
  function toggle(id,show){$(id).hidden=!show}
- function updatePeople(){const two=form.elements.people.value==='Two people';toggle('secondApplicant',two);
-  for(const input of $('secondApplicant').querySelectorAll('input:not([type=file])'))input.required=two;}
+ function updatePeople(){const two=form.elements.people.value==='Two people';toggle('secondApplicant',two);$('secondEmail').required=two;}
  for(const radio of form.querySelectorAll('[name=people]'))radio.addEventListener('change',updatePeople);
  updatePeople();
- for(const [field,value,wrap] of [['occupation','Other','occupationOtherWrap'],['workFromHome','Other','workFromHomeOtherWrap'],['property','Other','propertyOtherWrap'],['room','Other','roomOtherWrap']]){
-  $(field).addEventListener('change',()=>toggle(wrap,$(field).value===value));
+ const roomsByProperty={
+  'VIC - Oakden Crescent, St. Albans':['Master room with ensuite','Left room near stairway','Right room near bathroom'],
+  'NSW - Guess Avenue, Wolli Creek':['Room near entrance','Master bedroom with ensuite','Small room near kitchen'],
+  'NSW - Arncliffe Street, Wolli Creek':['Room 1','Room 2 (near kitchen)','Room 3 (near entrance)'],
+  'Other':['Other']
+ };
+ function refreshRooms(){
+  const property=$('property').value,room=$('room');
+  room.replaceChildren(new Option(property?'Select a room':'Choose a property first',''));
+  for(const name of roomsByProperty[property]||[])room.add(new Option(name,name));
+  room.disabled=!property;toggle('roomOtherWrap',false);$('roomOther').required=false;
+ }
+ for(const [field,value,wrap] of [['occupation','Other','occupationOtherWrap'],['workFromHome','Other','workFromHomeOtherWrap'],['property','Other','propertyOtherWrap'],['room','Other','roomOtherWrap'],['length','Other','lengthOtherWrap']]){
+  $(field).addEventListener('change',()=>{
+   const chosen=$(field).value===value;toggle(wrap,chosen);
+   const fieldInWrap=$(wrap).querySelector('input');if(fieldInWrap)fieldInWrap.required=chosen;
+   if(field==='property')refreshRooms();
+  });
  }
  for(const input of form.querySelectorAll('[name=linen]'))input.addEventListener('change',()=>toggle('linenOtherWrap',form.elements.linen.value==='Other'));
  const money=v=>Number.isFinite(v)&&v>0?new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD',maximumFractionDigits:2}).format(v):'—';
- $('weeklyRent').addEventListener('input',()=>{const w=Number($('weeklyRent').value);$('weeklyEquivalent').textContent=money(w);$('fortnightEquivalent').textContent=money(w*2);$('fourWeeksEquivalent').textContent=money(w*4);$('monthEquivalent').textContent=money(w/7*365/12)});
+ $('weeklyRent').addEventListener('input',()=>{const w=Number($('weeklyRent').value);$('fortnightEquivalent').textContent=money(w*2);$('fourWeeksEquivalent').textContent=money(w*4);$('monthEquivalent').textContent=money(w/7*365/12)});
  function renderSummary(){
-  const pairs=[['Applicant',(($('firstName').value+' '+$('lastName').value).trim())],['Email',$('email').value],['People',form.elements.people.value],['Property',$('property').value],['Room',$('room').value],['Move-in',$('moveIn').value],['Weekly rent',money(Number($('weeklyRent').value))],['Payment preference',$('payFrequency').value]];
+  const pairs=[['Applicant',(($('firstName').value+' '+$('lastName').value).trim())],['Email',$('email').value],['People',form.elements.people.value],['Property',$('property').value==='Other' ? $('propertyOther').value : $('property').value],['Room',$('room').value==='Other' ? $('roomOther').value : $('room').value],['Move-in',$('moveIn').value],['Weekly rent',money(Number($('weeklyRent').value))],['Payment preference',$('payFrequency').value],...(form.elements.people.value==='Two people'?[['Second applicant invite',$('secondEmail').value]]:[])];
   const box=$('reviewSummary');box.replaceChildren();
   for(const [label,value] of pairs){const div=document.createElement('div'),sm=document.createElement('small'),strong=document.createElement('strong');sm.textContent=label;strong.textContent=value||'—';div.append(sm,strong);box.append(div)}
  }
@@ -291,7 +204,7 @@ footer a{font-weight:700}
   try{const response=await fetch('/api/longstay/application',{method:'POST',body:new FormData(form),credentials:'same-origin'});
    const result=await response.json();
    if(!response.ok)throw Error(result.message||'The application could not be sent.');
-   steps.forEach(s=>s.classList.remove('active'));$('successPanel').classList.add('visible');$('reference').textContent='Reference: '+(result.reference||'Sent');
+   steps.forEach(s=>s.classList.remove('active'));$('successPanel').classList.add('visible');$('successMessage').textContent=result.status==='awaiting_second'?'Your details and documents have been sent. The second applicant has been invited by email to complete their application. You will both receive email status updates.':result.status==='invitation_delivery_failed'?'Your documents were received, but the second applicant invitation was not delivered. Please contact ProHouse with this reference.':'Your application was sent to ProHouse. Check your email for confirmation.';$('reference').textContent='Reference: '+(result.reference||'Sent');
    $('stepHeading').textContent='Application sent';$('progressPct').textContent='100% complete';$('trackBar').style.width='100%';nav.forEach(n=>{n.classList.remove('active');n.classList.add('done')});
    document.querySelector('.mainColumn').scrollIntoView({behavior:'smooth',block:'start'});
   }catch(error){alert.textContent=error.message||'Unable to send right now. Please try again.';alert.classList.add('visible');submit.disabled=false;submit.textContent='Send application →'}
