@@ -5,7 +5,7 @@
 <title>Live With Us | Long-Stay Rental Application | ProHouse Sydney</title>
 <meta name="description" content="Apply for a ProHouse room in Sydney or Melbourne. Submit your supporting documents and invite a second applicant securely.">
 <meta name="theme-color" content="#e8ff76">
-<link rel="canonical" href="https://www.prohouse.com.au/longstay/form/livewithus/">
+<link rel="canonical" href="https://www.prohouse.com.au/operations/livewithus/">
 <link rel="icon" href="/favicon.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -14,7 +14,7 @@
 <body>
 <header><div class="topbar">
  <a class="brand" href="/" aria-label="ProHouse home"><img src="/assets/prohouse-logo-transparent.png" alt="ProHouse"></a>
- <a class="toplink" href="/">Back to ProHouse <span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-4px"><path d="M5 19 19 5M5 5h14v14"/></svg></span></a>
+ <a class="toplink" href="/operations/">Operations Portal <span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-4px"><path d="M5 19 19 5M5 5h14v14"/></svg></span></a>
 </div></header>
 <section class="hero"><div class="heroinner">
  <div><span class="eyebrow">PROHOUSE / LONG-STAY LIVING</span>
@@ -64,12 +64,14 @@
      <div class="field"><label for="income">Your weekly income (AUD) <span class="req">*</span></label><input id="income" name="income" type="number" min="0" max="9999999" step=".01" inputmode="decimal" required></div>
     </div>
     <h3 class="uploadTitle">Supporting documents</h3>
-    <p class="uploadNote">Photo ID and proof of income are required. Additional documents are optional. Please redact unnecessary bank transactions and identity numbers where possible. PDF, JPG, PNG or WebP; maximum 5 MB per file and 15 MB combined.</p>
+    <p class="uploadNote">An Australian-issued driver licence or passport and proof of income are required. Additional documents are optional. Please redact unnecessary bank transactions and identity numbers where possible. PDF, JPG or PNG; maximum 5 MB per file and 15 MB combined.</p>
     <div class="fieldGrid">
-     <div class="field"><label for="incomeProof1">Proof of income <span class="req">*</span></label><input type="file" id="incomeProof1" name="incomeProof1" required accept=".pdf,.jpg,.jpeg,.png,.webp"></div>
-     <div class="field"><label for="incomeProof2">Extra proof of income (optional)</label><input type="file" id="incomeProof2" name="incomeProof2" accept=".pdf,.jpg,.jpeg,.png,.webp"></div>
-     <div class="field"><label for="photoId1">Photo ID <span class="req">*</span></label><input type="file" id="photoId1" name="photoId1" required accept=".pdf,.jpg,.jpeg,.png,.webp"></div>
-     <div class="field"><label for="photoId2">Extra photo ID (optional)</label><input type="file" id="photoId2" name="photoId2" accept=".pdf,.jpg,.jpeg,.png,.webp"></div>
+     <div class="field"><label for="incomeProof1">Proof of income <span class="req">*</span></label><input type="file" id="incomeProof1" name="incomeProof1" required accept=".pdf,.jpg,.jpeg,.png"></div>
+     <div class="field"><label for="incomeProof2">Extra proof of income (optional)</label><input type="file" id="incomeProof2" name="incomeProof2" accept=".pdf,.jpg,.jpeg,.png"></div>
+     <div class="field"><label for="photoIdType">Photo ID type <span class="req">*</span></label>
+ <select id="photoIdType" name="photoIdType" required><option value="">Choose ID type</option><option>Australian-issued driver licence</option><option>Passport</option></select></div>
+ <div class="field"><label for="photoId1">Australian driver licence or passport <span class="req">*</span></label><input type="file" id="photoId1" name="photoId1" required accept=".pdf,.jpg,.jpeg,.png"></div>
+     <div class="field"><label for="photoId2">Extra photo ID (optional)</label><input type="file" id="photoId2" name="photoId2" accept=".pdf,.jpg,.jpeg,.png"></div>
     </div>
     <div class="conditional" id="secondApplicant" hidden><div class="divider"></div>
      <h3 class="sectionTitle">Invite your second applicant</h3>
@@ -112,7 +114,7 @@
     <div class="policy">
       <p><strong>Accurate information.</strong> I confirm the details provided are true to the best of my knowledge, and I authorise ProHouse to review them for this rental application.</p>
       <p><strong>Rental terms.</strong> Payment, bond, rent reviews, guests and termination will be governed by the final written agreement and applicable state law (NSW or Victoria). A rental application does not create a lease or guarantee approval. A bond is not automatically a substitute for rent.</p>
-      <p><strong>Privacy.</strong> ProHouse will receive my application and the required uploaded documents by email for assessment. If two people apply, the second applicant will receive a private invitation showing my entered contact, work, income and rental preferences. My uploaded identity and income documents and signature will only be sent to ProHouse. I should only provide documents relevant to my application. I can contact <a href="mailto:hi@prohouse.com.au">hi@prohouse.com.au</a> about my information. <a href="/privacy/" target="_blank" rel="noopener">Read the privacy policy</a>.</p>
+      <p><strong>Privacy.</strong> ProHouse will receive my application and the required uploaded documents by email for assessment. If two people apply, the second applicant will receive a private invitation showing only my name, email and shared rental preferences. My occupation, working arrangements, employer, income, signature and uploaded documents will not be shared. I should only provide documents relevant to my application. I can contact <a href="mailto:hi@prohouse.com.au">hi@prohouse.com.au</a> about my information. <a href="/privacy/" target="_blank" rel="noopener">Read the privacy policy</a>.</p>
     </div>
     <label class="checkline"><input type="checkbox" id="declaration" name="declaration" value="Yes" required><span>I have read and agree to the application declaration above. <span class="req">*</span></span></label>
     <div style="height:10px"></div>
