@@ -1,4 +1,5 @@
 import { onRequestPost } from './survey.js';
+import { generateMutualLeaseDraft } from './longstay-lease.js';
 import { getLongStayReview, decideLongStayReview } from './longstay-review.js';
 import { submitLongStayFirst, submitLongStaySecond, getLongStayInvitation, cleanupLongStayInvitations } from './longstay-workflow.js';
 import { cleanerPortal } from './cleaner-portal.js';
@@ -42,6 +43,7 @@ export default {
     if (path === '/api/longstay/application') return submitLongStayFirst(request, env);
     if (path === '/api/longstay/invitation') return getLongStayInvitation(request, env);
     if (path === '/api/longstay/coapplicant') return submitLongStaySecond(request, env);
+    if (path === '/api/longstay/lease-draft') return generateMutualLeaseDraft(request, env);
     if (path === '/api/longstay/review') return request.method==='GET'
       ? getLongStayReview(request,env) : decideLongStayReview(request,env);
     if (path === '/api/survey') {
