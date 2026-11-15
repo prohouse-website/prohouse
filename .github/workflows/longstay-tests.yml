@@ -4,6 +4,8 @@ on:
     paths:
       - 'src/longstay-application.js'
       - 'src/longstay-workflow.js'
+      - 'src/longstay-lease.js'
+      - 'src/longstay-review.js'
       - 'test/longstay-workflow.test.mjs'
       - 'package.json'
       - 'package-lock.json'
