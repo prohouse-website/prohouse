@@ -239,7 +239,7 @@ async function signedPDF(packet,withProvider=false){
    'Provider signer: '+p.providerSigner,
    'Provider electronically signed (UTC): '+now,
    'Signing method: private email invitation, written consent, canvas signature.',
-   'Each signer viewed the six-page agreement and affirmed the signing declaration.',
+   'Each signer viewed the six-page agreement and acknowledged the withdrawal notice.',
    'This audit page records the service workflow; it is not independent ID verification.'
   ];
   let y=782;
