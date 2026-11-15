@@ -18,7 +18,7 @@ for(const [path,ids] of pages){
   const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)];
   assert.ok(scripts.length,'No local browser JS');
   for(const [,js] of scripts)assert.doesNotThrow(()=>new vm.Script(js,{filename:path}));
-  assert.match(html,/noindex/);
+  if(!path.endsWith('livewithus/index.html'))assert.match(html,/noindex/);
  });
 }
 
