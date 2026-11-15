@@ -1,4 +1,5 @@
--- Long-stay co-applications. Documents are NEVER stored in D1.
+-- Long-stay co-applications. First applicant's PDF is temporarily AES-GCM encrypted in D1 chunks
+-- until the second applicant finishes (or the 48-hour invite expires).
 -- first_data is temporary personal data and is erased upon completion.
 CREATE TABLE IF NOT EXISTS longstay_applications (
   reference TEXT PRIMARY KEY,
@@ -32,3 +33,12 @@ CREATE TABLE IF NOT EXISTS longstay_reviews (
   decision_at TEXT
 );
 CREATE INDEX IF NOT EXISTS review_status ON longstay_reviews(status);
+
+-- AES-GCM ciphertext only, split below D1's 2 MB BLOB limit. Never accessible through public read APIs.
+CREATE TABLE IF NOT EXISTS longstay_application_documents (
+  reference TEXT NOT NULL,
+  part INTEGER NOT NULL,
+  ciphertext BLOB NOT NULL,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY(reference,part)
+);
