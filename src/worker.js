@@ -1,6 +1,6 @@
 import { onRequestPost } from './survey.js';
 import { generateMutualLeaseDraft } from './longstay-lease.js';
-import { prepareLease,packetForAdmin,tenantPacket,leaseDocument,sendLease,tenantSign,tenantReportPayment,verifyLeasePayment,requestProviderOtp,signProvider,checkLeaseDeadlines } from './longstay-signing.js';
+import { prepareLease,packetForAdmin,tenantPacket,leaseDocument,sendLease,tenantSign,tenantReportPayment,verifyLeasePayment,verifyPostSigningFunds,requestProviderOtp,signProvider,checkLeaseDeadlines } from './longstay-signing.js';
 import { getLongStayReview, decideLongStayReview } from './longstay-review.js';
 import { submitLongStayFirst, submitLongStaySecond, getLongStayInvitation, cleanupLongStayInvitations } from './longstay-workflow.js';
 import { cleanerPortal } from './cleaner-portal.js';
@@ -53,6 +53,7 @@ export default {
     if (path === '/api/longstay/tenant-sign') return tenantSign(request,env);
     if (path === '/api/longstay/tenant-payment') return tenantReportPayment(request,env);
     if (path === '/api/longstay/payment-verify') return verifyLeasePayment(request,env);
+    if (path === '/api/longstay/postsign-verify') return verifyPostSigningFunds(request,env);
     if (path === '/api/longstay/provider-otp') return requestProviderOtp(request,env);
     if (path === '/api/longstay/provider-sign') return signProvider(request,env);
     if (path === '/api/longstay/review') return request.method==='GET'
