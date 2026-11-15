@@ -8,17 +8,23 @@ const MAX_FILE = 5 * 1024 * 1024;
 const MAX_FILES_TOTAL = 15 * 1024 * 1024;
 const allowedTypes = new Set(['application/pdf', 'image/jpeg', 'image/png', 'image/webp']);
 export const applicationFields = [
-  ['people', 'Number of applicants'], ['houseRules', 'Shared-house guest guideline accepted'],
+  ['people','Number of applicants'], ['houseRules','Shared-house guideline accepted'],
   ['firstName','First name'], ['lastName','Family name'], ['email','Email'],
   ['phone','Phone'], ['occupation','Occupation'], ['occupationOther','Other occupation'],
-  ['workFromHome','Working from home'], ['workFromHomeOther','Work from home details'],
+  ['workFromHome','Working from home'], ['workFromHomeOther','Working from home details'],
   ['employer','Employer or school'], ['income','Weekly income (AUD)'],
-  ['secondFirstName','Second applicant first name'], ['secondLastName','Second applicant family name'],
-  ['secondEmail','Second applicant email'], ['secondPhone','Second applicant phone'],
-  ['property','Property'], ['propertyOther','Other property'],
-  ['room','Rental room'], ['roomOther','Other room'],
-  ['moveIn','Preferred move-in date'], ['length','Length of stay'],
-  ['weeklyRent','Advertised weekly rent (AUD)'], ['payFrequency','Preferred rent payment frequency'],
+  ['secondEmail','Second applicant invited email'], ['secondFirstName','Second applicant first name'],
+  ['secondLastName','Second applicant family name'], ['secondPhone','Second applicant phone'],
+  ['secondOccupation','Second applicant occupation'], ['secondOccupationOther','Second applicant other occupation'],
+  ['secondWorkFromHome','Second applicant working from home'],
+  ['secondWorkFromHomeOther','Second applicant work from home details'],
+  ['secondEmployer','Second applicant employer or school'],
+  ['secondIncome','Second applicant weekly income (AUD)'],
+  ['secondDeclaration','Second applicant declaration'],
+  ['secondPrivacyConsent','Second applicant privacy consent'],
+  ['property','Property'], ['propertyOther','Other property'], ['room','Rental room'], ['roomOther','Other room'],
+  ['moveIn','Preferred move-in date'], ['length','Length of stay'], ['lengthOther','Other length of stay'],
+  ['weeklyRent','Weekly rent applicant wishes to pay (AUD)'], ['payFrequency','Preferred rent payment frequency'],
   ['linen','Bed linen and towels'], ['linenOther','Other linen preference'],
   ['declaration','Application declaration accepted'], ['privacyConsent','Privacy and email consent']
 ];
@@ -74,7 +80,7 @@ function clipText(text, font, size, width) {
   if (line) lines.push(line);
   return lines.length ? lines : ['(Not supplied)'];
 }
-export async function buildApplicationPDF(data, documents, reference, signature) {
+export async function buildApplicationPDF(data, documents, reference, signature, secondSignature) {
   const pdf = await PDFDocument.create();
   pdf.setTitle('ProHouse live with us - ' + reference);
   pdf.setAuthor('ProHouse');
@@ -113,23 +119,27 @@ export async function buildApplicationPDF(data, documents, reference, signature)
   section('Main applicant');
   applicationFields.slice(2,12).forEach(([key,label])=>row(label,data[key]));
   section('Second applicant');
-  applicationFields.slice(12,16).forEach(([key,label])=>row(label,data[key]));
+  applicationFields.slice(12,24).forEach(([key,label])=>row(label,data[key]));
   section('Rental preferences');
-  applicationFields.slice(16,26).forEach(([key,label])=>row(label,data[key]));
+  applicationFields.slice(24,35).forEach(([key,label])=>row(label,data[key]));
   section('Declarations');
-  applicationFields.slice(26).forEach(([key,label])=>row(label,data[key]));
+  applicationFields.slice(35).forEach(([key,label])=>row(label,data[key]));
   section('Attached documents');
   if (!documents.length) row('Documents', 'None supplied with initial application');
   documents.forEach(({label,filename})=>row(label,filename));
-  section('Applicant signature');
-  ensure(130);
-  const pngBytes = Uint8Array.from(atob(signature.split(',')[1]), c=>c.charCodeAt(0));
-  const png = await pdf.embedPng(pngBytes);
-  const scale = Math.min(1, 310/png.width, 100/png.height);
-  const width = png.width * scale, height = png.height * scale;
-  page.drawRectangle({ x:42, y:y-110, width:330, height:108, borderColor:rgb(.8,.85,.81),borderWidth:1 });
-  page.drawImage(png,{x:53,y:y-105+(100-height)/2,width,height});
-  y -= 125;
+  const addSignature=(label,value)=>{
+    return (async()=>{
+      section(label);ensure(130);
+      const pngBytes=Uint8Array.from(atob(value.split(',')[1]),x=>x.charCodeAt(0));
+      const png=await pdf.embedPng(pngBytes);
+      const scale=Math.min(1,310/png.width,100/png.height);
+      page.drawRectangle({x:42,y:y-110,width:330,height:108,borderColor:rgb(.8,.85,.81),borderWidth:1});
+      page.drawImage(png,{x:53,y:y-105+(100-png.height*scale)/2,width:png.width*scale,height:png.height*scale});
+      y-=125;
+    })();
+  };
+  await addSignature('First applicant signature',signature);
+  if(secondSignature)await addSignature('Second applicant signature',secondSignature);
   return new Uint8Array(await pdf.save());
 }
 export async function submitLongStayApplication(request, env) {
