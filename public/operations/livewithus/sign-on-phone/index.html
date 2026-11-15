@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en-AU"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#e8ff76"><title>Sign on phone | ProHouse Live With Us</title>
+<link rel="icon" href="/favicon.png"><link rel="stylesheet" href="/assets/livewithus.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap">
+<style>.mobileSign{max-width:580px;padding:18px;margin:22px auto 50px}.mobileSign h1{font:800 clamp(45px,8vw,75px)/.95 "Barlow Condensed";margin:14px 0}.signBox{padding:25px;border:1px solid var(--line);border-radius:18px;background:white}.successNotice{background:#f1f9e9;padding:14px;border-radius:10px;margin:12px 0}.mobileSign .primary{width:100%;margin:19px 0 6px}.signatureWrap{margin:18px 0}.signatureWrap canvas{height:205px}.description{color:var(--grey);font-size:13px}</style>
+</head><body>
+<header><div class="topbar"><a class="brand" href="/"><img src="/assets/prohouse-logo-transparent.png" alt="ProHouse"></a><a class="toplink" href="/operations/livewithus/">Live With Us</a></div></header>
+<main class="mobileSign"><span class="eyebrow">PRIVATE SIGNATURE TRANSFER</span><h1>SIGN WITH YOUR FINGER.</h1>
+<p>Draw your signature on this phone. It will appear automatically on the application form open on your laptop.</p>
+<div class="signBox">
+<p id="loading">Checking your private 15-minute signing link…</p>
+<div id="signArea" hidden>
+ <p class="description">This transfers <strong>only your signature</strong>. Your application details and uploaded documents are not shown on this phone.</p>
+ <div class="signatureWrap"><canvas id="signaturePad" aria-label="Draw your signature using your finger"></canvas>
+  <div class="signatureBar"><span>Sign within this box</span><button type="button" id="clearSignature">Clear</button></div></div>
+ <button class="primary" id="sendSignature" type="button">Send signature to laptop</button>
+ <p id="error" class="alert" role="alert"></p>
+</div>
+<div id="success" class="successNotice" hidden><strong>Signature sent successfully.</strong><p>Return to your laptop. The signed application is not submitted until you press its final Send button.</p></div>
+</div>
+</main><footer><span>ProHouse · Secure one-time signature</span><a href="mailto:hi@prohouse.com.au">Support</a></footer>
+<script>
+(async()=>{
+ const $=id=>document.getElementById(id);
+ const token=new URLSearchParams(location.hash.slice(1)).get('token')||'';
+ history.replaceState(null,'',location.pathname);
+ const showError=msg=>{$('error').textContent=msg;$('error').classList.add('visible')};
+ if(!/^[a-f0-9]{64}$/.test(token)){$('loading').textContent='The signing QR has expired or is invalid. Create a new one on your laptop.';return;}
+ try{
+  const r=await fetch('/api/longstay/signature-session',{headers:{Authorization:'Bearer '+token},cache:'no-store'});
+  const data=await r.json();if(!r.ok)throw Error(data.message||'Signature link not found.');
+  if(data.signed)throw Error('This signature was already transferred. Return to the laptop.');
+ }catch(e){$('loading').textContent=e.message;return}
+ $('loading').hidden=true;$('signArea').hidden=false;
+ const canvas=$('signaturePad'),ctx=canvas.getContext('2d');let drawn=false,drawing=false;
+ const size=()=>{const rect=canvas.getBoundingClientRect();if(rect.width<12)return;
+  const prior=drawn&&canvas.width?canvas.toDataURL('image/png'):null,d=window.devicePixelRatio||1;
+  canvas.width=Math.round(rect.width*d);canvas.height=Math.round(rect.height*d);
+  ctx.setTransform(d,0,0,d,0,0);ctx.strokeStyle='#162820';ctx.lineWidth=2.6;ctx.lineCap='round';ctx.lineJoin='round';
+  if(prior){const image=new Image();image.onload=()=>ctx.drawImage(image,0,0,rect.width,rect.height);image.src=prior}
+ };
+ const point=e=>{const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}};
+ canvas.addEventListener('pointerdown',e=>{e.preventDefault();drawing=true;drawn=true;canvas.setPointerCapture(e.pointerId);const p=point(e);ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x+.1,p.y+.1);ctx.stroke()});
+ canvas.addEventListener('pointermove',e=>{if(!drawing)return;e.preventDefault();const p=point(e);ctx.lineTo(p.x,p.y);ctx.stroke()});
+ for(const type of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(type,()=>drawing=false);
+ $('clearSignature').addEventListener('click',()=>{ctx.clearRect(0,0,canvas.width,canvas.height);drawn=false});
+ window.addEventListener('resize',size);requestAnimationFrame(size);
+ $('sendSignature').addEventListener('click',async()=>{
+  if(!drawn){showError('Please draw your signature first.');return;}
+  const button=$('sendSignature');button.disabled=true;button.textContent='Transferring…';
+  try{
+   const r=await fetch('/api/longstay/signature-save',{method:'POST',credentials:'same-origin',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({token,signature:canvas.toDataURL('image/png')})});
+   const data=await r.json();if(!r.ok)throw Error(data.message||'Signature transfer failed.');
+   $('signArea').hidden=true;$('success').hidden=false;
+  }catch(e){showError(e.message);button.disabled=false;button.textContent='Send signature to laptop'}
+ });
+})();
+</script></body></html>
