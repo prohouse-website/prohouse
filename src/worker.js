@@ -3,6 +3,7 @@ import { generateMutualLeaseDraft } from './longstay-lease.js';
 import { prepareLease,packetForAdmin,tenantPacket,leaseDocument,sendLease,tenantSign,tenantReportPayment,verifyLeasePayment,verifyPostSigningFunds,requestProviderOtp,signProvider,checkLeaseDeadlines } from './longstay-signing.js';
 import { getLongStayReview, decideLongStayReview } from './longstay-review.js';
 import { submitLongStayFirst, submitLongStaySecond, getLongStayInvitation, cleanupLongStayInvitations } from './longstay-workflow.js';
+import { startSignatureHandoff, signatureHandoffStatus, saveMobileSignature, cleanupSignatureSessions } from './longstay-signature-handoff.js';
 import { cleanerPortal } from './cleaner-portal.js';
 import { vendorAPI } from './vendor-proxy.js';
 import { utilityPDF } from './utilities-pdf.js';
@@ -44,6 +45,9 @@ export default {
     if (path === '/api/longstay/application') return submitLongStayFirst(request, env);
     if (path === '/api/longstay/invitation') return getLongStayInvitation(request, env);
     if (path === '/api/longstay/coapplicant') return submitLongStaySecond(request, env);
+    if (path === '/api/longstay/signature-session') return request.method==='POST'
+      ? startSignatureHandoff(request,env) : signatureHandoffStatus(request,env);
+    if (path === '/api/longstay/signature-save') return saveMobileSignature(request,env);
     if (path === '/api/longstay/lease-draft') return generateMutualLeaseDraft(request, env);
     if (path === '/api/longstay/lease-prepare') return prepareLease(request,env);
     if (path === '/api/longstay/lease-status') return packetForAdmin(request,env);
@@ -91,6 +95,7 @@ export default {
     ctx.waitUntil(checkLeaseDeadlines(env).catch(e=>console.error('Lease expiry check failed',e?.message)));
     if(_event.cron==='0 * * * *')return;
     ctx.waitUntil(cleanupLongStayInvitations(env));
+    ctx.waitUntil(cleanupSignatureSessions(env).catch(e=>console.warn('Signature session cleanup failed',e?.message)));
     ctx.waitUntil(sendShareBillDailySummary(env).then(out=>{
       if(!out.sent && out.reason!=='Already emailed')
         console.warn('Share Bill daily email was not sent:',out.reason);
