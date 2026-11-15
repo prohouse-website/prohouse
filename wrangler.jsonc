@@ -17,6 +17,7 @@
   },
   "vars": {
     "SURVEY_FROM_EMAIL": "ProHouse Survey <no-reply@prohouse.com.au>",
+    "APPLICATION_FROM_EMAIL": "ProHouse Long Stay <no-reply@prohouse.com.au>",
     "PROHOUSE_ADMIN_EMAILS": "hi@prohouse.com.au",
     "CLEANER_FROM_EMAIL": "ProHouse Agreements <no-reply@prohouse.com.au>",
     "VENDOR_PORTAL_ORIGIN": "https://new-vendor-agreement-portal-prohouse.hi-07f.workers.dev",
@@ -30,6 +31,7 @@
     ],
     "vars": {
       "SURVEY_FROM_EMAIL": "ProHouse Survey Preview <no-reply@prohouse.com.au>",
+      "APPLICATION_FROM_EMAIL": "ProHouse Long Stay Preview <no-reply@prohouse.com.au>",
       "PROHOUSE_ADMIN_EMAILS": "hi@prohouse.com.au",
       "CLEANER_FROM_EMAIL": "ProHouse Agreements Preview <no-reply@prohouse.com.au>",
       "DIDIT_WORKFLOW_ID": "f7f47ff2-b92d-4676-9280-132b116adbde",
