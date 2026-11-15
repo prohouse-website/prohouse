@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#e8ff76">
+<title>Second Applicant Invitation | Live With Us | ProHouse</title>
+<link rel="icon" href="/favicon.png"><link rel="stylesheet" href="/assets/livewithus.css">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+.inviteHero h1{font-size:clamp(68px,10vw,115px)}
+.invitationNotice{padding:17px;border-radius:12px;border:1px solid #d9e2ca;background:#f4f9ed;font-size:13px;margin:22px 0}
+.invitationNotice strong{display:block;margin:0 0 5px}
+.progressSmall{font-size:12px;font-weight:800;color:#5a7160;text-transform:uppercase;letter-spacing:.1em}
+.spinner{font:700 20px "Barlow Condensed",Arial,sans-serif}
+.loadingCard{min-height:200px}
+#invitationError{display:none}
+#invitationError.visible{display:block}
+</style>
+</head>
+<body>
+<header><div class="topbar">
+  <a class="brand" href="/" aria-label="ProHouse home"><img src="/assets/prohouse-logo-transparent.png" alt="ProHouse"></a>
+  <a class="toplink" href="/longstay/form/livewithus/">Live With Us</a>
+</div></header>
+<section class="hero inviteHero"><div class="heroinner">
+  <div><span class="eyebrow">PROHOUSE / JOINT APPLICATION</span><h1>YOU'RE<br><span>INVITED.</span></h1>
+  <p>Complete your own details and upload the required documents to finish your joint rental application.</p></div>
+  <aside class="heroBadge"><span>YOUR SHARED APPLICATION</span><strong>TWO PEOPLE.<br>ONE HOME.</strong><small>Private invitation, secure submission.</small></aside>
+</div></section>
+<main class="shell">
+ <aside class="sidebar"><div class="sideCard">
+  <h2>YOUR INVITATION</h2>
+  <ol class="stepNav"><li class="active"><span class="bubble">1</span> Shared details</li>
+   <li><span class="bubble">2</span> About you</li><li><span class="bubble">3</span> Sign & send</li></ol>
+  </div><div class="sideTip"><strong>Need help?</strong><p>Your invitation is private, and it expires after 21 days.</p><a href="mailto:hi@prohouse.com.au">hi@prohouse.com.au</a></div>
+ </aside>
+ <div class="mainColumn">
+  <div class="progressText"><span id="stepHeading">Loading invitation</span><span id="progressPct"></span></div><div class="track"><span id="trackBar" style="width:0"></span></div>
+  <div class="formCard loadingCard" id="loading"><p class="spinner">Checking your invitation…</p></div>
+  <div class="formCard" id="invitationError" role="alert"><h2 class="sectionTitle">Invitation unavailable</h2><p id="inviteErrorMessage">Please contact ProHouse if you need help.</p><a href="mailto:hi@prohouse.com.au">Contact ProHouse</a></div>
+  <form id="coApplication" class="formCard" enctype="multipart/form-data" style="display:none" novalidate>
+   <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
+   <input type="hidden" name="invitationToken" id="invitationToken">
+   <section class="step active" data-step="0">
+    <span class="stepMarker">01 / SHARED APPLICATION</span><h2>Here's the plan.</h2>
+    <p class="stepLead">The first applicant has invited you to complete the shared rental application. Review what was entered before you continue.</p>
+    <div class="summary" id="sharedSummary" aria-live="polite"></div>
+    <div class="invitationNotice"><strong>Only your own supporting files are needed.</strong>Documents already uploaded by the first applicant are private and are not shared with you. ProHouse will receive your documents separately.</div>
+    <div class="actions"><button type="button" class="primary next">My details <span aria-hidden="true">→</span></button></div>
+   </section>
+   <section class="step" data-step="1">
+    <span class="stepMarker">02 / YOUR INFORMATION</span><h2>Tell us about you.</h2>
+    <p class="stepLead">Please use your legal details, then upload one photo ID and one proof of income.</p>
+    <div class="fieldGrid">
+     <div class="field"><label for="secondFirstName">Legal first name <span class="req">*</span></label><input id="secondFirstName" name="secondFirstName" autocomplete="given-name" maxlength="90" required></div>
+     <div class="field"><label for="secondLastName">Legal family name <span class="req">*</span></label><input id="secondLastName" name="secondLastName" autocomplete="family-name" maxlength="90" required></div>
+     <div class="field"><label for="invitedEmail">Invited email</label><input id="invitedEmail" readonly aria-readonly="true"></div>
+     <div class="field"><label for="secondPhone">Contact phone <span class="req">*</span></label><input id="secondPhone" name="secondPhone" type="tel" autocomplete="tel" maxlength="30" required></div>
+     <div class="field"><label for="secondOccupation">Occupation <span class="req">*</span></label>
+      <select id="secondOccupation" name="secondOccupation" required><option value="">Select an option</option><option>Full-time employee</option><option>Part-time employee</option><option>Casual employee</option><option>Self-employed</option><option>Student</option><option>Other</option></select></div>
+     <div class="field conditional" id="secondOccupationOtherWrap" hidden><label for="secondOccupationOther">Other occupation</label><input id="secondOccupationOther" name="secondOccupationOther" maxlength="150"></div>
+     <div class="field"><label for="secondWorkFromHome">Do you work from home? <span class="req">*</span></label>
+      <select id="secondWorkFromHome" name="secondWorkFromHome" required><option value="">Select an option</option><option>Yes</option><option>No</option><option>Sometimes</option><option>Other</option></select></div>
+     <div class="field conditional" id="secondWorkFromHomeOtherWrap" hidden><label for="secondWorkFromHomeOther">Work-from-home details</label><input id="secondWorkFromHomeOther" name="secondWorkFromHomeOther" maxlength="150"></div>
+     <div class="field"><label for="secondEmployer">Employer or school <span class="req">*</span></label><input id="secondEmployer" name="secondEmployer" maxlength="180" required></div>
+     <div class="field"><label for="secondIncome">Your weekly income (AUD) <span class="req">*</span></label><input id="secondIncome" name="secondIncome" type="number" min="0" max="9999999" step=".01" inputmode="decimal" required></div>
+    </div>
+    <h3 class="sectionTitle">Mandatory supporting documents</h3>
+    <p class="uploadNote">Upload a photo ID and proof of income. Only share documents relevant to your application. You may redact unnecessary bank transaction details. Accepted formats: PDF, JPG, PNG and WebP. Each file up to 5 MB; 15 MB combined.</p>
+    <div class="fieldGrid">
+      <div class="field"><label for="secondId">Photo ID <span class="req">*</span></label><input id="secondId" name="secondId" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" required></div>
+      <div class="field"><label for="secondIncomeProof">Proof of income <span class="req">*</span></label><input id="secondIncomeProof" name="secondIncomeProof" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" required></div>
+      <div class="field"><label for="secondIdExtra">Extra photo ID (optional)</label><input id="secondIdExtra" name="secondIdExtra" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp"></div>
+      <div class="field"><label for="secondIncomeExtra">Additional income proof (optional)</label><input id="secondIncomeExtra" name="secondIncomeExtra" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp"></div>
+    </div>
+    <div class="actions"><button type="button" class="secondary back">← Back</button><button type="button" class="primary next">Sign & send <span aria-hidden="true">→</span></button></div>
+   </section>
+   <section class="step" data-step="2">
+    <span class="stepMarker">03 / DECLARATION</span><h2>One last thing.</h2>
+    <p class="stepLead">Check that everything is correct, sign, and submit your part of the application.</p>
+    <div class="summary" id="reviewSummary"></div>
+    <div class="policy">
+      <p><strong>Application declaration.</strong> I confirm the details I have provided are true and consent to ProHouse reviewing them in connection with this rental application.</p>
+      <p><strong>Rental conditions.</strong> Any eventual residential tenancy will be governed by a written agreement and applicable NSW or Victorian law. Completing this application does not guarantee approval or create a tenancy.</p>
+      <p><strong>Privacy and notifications.</strong> ProHouse receives my form, photo ID, proof of income, and signature by email. Both applicants will receive progress notifications by email, but uploaded identity and income documents will only be sent to the ProHouse administrator. <a href="/privacy/" target="_blank" rel="noopener">Privacy policy</a>.</p>
+    </div>
+    <label class="checkline"><input name="secondDeclaration" type="checkbox" value="Yes" required><span>I confirm my application information is correct. <span class="req">*</span></span></label>
+    <div style="height:12px"></div>
+    <label class="checkline"><input name="secondPrivacyConsent" type="checkbox" value="Yes" required><span>I agree to my application and required documents being emailed to ProHouse for review, and to email status updates for both applicants. <span class="req">*</span></span></label>
+    <h3 class="sectionTitle">Your signature <span class="req">*</span></h3>
+    <p class="uploadNote">Sign here with your finger or mouse.</p>
+    <div class="signatureWrap"><canvas id="signaturePad" role="img" aria-label="Your signature"></canvas>
+      <div class="signatureBar"><span>Applicant 2 signature</span><button type="button" id="clearSignature">Clear signature</button></div></div>
+    <input type="hidden" id="signature" name="signature">
+    <div class="alert" role="alert" id="submitError"></div>
+    <div class="actions"><button type="button" class="secondary back">← Back</button><button class="primary" id="submitButton" type="submit">Finish joint application →</button></div>
+   </section>
+   <section class="success" id="successPanel" aria-live="polite"><div class="check">✓</div><h2>APPLICATION COMPLETE.</h2>
+    <p>Both applications have been sent to ProHouse. The first applicant and you will receive email confirmation.</p>
+    <p><strong id="successReference"></strong></p>
+    <a href="/" class="primary" style="display:inline-block;text-decoration:none;margin-top:18px">Back to ProHouse</a></section>
+  </form>
+ </div>
+</main>
+<footer><span>© ProHouse Australia · Live With Us</span><span><a href="/privacy/">Privacy</a> · <a href="mailto:hi@prohouse.com.au">Contact</a></span></footer>
+<script>
+(()=>{
+ const form=document.getElementById('coApplication'),$=id=>document.getElementById(id);
+ const steps=[...form.querySelectorAll('.step')].filter(x=>x.dataset.step!==undefined);
+ const nav=[...document.querySelectorAll('.stepNav li')];
+ let active=0,hasSignature=false,drawing=false;
+ const rawToken=new URLSearchParams(location.hash.slice(1)).get('token')||new URLSearchParams(location.search).get('token')||'';
+ if(rawToken && /^[a-f0-9]{64}$/.test(rawToken)){
+  $('invitationToken').value=rawToken;
+  history.replaceState(null,'',location.pathname);
+  fetch('/api/longstay/invitation?token='+encodeURIComponent(rawToken),{cache:'no-store',credentials:'same-origin'})
+   .then(async r=>{const data=await r.json();if(!r.ok||data.status==='completed')throw Error(data.message||'This invitation is complete.');return data})
+   .then(data=>{
+    $('loading').style.display='none';form.style.display='block';
+    $('invitedEmail').value=data.invitedEmail;
+    const p=data.firstApplicant;
+    const pairs=[['Reference',p.reference],['First applicant',p.firstName+' '+p.lastName],
+     ['Property',p.property==='Other'?p.propertyOther:p.property],['Room',p.room==='Other'?p.roomOther:p.room],
+     ['Move-in date',p.moveIn],['Length of stay',p.length==='Other'?p.lengthOther:p.length],
+     ['Weekly rent',new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD'}).format(Number(p.weeklyRent))],
+     ['Payment frequency',p.payFrequency],['Linen preference',p.linen]];
+    render($('sharedSummary'),pairs);
+    showStep(0);
+   }).catch(e=>showError(e.message));
+ }else showError('The invitation link is missing or invalid. Please use the full link from your email.');
+ function showError(msg){$('loading').style.display='none';$('invitationError').classList.add('visible');$('inviteErrorMessage').textContent=msg; }
+ function render(container,pairs){
+  container.replaceChildren();
+  for(const [k,v] of pairs){const item=document.createElement('div'),label=document.createElement('small'),value=document.createElement('strong');
+   label.textContent=k;value.textContent=v||'—';item.append(label,value);container.append(item);}
+ }
+ function showStep(index){
+  active=index;steps.forEach((s,i)=>s.classList.toggle('active',i===index));
+  nav.forEach((n,i)=>{n.classList.toggle('active',i===index);n.classList.toggle('done',i<index)});
+  $('stepHeading').textContent='Step '+(index+1)+' of 3';$('progressPct').textContent=Math.round((index+1)/3*100)+'% complete';
+  $('trackBar').style.width=Math.round((index+1)/3*100)+'%';
+  document.querySelector('.mainColumn').scrollIntoView({behavior:'smooth',block:'start'});
+ }
+ function validate(){
+  for(const input of steps[active].querySelectorAll('input,select,textarea')){
+   if(input.closest('[hidden]')||input.type==='hidden')continue;
+   if(!input.checkValidity()){input.reportValidity();input.focus();return false;}
+  }
+  return true;
+ }
+ for(const [select,other,wrap] of [['secondOccupation','secondOccupationOther','secondOccupationOtherWrap'],['secondWorkFromHome','secondWorkFromHomeOther','secondWorkFromHomeOtherWrap']]){
+  $(select).addEventListener('change',()=>{const selected=$(select).value==='Other';$(wrap).hidden=!selected;$(other).required=selected;});
+ }
+ for(const button of form.querySelectorAll('.next'))button.addEventListener('click',()=>{
+  if(validate()){if(active===1)render($('reviewSummary'),[
+   ['Your name',$('secondFirstName').value+' '+$('secondLastName').value],
+   ['Phone',$('secondPhone').value],['Occupation',$('secondOccupation').value],
+   ['Employer or school',$('secondEmployer').value]]);showStep(active+1);}
+ });
+ for(const button of form.querySelectorAll('.back'))button.addEventListener('click',()=>showStep(active-1));
+ const canvas=$('signaturePad'),ctx=canvas.getContext('2d');
+ function resize(){
+  const r=canvas.getBoundingClientRect(),d=window.devicePixelRatio||1;
+  const previous=hasSignature?canvas.toDataURL('image/png'):null;
+  canvas.width=Math.round(r.width*d);canvas.height=Math.round(r.height*d);
+  ctx.setTransform(d,0,0,d,0,0);ctx.strokeStyle='#16211c';ctx.lineWidth=2.5;ctx.lineCap='round';ctx.lineJoin='round';
+  if(previous){const img=new Image();img.onload=()=>ctx.drawImage(img,0,0,r.width,r.height);img.src=previous;}
+ }
+ function point(e){const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
+ canvas.addEventListener('pointerdown',e=>{drawing=true;hasSignature=true;canvas.setPointerCapture(e.pointerId);const p=point(e);ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x+.1,p.y+.1);ctx.stroke();});
+ canvas.addEventListener('pointermove',e=>{if(!drawing)return;const p=point(e);ctx.lineTo(p.x,p.y);ctx.stroke()});
+ for(const name of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(name,()=>{drawing=false});
+ $('clearSignature').addEventListener('click',()=>{ctx.clearRect(0,0,canvas.width,canvas.height);hasSignature=false});
+ window.addEventListener('resize',resize);resize();
+ form.addEventListener('submit',async e=>{
+  e.preventDefault();$('submitError').classList.remove('visible');
+  if(!validate())return;
+  if(!hasSignature){$('submitError').textContent='Please sign the application.';$('submitError').classList.add('visible');return;}
+  $('signature').value=canvas.toDataURL('image/png');
+  const files=[...form.querySelectorAll('[type=file]')].flatMap(x=>[...x.files]);
+  if(files.some(f=>f.size>5*1024*1024)||files.reduce((s,x)=>s+x.size,0)>15*1024*1024){
+   $('submitError').textContent='Each file must be 5 MB or less, and the total must be 15 MB or less.';$('submitError').classList.add('visible');return;}
+  const button=$('submitButton');button.disabled=true;button.textContent='Submitting securely…';
+  try{
+   const r=await fetch('/api/longstay/coapplicant',{method:'POST',body:new FormData(form),credentials:'same-origin'});
+   const data=await r.json();if(!r.ok)throw Error(data.message||'Submission failed.');
+   steps.forEach(x=>x.classList.remove('active'));$('successPanel').classList.add('visible');
+   $('successReference').textContent='Reference: '+data.reference;
+   $('stepHeading').textContent='Application completed';$('progressPct').textContent='100% complete';$('trackBar').style.width='100%';
+   nav.forEach(n=>{n.classList.remove('active');n.classList.add('done')});
+   document.querySelector('.mainColumn').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(error){$('submitError').textContent=error.message;$('submitError').classList.add('visible');button.disabled=false;button.textContent='Finish joint application →';}
+ });
+})();
+</script>
+</body></html>
