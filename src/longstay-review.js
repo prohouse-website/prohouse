@@ -34,7 +34,7 @@ export async function createReview(env,reference,data,request){
 export async function cancelReview(env,reference){
   await env.LONGSTAY_DB.prepare("DELETE FROM longstay_reviews WHERE reference=? AND status='pending'").bind(reference).run();
 }
-async function findReview(env,token){
+export async function findReview(env,token){
   if(!validToken(token)||!env.LONGSTAY_DB)return null;
   return env.LONGSTAY_DB.prepare('SELECT * FROM longstay_reviews WHERE token_hash=?').bind(await digest(token)).first();
 }
