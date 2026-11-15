@@ -1,4 +1,5 @@
 import { onRequestPost } from './survey.js';
+import { getLongStayReview, decideLongStayReview } from './longstay-review.js';
 import { submitLongStayFirst, submitLongStaySecond, getLongStayInvitation, cleanupLongStayInvitations } from './longstay-workflow.js';
 import { cleanerPortal } from './cleaner-portal.js';
 import { vendorAPI } from './vendor-proxy.js';
@@ -10,13 +11,23 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
-    const canonicalAliases = {"/longstay/form/livewithus/second": "/longstay/form/livewithus/second/", "/longstay/form/livewithus/second/index.html": "/longstay/form/livewithus/second/", "/longstay/form/livewithus": "/longstay/form/livewithus/", "/longstay/form/livewithus/index.html": "/longstay/form/livewithus/", "/index.html": "/", "/stays": "/stays/", "/stays.html": "/stays/", "/stays/index.html": "/stays/", "/location": "/location/", "/location.html": "/location/", "/location/index.html": "/location/", "/properties": "/properties/", "/properties.html": "/properties/", "/properties/index.html": "/properties/", "/book": "/book/", "/book.html": "/book/", "/book/index.html": "/book/", "/owners": "/owners/", "/owners.html": "/owners/", "/owners/index.html": "/owners/", "/contact": "/contact/", "/contact.html": "/contact/", "/contact/index.html": "/contact/", "/why-prohouse": "/why-prohouse/", "/why-prohouse.html": "/why-prohouse/", "/why-prohouse/index.html": "/why-prohouse/", "/terms": "/terms/", "/terms.html": "/terms/", "/terms/index.html": "/terms/", "/privacy": "/privacy/", "/privacy.html": "/privacy/", "/privacy/index.html": "/privacy/", "/complaints": "/complaints/", "/complaints.html": "/complaints/", "/complaints/index.html": "/complaints/", "/sydney-airport-accommodation": "/sydney-airport-accommodation/", "/sydney-airport-accommodation.html": "/sydney-airport-accommodation/", "/sydney-airport-accommodation/index.html": "/sydney-airport-accommodation/", "/stays/room-1": "/stays/room-1/", "/stays/room-1.html": "/stays/room-1/", "/stays/room-1/index.html": "/stays/room-1/", "/stays/room-2": "/stays/room-2/", "/stays/room-2.html": "/stays/room-2/", "/stays/room-2/index.html": "/stays/room-2/", "/stays/room-3": "/stays/room-3/", "/stays/room-3.html": "/stays/room-3/", "/stays/room-3/index.html": "/stays/room-3/", "/terms-and-conditions/": "/terms/", "/terms-and-conditions": "/terms/", "/terms-and-conditions/index.html": "/terms/", "/privacy-policy/": "/privacy/", "/privacy-policy": "/privacy/", "/privacy-policy/index.html": "/privacy/", "/complaint-policy/": "/complaints/", "/complaint-policy": "/complaints/", "/complaint-policy/index.html": "/complaints/"};
+    const canonicalAliases = {"/operations/livewithus": "/operations/livewithus/", "/operations/livewithus/index.html": "/operations/livewithus/", "/operations/livewithus/second": "/operations/livewithus/second/", "/operations/livewithus/second/index.html": "/operations/livewithus/second/", "/operations/livewithus/review": "/operations/livewithus/review/", "/operations/livewithus/review/index.html": "/operations/livewithus/review/", "/longstay/form/livewithus/second": "/longstay/form/livewithus/second/", "/longstay/form/livewithus/second/index.html": "/longstay/form/livewithus/second/", "/longstay/form/livewithus": "/longstay/form/livewithus/", "/longstay/form/livewithus/index.html": "/longstay/form/livewithus/", "/index.html": "/", "/stays": "/stays/", "/stays.html": "/stays/", "/stays/index.html": "/stays/", "/location": "/location/", "/location.html": "/location/", "/location/index.html": "/location/", "/properties": "/properties/", "/properties.html": "/properties/", "/properties/index.html": "/properties/", "/book": "/book/", "/book.html": "/book/", "/book/index.html": "/book/", "/owners": "/owners/", "/owners.html": "/owners/", "/owners/index.html": "/owners/", "/contact": "/contact/", "/contact.html": "/contact/", "/contact/index.html": "/contact/", "/why-prohouse": "/why-prohouse/", "/why-prohouse.html": "/why-prohouse/", "/why-prohouse/index.html": "/why-prohouse/", "/terms": "/terms/", "/terms.html": "/terms/", "/terms/index.html": "/terms/", "/privacy": "/privacy/", "/privacy.html": "/privacy/", "/privacy/index.html": "/privacy/", "/complaints": "/complaints/", "/complaints.html": "/complaints/", "/complaints/index.html": "/complaints/", "/sydney-airport-accommodation": "/sydney-airport-accommodation/", "/sydney-airport-accommodation.html": "/sydney-airport-accommodation/", "/sydney-airport-accommodation/index.html": "/sydney-airport-accommodation/", "/stays/room-1": "/stays/room-1/", "/stays/room-1.html": "/stays/room-1/", "/stays/room-1/index.html": "/stays/room-1/", "/stays/room-2": "/stays/room-2/", "/stays/room-2.html": "/stays/room-2/", "/stays/room-2/index.html": "/stays/room-2/", "/stays/room-3": "/stays/room-3/", "/stays/room-3.html": "/stays/room-3/", "/stays/room-3/index.html": "/stays/room-3/", "/terms-and-conditions/": "/terms/", "/terms-and-conditions": "/terms/", "/terms-and-conditions/index.html": "/terms/", "/privacy-policy/": "/privacy/", "/privacy-policy": "/privacy/", "/privacy-policy/index.html": "/privacy/", "/complaint-policy/": "/complaints/", "/complaint-policy": "/complaints/", "/complaint-policy/index.html": "/complaints/"};
     if ((url.hostname === 'prohouse.com.au' || url.hostname === 'www.prohouse.com.au') && (url.protocol !== 'https:' || url.hostname !== 'www.prohouse.com.au')) {
       url.protocol = 'https:'; url.hostname = 'www.prohouse.com.au';
       url.pathname = canonicalAliases[path] || path;
       return Response.redirect(url, 301);
     }
+    if (path.startsWith('/longstay/form/livewithus')) {
+      const next=new URL(request.url);
+      next.pathname=path.replace(/^\/longstay\/form\/livewithus/,'/operations/livewithus');
+      return Response.redirect(next,301);
+    }
     if (canonicalAliases[path]) return Response.redirect(new URL(canonicalAliases[path] + url.search, url.origin), 301);
+    if (path==='/operations/livewithus/' || path==='/operations/livewithus/second/') {
+      const next=new URL(request.url);
+      next.pathname=path.replace(/^\/operations\/livewithus/,'/longstay/form/livewithus');
+      return env.ASSETS.fetch(new Request(next,request));
+    }
     const aliases = {'/survey':'/review/','/survey/':'/review/','/survey/index.html':'/review/','/G015262/survey':'/G015262/review/','/G015262/survey/':'/G015262/review/','/G015262/survey/index.html':'/G015262/review/'};
     if (aliases[path]) return Response.redirect(new URL(aliases[path] + url.search, url.origin), 301);
     if (path === '/bill-calculator' || path === '/bill-calculator/' || path === '/bill-calculator/index.html') return Response.redirect(new URL('/operations/sharebill/' + url.search, url.origin), 301);
@@ -36,6 +47,8 @@ export default {
     if (path === '/api/longstay/application') return submitLongStayFirst(request, env);
     if (path === '/api/longstay/invitation') return getLongStayInvitation(request, env);
     if (path === '/api/longstay/coapplicant') return submitLongStaySecond(request, env);
+    if (path === '/api/longstay/review') return request.method==='GET'
+      ? getLongStayReview(request,env) : decideLongStayReview(request,env);
     if (path === '/api/survey') {
       if (request.method !== 'POST') return new Response('Method not allowed', { status: 405, headers: { Allow: 'POST', 'Cache-Control': 'no-store' } });
       return onRequestPost({ request, env });
