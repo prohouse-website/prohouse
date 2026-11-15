@@ -1,11 +1,13 @@
 import { buildApplicationPDF, applicationFields } from './longstay-application.js';
+import { combineApplicationPDF } from './longstay-package.js';
+import { createReview, cancelReview } from './longstay-review.js';
 
 // Deliberately don't store ID and income documents in D1. Only their filenames
 // travel in email/PDF; the document bytes go to ProHouse's Resend mailbox.
 const MAX_REQUEST = 19 * 1024 * 1024;
 const MAX_FILE = 5 * 1024 * 1024;
 const MAX_FILES_TOTAL = 15 * 1024 * 1024;
-const MIME = new Set(['application/pdf', 'image/jpeg', 'image/png', 'image/webp']);
+const MIME = new Set(['application/pdf', 'image/jpeg', 'image/png']);
 const PROPERTIES = {
   'VIC - Oakden Crescent, St. Albans': [
     'Master room with ensuite', 'Left room near stairway', 'Right room near bathroom'
@@ -140,9 +142,7 @@ async function hashToken(token){
 function privatePreview(data,reference){
   return {
     reference,firstName:data.firstName,lastName:data.lastName,
-    email:data.email,phone:data.phone,occupation:data.occupation,occupationOther:data.occupationOther,
-    workFromHome:data.workFromHome,workFromHomeOther:data.workFromHomeOther,
-    employer:data.employer,income:data.income,
+    email:data.email,
     property:data.property,propertyOther:data.propertyOther,room:data.room,roomOther:data.roomOther,
     moveIn:data.moveIn,length:data.length,lengthOther:data.lengthOther,
     weeklyRent:data.weeklyRent,payFrequency:data.payFrequency,linen:data.linen
@@ -166,7 +166,10 @@ export async function getLongStayInvitation(request,env){
   return reply(200,'Invitation ready.',{status:'invited',firstApplicant:privatePreview(data,row.reference),invitedEmail:row.second_email});
 }
 async function cleanupPending(env){
-  if(env.LONGSTAY_DB)await env.LONGSTAY_DB.prepare("DELETE FROM longstay_applications WHERE expires_at < datetime('now','-7 days') OR (status='completed' AND completed_at < datetime('now','-14 days'))").run();
+  if(env.LONGSTAY_DB){
+    await env.LONGSTAY_DB.prepare("DELETE FROM longstay_applications WHERE expires_at < datetime('now','-7 days') OR (status='completed' AND completed_at < datetime('now','-14 days'))").run();
+    await env.LONGSTAY_DB.prepare("DELETE FROM longstay_reviews WHERE created_at < datetime('now','-90 days')").run();
+  }
 }
 export async function cleanupLongStayInvitations(env){try{await cleanupPending(env);}catch(e){console.warn('Longstay cleanup error',e?.message)}}
 export async function submitLongStayFirst(request,env){
@@ -185,6 +188,8 @@ export async function submitLongStayFirst(request,env){
     if(data.people==='Two people'&&(!emailValid(data.secondEmail)||data.secondEmail.toLowerCase()===data.email.toLowerCase()))
       throw Error('Please enter the other applicant’s own email address.');
     validApplicant(data);
+    if(!['Australian-issued driver licence','Passport'].includes(data.photoIdType))
+      throw Error('Select Australian-issued driver licence or passport.');
     validateShared(data);
   }catch(e){return reply(400,e.message);}
   const signature=clean(form.get('signature'),550000);
@@ -202,7 +207,7 @@ export async function submitLongStayFirst(request,env){
   if(data.people==='Two people'){
     token=[...crypto.getRandomValues(new Uint8Array(32))].map(x=>x.toString(16).padStart(2,'0')).join('');
     const inviteHash=await hashToken(token);
-    const now=new Date(),expiry=new Date(now.getTime()+21*86400000);
+    const now=new Date(),expiry=new Date(now.getTime()+48*3600000);
     try{
       await env.LONGSTAY_DB.prepare('INSERT INTO longstay_applications (reference,first_email,first_name,second_email,invite_hash,first_data,first_signature,status,created_at,expires_at) VALUES (?,?,?,?,?,?,?,?,?,?)')
         .bind(ref,data.email,firstName,data.secondEmail,inviteHash,JSON.stringify(data),signature,'invited',now.toISOString(),expiry.toISOString()).run();
@@ -236,16 +241,11 @@ export async function submitLongStayFirst(request,env){
       'Details provided by the first applicant:',
       summarise(data,ref),
       'First applicant email: '+data.email,
-      'Phone: '+data.phone,
-      'Occupation: '+data.occupation,
-      'Work from home: '+data.workFromHome,
-      'Employer or school: '+data.employer,
-      'Weekly income (AUD): '+data.income,
       '',
       'You must complete your own legal name, contact details, occupation, work/study information, income and supporting documents.',
       'The first applicant’s ID, proof-of-income documents and signature are not included in this email or shared with you.',
       '',
-      'Complete your application using this private invitation link (expires in 21 days):',
+      'Complete your application using this private invitation link (expires in 48 hours):',
       inviteURL.toString(),
       '',
       'Do not forward this link. If you did not expect this, ignore it and contact hi@prohouse.com.au.'
@@ -264,7 +264,7 @@ export async function submitLongStayFirst(request,env){
     }
     if(invited){
       const update='Stage update: second applicant invitation sent.\n'+
-        'Reference: '+ref+'\nInvited: '+data.secondEmail+'\nThe second applicant must submit their information and mandatory documents within 21 days.';
+        'Reference: '+ref+'\nInvited: '+data.secondEmail+'\nThe second applicant must submit their information and mandatory documents within 48 hours.';
       await Promise.allSettled([
         sendMail(env,{to:admin(env),subject:'[2/3 invited] ProHouse '+ref,text:update,tag:'second-invited-update'}),
         sendMail(env,{to:data.email,subject:'Second applicant invited | '+ref,
@@ -292,10 +292,14 @@ export async function submitLongStaySecond(request,env){
   if(row.expires_at<new Date().toISOString())return reply(410,'Your invitation has expired.');
   if(row.status==='completed')return reply(200,'This invitation has already been completed.',{reference:row.reference,status:'completed'});
   if(row.status!=='invited')return reply(409,'Application is already being processed.');
-  const extraKeys=['secondFirstName','secondLastName','secondPhone','secondOccupation','secondOccupationOther',
+  const extraKeys=['secondIdType','secondFirstName','secondLastName','secondPhone','secondOccupation','secondOccupationOther',
     'secondWorkFromHome','secondWorkFromHomeOther','secondEmployer','secondIncome','secondDeclaration','secondPrivacyConsent'];
   const extra=Object.fromEntries(extraKeys.map(k=>[k,clean(form.get(k))]));
-  try{validApplicant(extra,'second');if(extra.secondDeclaration!=='Yes'||extra.secondPrivacyConsent!=='Yes')
+  try{
+    validApplicant(extra,'second');
+    if(!['Australian-issued driver licence','Passport'].includes(extra.secondIdType))
+      throw Error('Select Australian-issued driver licence or passport.');
+    if(extra.secondDeclaration!=='Yes'||extra.secondPrivacyConsent!=='Yes')
     throw Error('Please accept the declarations.');}
   catch(e){return reply(400,e.message)}
   const signature=clean(form.get('signature'),550000);
