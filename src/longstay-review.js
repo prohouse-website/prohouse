@@ -83,7 +83,10 @@ export async function decideLongStayReview(request,env){
       '',
       'Bank BSB/account details and PayID will be on Schedule A, the LAST PAGE of your lease.',
       'We recommend PayID where available, except that Commonwealth Bank first-time transfers to a new payee may be delayed by security checks, typically up to 24 hours and sometimes longer (up to 24–48 hours in some circumstances). If possible, use another bank that can make the transfer promptly.',
+      'The first week of rent must be paid and ALL named tenants must sign BEFORE ProHouse will countersign and email the fully signed lease PDF.',
       'Payment is confirmed only when cleared funds appear in the ProHouse bank account.',
+      '',
+      'IF YOU WITHDRAW AFTER SIGNING AND PAYING: ProHouse may apply the first-week payment towards rent legally due or lawful lease-break costs. Depending on the agreement and applicable law, you may lose some or all of that payment. It is not an automatic non-refundable cancellation fee; any amount not lawfully owed will be refunded. Notify ProHouse promptly in writing if your plans change.',
       'Do not send money until you have received and checked your actual lease and verified the payee.',
       '',
       'IMPORTANT: Your 24-hour countdown does NOT start with this approval message. It starts when ProHouse sends the signing links. This application approval does not create or execute a lease or authorise key collection.'
