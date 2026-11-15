@@ -121,6 +121,9 @@
     $('invitedEmail').value=data.invitedEmail;
     const p=data.firstApplicant;
     const pairs=[['Reference',p.reference],['First applicant',p.firstName+' '+p.lastName],
+     ['First applicant email',p.email],['Phone',p.phone],['Occupation',p.occupation==='Other'?p.occupationOther:p.occupation],
+     ['Works from home',p.workFromHome==='Other'?p.workFromHomeOther:p.workFromHome],
+     ['Employer or school',p.employer],['First applicant weekly income',new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD'}).format(Number(p.income))],
      ['Property',p.property==='Other'?p.propertyOther:p.property],['Room',p.room==='Other'?p.roomOther:p.room],
      ['Move-in date',p.moveIn],['Length of stay',p.length==='Other'?p.lengthOther:p.length],
      ['Weekly rent',new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD'}).format(Number(p.weeklyRent))],
