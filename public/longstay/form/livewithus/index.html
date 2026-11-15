@@ -112,7 +112,7 @@
     <div class="policy">
       <p><strong>Accurate information.</strong> I confirm the details provided are true to the best of my knowledge, and I authorise ProHouse to review them for this rental application.</p>
       <p><strong>Rental terms.</strong> Payment, bond, rent reviews, guests and termination will be governed by the final written agreement and applicable state law (NSW or Victoria). A rental application does not create a lease or guarantee approval. A bond is not automatically a substitute for rent.</p>
-      <p><strong>Privacy.</strong> ProHouse will receive my application and the required uploaded documents by email for assessment. If two people apply, a secure invitation will be sent to the second applicant with a summary of the first applicant’s details, excluding identity and income documents. I should only provide documents relevant to my application. I can contact <a href="mailto:hi@prohouse.com.au">hi@prohouse.com.au</a> about my information. <a href="/privacy/" target="_blank" rel="noopener">Read the privacy policy</a>.</p>
+      <p><strong>Privacy.</strong> ProHouse will receive my application and the required uploaded documents by email for assessment. If two people apply, the second applicant will receive a private invitation showing my entered contact, work, income and rental preferences. My uploaded identity and income documents and signature will only be sent to ProHouse. I should only provide documents relevant to my application. I can contact <a href="mailto:hi@prohouse.com.au">hi@prohouse.com.au</a> about my information. <a href="/privacy/" target="_blank" rel="noopener">Read the privacy policy</a>.</p>
     </div>
     <label class="checkline"><input type="checkbox" id="declaration" name="declaration" value="Yes" required><span>I have read and agree to the application declaration above. <span class="req">*</span></span></label>
     <div style="height:10px"></div>
@@ -151,7 +151,7 @@
  for(const button of form.querySelectorAll('.next'))button.addEventListener('click',()=>{if(validateStep()){if(current===2)renderSummary();showStep(current+1)}});
  for(const button of form.querySelectorAll('.back'))button.addEventListener('click',()=>showStep(current-1));
  function toggle(id,show){$(id).hidden=!show}
- function updatePeople(){const two=form.elements.people.value==='Two people';toggle('secondApplicant',two);$('secondEmail').required=two;}
+ function updatePeople(){const two=form.elements.people.value==='Two people';toggle('secondApplicant',two);$('secondEmail').required=two;if(!two)$('secondEmail').value='';}
  for(const radio of form.querySelectorAll('[name=people]'))radio.addEventListener('change',updatePeople);
  updatePeople();
  const roomsByProperty={
