@@ -15,14 +15,14 @@ const validDate=v=>/^\d{4}-\d{2}-\d{2}$/.test(v)&&!Number.isNaN(Date.parse(v+'T1
 const money=v=>'$'+Number(v).toFixed(2);
 const date=v=>{const [y,m,d]=v.split('-');return d+'/'+m+'/'+y;};
 function compose(data,settings){
- const names=[data.firstName,data.lastName].filter(Boolean).join(' ').trim();
- const second=[data.secondFirstName,data.secondLastName].filter(Boolean).join(' ').trim();
+ const names=settings.guest1Name||[data.firstName,data.lastName].filter(Boolean).join(' ').trim();
+ const second=settings.guest2Name||(data.people==='Two people'?[data.secondFirstName,data.secondLastName].filter(Boolean).join(' ').trim():'');
  const guests=[names,second].filter(Boolean).join('  /  ');
- const emails=[data.email,data.people==='Two people'?data.secondEmail:''].filter(Boolean).join('  /  ');
- const phones=[data.phone,data.people==='Two people'?data.secondPhone:''].filter(Boolean).join('  /  ');
+ const emails=[settings.guest1Email||data.email,data.people==='Two people'?(settings.guest2Email||data.secondEmail):''].filter(Boolean).join('  /  ');
+ const phones=[settings.guest1Phone||data.phone,data.people==='Two people'?(settings.guest2Phone||data.secondPhone):''].filter(Boolean).join('  /  ');
  return {guests,emails,phones,
    address:settings.fullAddress,
-   rentedArea:data.room==='Other'?data.roomOther:data.room,
+   rentedArea:settings.rentedArea||(data.room==='Other'?data.roomOther:data.room),
    rent:money(settings.acceptedWeeklyRent)+' per week',
    frequency:settings.rentFrequency,
    internet:settings.internet,
@@ -36,7 +36,7 @@ function compose(data,settings){
    providerSigner:settings.providerSigner
  };
 }
-export async function fillMutualAgreementPDF(templateBytes,data,settings,reference){
+export async function fillMutualAgreementPDF(templateBytes,data,settings,reference,options={draft:true}){
  const doc=await PDFDocument.load(templateBytes,{ignoreEncryption:false});
  if(doc.getPageCount()!==6)throw Error('Template must be the six-page ProHouse mutual agreement PDF.');
  const last=doc.getPage(5),regular=await doc.embedFont(StandardFonts.Helvetica);
@@ -72,12 +72,16 @@ export async function fillMutualAgreementPDF(templateBytes,data,settings,referen
   while(size>7&&regular.widthOfTextAtSize(v,size)>180)size-=.5;
   last.drawText(v.slice(0,90),{x,y:pageHeight-top,font:regular,size,color});
  }
- for(const page of doc.getPages()){
-  page.drawText('DRAFT / LEGAL REVIEW REQUIRED / NOT FOR SIGNING',
-    {x:55,y:16,size:8.3,font:bold,color:rgb(.65,.13,.14),opacity:.86});
+ if(options.draft!==false){
+  for(const page of doc.getPages()){
+   page.drawText('DRAFT / LEGAL REVIEW REQUIRED / NOT FOR SIGNING',
+     {x:55,y:16,size:8.3,font:bold,color:rgb(.65,.13,.14),opacity:.86});
+  }
  }
- doc.setTitle('Draft ProHouse mutual agreement - '+reference);
- doc.setSubject('Schedule A mail merge draft; not signed or approved for issue');
+ doc.setTitle((options.draft!==false?'Draft ':'')+'ProHouse mutual agreement - '+reference);
+ doc.setSubject(options.draft!==false?
+   'Schedule A mail merge draft; not signed or approved for issue':
+   'Mutual agreement issued by ProHouse for separate electronic signatures');
  return new Uint8Array(await doc.save());
 }
 export async function generateMutualLeaseDraft(request,env){
