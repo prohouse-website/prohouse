@@ -13,7 +13,7 @@ const nonce=()=>[...crypto.getRandomValues(new Uint8Array(32))].map(x=>x.toStrin
 const iso=()=>new Date().toISOString();
 const future=hours=>new Date(Date.now()+hours*3600000).toISOString();
 const headerToken=req=>(req.headers.get('Authorization')||'').replace(/^Bearer\s+/i,'').trim();
-const bytes=x=>x instanceof Uint8Array?x:Uint8Array.from(x||[]);
+const bytes=x=>x instanceof Uint8Array?x:x instanceof ArrayBuffer?new Uint8Array(x):Uint8Array.from(x||[]);
 function base64(bytes){
  let x='';for(let i=0;i<bytes.length;i+=8192)x+=String.fromCharCode(...bytes.subarray(i,i+8192));
  return btoa(x);
