@@ -347,25 +347,45 @@ export async function submitLongStaySecond(request,env){
   let documents;try{documents=await readFiles(form,'second')}catch(e){return reply(400,e.message)}
   const original=JSON.parse(row.first_data||'{}');
   const combined={...original,...extra,secondEmail:row.second_email};
-  let pdf;try{pdf=await buildApplicationPDF(combined,documents,row.reference,row.first_signature,signature);}
-  catch(e){console.error('Second applicant PDF error',e?.message);return reply(500,'Cannot generate the combined PDF.')}
+  let pdf;
+  try{
+    const firstPackage=await retrieveFirstPackage(env,row.reference,row.first_email_id);
+    const summary=await buildApplicationPDF(combined,documents,row.reference,row.first_signature,signature);
+    pdf=await combineApplicationPDF(summary,documents,{
+      priorPdf:firstPackage,priorSummaryPages:row.first_summary_pages
+    });
+  }catch(e){
+    console.error('Second applicant document packaging error',row.reference,e?.message);
+    return reply(502,'Unable to retrieve the first applicant documents and combine the PDF. Please contact ProHouse.');
+  }
   // The pending -> processing transition prevents duplicate concurrent submissions.
   const changed=await env.LONGSTAY_DB.prepare("UPDATE longstay_applications SET status='processing' WHERE reference=? AND status='invited'")
     .bind(row.reference).run();
   if(!changed.meta?.changes)return reply(409,'Application already in progress.');
-  const stage3='Both applicants completed their submissions.\n'+
-    'Reference: '+row.reference+'\nApplicant 1: '+row.first_name+' <'+row.first_email+'>\n'+
-    'Applicant 2: '+extra.secondFirstName+' '+extra.secondLastName+' <'+row.second_email+'>\n\n'+
-    appText(combined)+'\n\nThe combined PDF and SECOND applicant supporting files are attached. '+
-    'The FIRST applicant supporting files were delivered in the initial application email.';
-  try{
-    await sendMail(env,{to:admin(env),subject:'[3/3 complete] ProHouse joint application '+row.reference,
-      replyTo:row.second_email,tag:'second-complete',text:stage3,
-      attachments:[{filename:row.reference+'-joint-application.pdf',content:pdfBase64(pdf),content_type:'application/pdf'},
-        ...attachmentsFrom(documents)]});
-  }catch(e){
+  let reviewLink;
+  try{reviewLink=await createReview(env,row.reference,combined,request)}
+  catch(e){
     await env.LONGSTAY_DB.prepare("UPDATE longstay_applications SET status='invited' WHERE reference=? AND status='processing'").bind(row.reference).run().catch(()=>{});
-    return reply(502,'Could not deliver your application documents. Please try again.');
+    return reply(503,'Could not prepare the application review. Please try again.');
+  }
+  const stage3=['Both applicants completed their submissions.','Reference: '+row.reference,
+    'Applicant 1: '+row.first_name+' <'+row.first_email+'>',
+    'Applicant 2: '+extra.secondFirstName+' '+extra.secondLastName+' <'+row.second_email+'>',
+    '',appText(combined),'',
+    'One PDF is attached. It includes the final joint summary, both signatures and ALL uploaded supporting documents.',
+    '',
+    'Private link to APPROVE or REJECT this application:',
+    reviewLink,
+    'Do not forward. Approval moves the application to lease preparation and does not itself create a lease.'
+  ].join('\n');
+  try{
+    await sendMail(env,{to:admin(env),subject:'[REVIEW REQUIRED] ProHouse joint application '+row.reference,
+      replyTo:row.second_email,tag:'second-complete',text:stage3,
+      attachments:[{filename:row.reference+'-joint-complete.pdf',content:pdfBase64(pdf.bytes),content_type:'application/pdf'}]});
+  }catch(e){
+    await cancelReview(env,row.reference).catch(()=>{});
+    await env.LONGSTAY_DB.prepare("UPDATE longstay_applications SET status='invited' WHERE reference=? AND status='processing'").bind(row.reference).run().catch(()=>{});
+    return reply(502,'Could not deliver your combined application PDF. Please try again.');
   }
   await env.LONGSTAY_DB.prepare("UPDATE longstay_applications SET status='completed',first_data=NULL,first_signature=NULL,completed_at=? WHERE reference=? AND status='processing'")
     .bind(new Date().toISOString(),row.reference).run();
