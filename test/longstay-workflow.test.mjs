@@ -67,9 +67,9 @@ function makeRequest(path,form,method='POST') {
  });
 }
 function mockEnv(){
- const rows=new Map(),reviews=new Map(),sent=[];
+ const rows=new Map(),reviews=new Map(),templates=new Map(),sent=[];
  return {
-  rows,reviews,sent,
+  rows,reviews,templates,sent,
   env:{
    RESEND_API_KEY:'unit-test-value',APPLICATION_FROM_EMAIL:'ProHouse TEST <no-reply@prohouse.com.au>',
    PROHOUSE_ADMIN_EMAILS:'hi@prohouse.com.au',
@@ -80,10 +80,13 @@ function mockEnv(){
       async first(){
        if(sql.includes('WHERE invite_hash'))return [...rows.values()].find(x=>x.invite_hash===args.values[0])||null;
        if(sql.includes('WHERE token_hash'))return [...reviews.values()].find(x=>x.token_hash===args.values[0])||null;
+       if(sql.includes('SELECT template_bytes FROM longstay_lease_templates'))return templates.has(args.values[0])?
+         {template_bytes:[...templates.get(args.values[0])]}:null;
        throw Error('Unexpected D1 SELECT '+sql);
       },
       async run(){
        const v=args.values||[];
+       if(sql.startsWith('INSERT INTO longstay_lease_templates')){templates.set(v[0],v[1]);return {meta:{changes:1}}}
        if(sql.startsWith('INSERT INTO longstay_reviews')){
         const [reference,token_hash,status,first_email,second_email,summary_json,created_at,expires_at]=v;
         reviews.set(reference,{reference,token_hash,status,first_email,second_email,summary_json,created_at,expires_at});
@@ -277,8 +280,13 @@ test('staff draft endpoint requires an approved review token and confirmed finan
  const forbidden=await generateMutualLeaseDraft(request(),m.env);
  assert.equal(forbidden.status,403);
  m.reviews.get('LH-TEST-0002').status='approved';
+ f.set('saveTemplate','Yes');
  const generated=await generateMutualLeaseDraft(request(),m.env);
  assert.equal(generated.status,200);
+ assert.ok(m.templates.has('mutual-agreement-v10'));
+ f.delete('template');
+ const reused=await generateMutualLeaseDraft(request(),m.env);
+ assert.equal(reused.status,200);
  assert.equal(generated.headers.get('content-type'),'application/pdf');
  const result=await PDFDocument.load(await generated.arrayBuffer());
  assert.equal(result.getPageCount(),6);
