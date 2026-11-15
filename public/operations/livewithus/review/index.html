@@ -21,6 +21,13 @@
 .disclosure{background:#fff6ec;padding:15px;border:1px solid #f1d7b0;border-radius:10px;font-size:13px;margin:18px 0}
 .status{font-size:13px;font-weight:700;margin:15px 0;line-height:1.6}
 @media(max-width:570px){.details{grid-template-columns:1fr}.decisions button{width:100%}}
+.leasePanel{padding-top:28px;margin-top:30px;border-top:1px solid var(--line)}
+.leasePanel .leaseGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:20px 0}
+.leasePanel label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}
+.leasePanel input,.leasePanel select{display:block;width:100%;padding:13px 12px;border:1px solid #cfd8cd;border-radius:9px;margin-top:5px;min-height:45px}
+.leasePanel .wide{grid-column:1/-1}
+.leasePanel .draftNote{padding:15px;background:#fff8ea;border-radius:11px;color:#624d1d;font-size:13px;margin:13px 0}
+@media(max-width:570px){.leasePanel .leaseGrid{grid-template-columns:1fr}}
 </style>
 </head><body>
 <header><div class="topbar"><a class="brand" href="/operations/"><img src="/assets/prohouse-logo-transparent.png" alt="ProHouse"></a><a class="toplink" href="/operations/">Operations Portal</a></div></header>
@@ -41,6 +48,31 @@
    <button type="button" class="secondary decisionReject" id="rejectButton">Reject application</button>
   </div>
   <p class="status" id="decisionStatus" role="status"></p>
+  <section id="leasePanel" class="leasePanel" hidden>
+   <h2>Prepare Schedule A draft</h2>
+   <p>The applicant’s names, emails, phone numbers and selected room are merged automatically. Confirm the agreed financial and lease details below. The source agreement’s first five pages remain unchanged.</p>
+   <p class="draftNote"><strong>Not ready for signing:</strong> the uploaded mutual agreement contains clauses requiring legal review for NSW and Victoria, including eviction without a tribunal/court order. All generated PDFs are stamped “DRAFT / LEGAL REVIEW REQUIRED”. Application signatures will never be reused as lease signatures.</p>
+   <form id="leaseForm" enctype="multipart/form-data" novalidate>
+    <div class="leaseGrid">
+     <div class="wide"><label for="leaseTemplate">Mutual agreement PDF template (6 pages, converted from the supplied Word document) *</label><input type="file" id="leaseTemplate" name="template" required accept=".pdf,application/pdf"><small>Use the six-page PDF copy supplied in this conversation. Only Schedule A will be filled.</small></div>
+     <div class="wide"><label for="fullAddress">Agreed full property address *</label><input id="fullAddress" name="fullAddress" required maxlength="180" placeholder="Unit / street number, street, suburb, state and postcode"></div>
+     <div><label for="acceptedWeeklyRent">Approved weekly rent (AUD) *</label><input id="acceptedWeeklyRent" name="acceptedWeeklyRent" required inputmode="decimal" type="number" min="1" step=".01" placeholder="Confirm, not just proposed rent"></div>
+     <div><label for="rentFrequency">Agreed rent payment interval *</label><select id="rentFrequency" name="rentFrequency" required><option>Every week</option><option>Every 2 weeks</option><option>Every 4 weeks</option><option>Every calendar month</option></select></div>
+     <div><label for="leaseStart">Agreed commencement date *</label><input id="leaseStart" name="leaseStart" type="date" required></div>
+     <div><label for="leaseEnd">Agreed end date *</label><input id="leaseEnd" name="leaseEnd" type="date" required></div>
+     <div><label for="cleaningBond">Refundable cleaning bond (AUD) *</label><input id="cleaningBond" name="cleaningBond" type="number" inputmode="decimal" min="0" step=".01" required placeholder="Enter 0 if none"></div>
+     <div><label for="holdingFund">Refundable holding fund (AUD) *</label><input id="holdingFund" name="holdingFund" type="number" inputmode="decimal" min="0" step=".01" required placeholder="Enter 0 if none"></div>
+     <div><label for="internet">Internet charges *</label><input id="internet" name="internet" value="$30 per calendar month" maxlength="180" required></div>
+     <div><label for="electricity">Electricity and gas *</label><input id="electricity" name="electricity" value="Equally split" maxlength="180" required></div>
+     <div><label for="water">Water *</label><input id="water" name="water" value="Equally split" maxlength="180" required></div>
+     <div><label for="bankDetails">Bank BSB and account *</label><input id="bankDetails" name="bankDetails" value="067 873 – 1998 7232" maxlength="180" required></div>
+     <div class="wide"><label for="providerSigner">Provider / agent representative's printed name *</label><input id="providerSigner" name="providerSigner" maxlength="180" required></div>
+    </div>
+    <div class="alert" id="leaseError" role="alert"></div>
+    <button class="primary" type="submit" id="leaseButton">Generate draft agreement PDF</button>
+    <p class="status" id="leaseResult" role="status"></p>
+   </form>
+  </section>
  </section>
 </div>
 </main>
@@ -78,7 +110,56 @@
   $('decisionStatus').textContent=notice||'Decision saved: '+status+'.';
   $('reviewActions').hidden=true;
  }
- if(result.status!=='pending'){showDecision(result.status,'Already reviewed: '+result.status+'.');return;}
+ const leaseForm=$('leaseForm');
+ const rentPrefs={'Every week':'Every week','Every 2 weeks':'Every 2 weeks','Every 4 weeks':'Every 4 weeks','Every calendar month':'Every calendar month'};
+ if(rentPrefs[result.applicant.payFrequency])$('rentFrequency').value=result.applicant.payFrequency;
+ // Intentionally don't accept proposed weekly rent, dates or deposits automatically.
+ $('acceptedWeeklyRent').placeholder='Applicant proposed 
+ async function decide(decision){
+  const message=decision==='approved'
+    ?'Approve this application for lease preparation? This does not generate or sign a lease.'
+    :'Reject this application? Both applicants (if applicable) will be emailed.';
+  if(!confirm(message))return;
+  $('approveButton').disabled=true;$('rejectButton').disabled=true;
+  $('decisionStatus').textContent='Saving decision and notifying applicants…';
+  try{
+   const res=await fetch('/api/longstay/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,decision}),credentials:'same-origin'});
+   const data=await res.json();if(!res.ok)throw Error(data.message||'Could not save decision.');
+   showDecision(data.status,'Saved: '+data.status+'. Email notices sent to '+(data.notificationsSent??0)+' applicant(s).');
+   if(data.status==='approved')$('leasePanel').hidden=false;
+  }catch(e){$('decisionStatus').textContent=e.message;$('approveButton').disabled=false;$('rejectButton').disabled=false}
+ }
+ leaseForm.addEventListener('submit',async e=>{
+  e.preventDefault();
+  $('leaseError').classList.remove('visible');
+  const invalid=[...leaseForm.querySelectorAll('input,select')].find(x=>!x.checkValidity());
+  if(invalid){invalid.reportValidity();return;}
+  const button=$('leaseButton');button.disabled=true;button.textContent='Merging Schedule A…';
+  $('leaseResult').textContent='';
+  try{
+   const formData=new FormData(leaseForm);formData.set('token',token);
+   const result=await fetch('/api/longstay/lease-draft',{method:'POST',body:formData,credentials:'same-origin'});
+   if(!result.ok){const error=await result.json();throw Error(error.message||'Unable to create draft.');}
+   const blob=await result.blob(),url=URL.createObjectURL(blob),a=document.createElement('a');
+   a.href=url;a.download='ProHouse-Mutual-Agreement-DRAFT-'+(result?.reference||$('reference').textContent)+'.pdf';
+   document.body.appendChild(a);a.click();a.remove();
+   $('leaseResult').textContent='Draft PDF generated. It is not signed and must be legally reviewed.';
+  }catch(error){$('leaseError').textContent=error.message;$('leaseError').classList.add('visible')}
+  finally{button.disabled=false;button.textContent='Generate draft agreement PDF'}
+ });
+ $('approveButton').addEventListener('click',()=>decide('approved'));
+ $('rejectButton').addEventListener('click',()=>decide('rejected'));
+})();
+</script></body></html>+(result.applicant.weeklyRent||'?')+' / week. Confirm agreed rate.';
+ $('leaseStart').value='';
+ const prop=result.applicant.property||'';
+ if(prop.includes('Guess Avenue'))$('fullAddress').placeholder='Confirm: 15 Guess Avenue, Wolli Creek NSW 2205';
+ if(prop.includes('Arncliffe Street'))$('fullAddress').placeholder='Confirm: G01/52–62 Arncliffe Street, Wolli Creek NSW 2205';
+ if(result.status!=='pending'){
+  showDecision(result.status,'Already reviewed: '+result.status+'.');
+  if(result.status==='approved')$('leasePanel').hidden=false;
+  return;
+ }
  async function decide(decision){
   const message=decision==='approved'
     ?'Approve this application for lease preparation? This does not generate or sign a lease.'
