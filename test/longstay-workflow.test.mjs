@@ -35,7 +35,7 @@ function buildFirst({second=true,missingDocument=false,wrongRoom=false}={}){
  const f=new FormData();
  const fields={
   people:second?'Two people':'Just me',houseRules:'Yes',firstName:'TEST',lastName:'Applicant',
-  email:'first@example.com',phone:'0400000001',photoIdType:'Passport',occupation:'Student',
+  email:'first@example.com',phone:'0400000001',occupation:'Student',
   workFromHome:'No',employer:'Test School',income:'450',
   secondEmail:second?'second@example.com':'',
   property:'NSW - Arncliffe Street, Wolli Creek',room:wrongRoom?'Master room with ensuite':'Room 2 (near kitchen)',
@@ -51,7 +51,7 @@ function buildFirst({second=true,missingDocument=false,wrongRoom=false}={}){
 function buildSecond(token){
  const f=new FormData();
  const fields={
-  invitationToken:token,secondIdType:'Australian-issued driver licence',secondFirstName:'TEST SECOND',secondLastName:'Applicant',secondPhone:'0400000002',
+  invitationToken:token,secondFirstName:'TEST SECOND',secondLastName:'Applicant',secondPhone:'0400000002',
   secondOccupation:'Casual employee',secondWorkFromHome:'Sometimes',secondEmployer:'Test Business',
   secondIncome:'550',secondDeclaration:'Yes',secondPrivacyConsent:'Yes',signature
  };
@@ -67,9 +67,9 @@ function makeRequest(path,form,method='POST') {
  });
 }
 function mockEnv(){
- const rows=new Map(),reviews=new Map(),templates=new Map(),sent=[];
+ const rows=new Map(),reviews=new Map(),templates=new Map(),docs=new Map(),sent=[];
  return {
-  rows,reviews,templates,sent,
+  rows,reviews,templates,docs,sent,
   env:{
    RESEND_API_KEY:'unit-test-value',APPLICATION_FROM_EMAIL:'ProHouse TEST <no-reply@prohouse.com.au>',
    PROHOUSE_ADMIN_EMAILS:'hi@prohouse.com.au',
@@ -78,6 +78,12 @@ function mockEnv(){
      const args={};
      return {bind(...p){args.values=p;return this;},
       async first(){
+       if(sql.includes('SELECT COUNT(*) AS chunks FROM longstay_application_documents'))
+         return {chunks:(docs.get(args.values[0])||new Map()).size};
+       if(sql.includes('SELECT ciphertext FROM longstay_application_documents')){
+         const b=docs.get(args.values[0])?.get(args.values[1]);
+         return b?{ciphertext:[...b]}:null;
+       }
        if(sql.includes('WHERE invite_hash'))return [...rows.values()].find(x=>x.invite_hash===args.values[0])||null;
        if(sql.includes('WHERE token_hash'))return [...reviews.values()].find(x=>x.token_hash===args.values[0])||null;
        if(sql.includes('SELECT template_bytes FROM longstay_lease_templates'))return templates.has(args.values[0])?
@@ -86,6 +92,13 @@ function mockEnv(){
       },
       async run(){
        const v=args.values||[];
+       if(sql.startsWith('INSERT INTO longstay_application_documents')){
+         let chunks=docs.get(v[0]);if(!chunks){chunks=new Map();docs.set(v[0],chunks);}
+         chunks.set(v[1],v[2]);return {meta:{changes:1}};
+       }
+       if(sql.startsWith('DELETE FROM longstay_application_documents')){
+         docs.delete(v[0]);return {meta:{changes:1}};
+       }
        if(sql.startsWith('INSERT INTO longstay_lease_templates')){templates.set(v[0],v[1]);return {meta:{changes:1}}}
        if(sql.startsWith('INSERT INTO longstay_reviews')){
         const [reference,token_hash,status,first_email,second_email,summary_json,created_at,expires_at]=v;
@@ -160,6 +173,7 @@ test('two applicant lifecycle emails, PDF signatures and D1 cleanup',async()=>{
   assert.ok(firstMail);assert.equal(firstMail.to[0],'hi@prohouse.com.au');
   assert.equal(firstMail.attachments.length,1); // single PDF contains summary, ID, income proof
   assert.ok((await PDFDocument.load(Buffer.from(firstMail.attachments[0].content,'base64'))).getPageCount()>=3);
+  assert.ok(m.docs.get(first.reference)?.size>=1,'Encrypted PDF must be temporarily stored for joint application');
   const invite=m.sent.find(x=>x.subject.includes('Complete your ProHouse joint application'));
   assert.ok(invite);
   assert.deepEqual(invite.to,['second@example.com']);
@@ -214,6 +228,7 @@ test('two applicant lifecycle emails, PDF signatures and D1 cleanup',async()=>{
   assert.equal(m.rows.get(first.reference).status,'completed');
   assert.equal(m.rows.get(first.reference).first_data,null);
   assert.equal(m.rows.get(first.reference).first_signature,null);
+  assert.equal(m.docs.has(first.reference),false,'Temporary first-person PDF must be deleted after completion');
   assert.ok(m.sent.some(x=>x.subject.includes('Both applicants submitted')));
   assert.ok(m.sent.some(x=>x.subject.includes('Your ProHouse application is complete')));
   const repeat=await submitLongStaySecond(makeRequest('/api/longstay/coapplicant',buildSecond(token)),m.env);
