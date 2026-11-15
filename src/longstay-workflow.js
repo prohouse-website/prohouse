@@ -27,6 +27,15 @@ const sender=env=>env.APPLICATION_FROM_EMAIL||env.CLEANER_FROM_EMAIL||'ProHouse 
 const admin=env=>env.PROHOUSE_ADMIN_EMAILS?.split(',').map(x=>x.trim()).filter(Boolean)||['hi@prohouse.com.au'];
 const pdfBase64=bytes=>{let s='';for(let i=0;i<bytes.length;i+=8192)s+=String.fromCharCode(...bytes.subarray(i,i+8192));return btoa(s);};
 const safeFileName=(v,fallback)=>String(v||fallback).split(/[\\/]/).pop().replace(/[^a-zA-Z0-9._ -]/g,'_').replace(/^\.+/,'').slice(0,90)||fallback;
+async function rateCheck(request,env){
+  if(!env.LONGSTAY_FORM_LIMIT)return null;
+  try{
+    const ip=request.headers.get('CF-Connecting-IP')||'unknown';
+    const {success}=await env.LONGSTAY_FORM_LIMIT.limit({key:'longstay-form:'+ip});
+    if(!success)return reply(429,'Too many attempts. Please try again shortly.');
+  }catch(e){console.warn('Longstay rate limiting error',e?.message);}
+  return null;
+}
 function errorCheck(request){
   const origin=request.headers.get('Origin');
   if(origin&&origin!==new URL(request.url).origin)return reply(403,'This form must be submitted from ProHouse.');
@@ -131,6 +140,9 @@ async function hashToken(token){
 function privatePreview(data,reference){
   return {
     reference,firstName:data.firstName,lastName:data.lastName,
+    email:data.email,phone:data.phone,occupation:data.occupation,occupationOther:data.occupationOther,
+    workFromHome:data.workFromHome,workFromHomeOther:data.workFromHomeOther,
+    employer:data.employer,income:data.income,
     property:data.property,propertyOther:data.propertyOther,room:data.room,roomOther:data.roomOther,
     moveIn:data.moveIn,length:data.length,lengthOther:data.lengthOther,
     weeklyRent:data.weeklyRent,payFrequency:data.payFrequency,linen:data.linen
@@ -160,6 +172,7 @@ export async function cleanupLongStayInvitations(env){try{await cleanupPending(e
 export async function submitLongStayFirst(request,env){
   if(request.method!=='POST')return reply(405,'Method not allowed.');
   const early=errorCheck(request);if(early)return early;
+  const limited=await rateCheck(request,env);if(limited)return limited;
   if(!env.RESEND_API_KEY||!env.LONGSTAY_DB)return reply(503,'Rental applications are temporarily unavailable.');
   let form;try{form=await request.formData()}catch{return reply(400,'Could not read the uploaded application.')}
   if(form.get('website'))return reply(200,'Thank you.');
@@ -223,8 +236,11 @@ export async function submitLongStayFirst(request,env){
       'Details provided by the first applicant:',
       summarise(data,ref),
       'First applicant email: '+data.email,
+      'Phone: '+data.phone,
       'Occupation: '+data.occupation,
+      'Work from home: '+data.workFromHome,
       'Employer or school: '+data.employer,
+      'Weekly income (AUD): '+data.income,
       '',
       'You must complete your own legal name, contact details, occupation, work/study information, income and supporting documents.',
       'The first applicant’s ID, proof-of-income documents and signature are not included in this email or shared with you.',
@@ -266,6 +282,7 @@ export async function submitLongStayFirst(request,env){
 export async function submitLongStaySecond(request,env){
   if(request.method!=='POST')return reply(405,'Method not allowed.');
   const early=errorCheck(request);if(early)return early;
+  const limited=await rateCheck(request,env);if(limited)return limited;
   if(!env.RESEND_API_KEY||!env.LONGSTAY_DB)return reply(503,'Invitation service unavailable.');
   let form;try{form=await request.formData()}catch{return reply(400,'Cannot read your form.')}
   if(form.get('website'))return reply(200,'Thank you.');
