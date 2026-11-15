@@ -117,13 +117,13 @@ export async function buildApplicationPDF(data, documents, reference, signature,
   section('Screening');
   row('Applicants', data.people); row('Housemate guideline', data.houseRules);
   section('Main applicant');
-  applicationFields.slice(2,13).forEach(([key,label])=>row(label,data[key]));
+  applicationFields.slice(2,12).forEach(([key,label])=>row(label,data[key]));
   section('Second applicant');
-  applicationFields.slice(13,26).forEach(([key,label])=>row(label,data[key]));
+  applicationFields.slice(12,24).forEach(([key,label])=>row(label,data[key]));
   section('Rental preferences');
-  applicationFields.slice(26,37).forEach(([key,label])=>row(label,data[key]));
+  applicationFields.slice(24,35).forEach(([key,label])=>row(label,data[key]));
   section('Declarations');
-  applicationFields.slice(37).forEach(([key,label])=>row(label,data[key]));
+  applicationFields.slice(35).forEach(([key,label])=>row(label,data[key]));
   section('Attached documents');
   if (!documents.length) row('Documents', 'None supplied with initial application');
   documents.forEach(({label,filename})=>row(label,filename));
