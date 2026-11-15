@@ -97,8 +97,17 @@ export async function generateMutualLeaseDraft(request,env){
  if(row.expires_at<new Date().toISOString())return json(410,'Review link expired.');
  if(row.status!=='approved')return json(403,'An application must be approved before preparing a lease draft.');
  const file=form.get('template');
- if(!file||typeof file==='string'||!file.size||file.type!=='application/pdf'||file.size>MAX_PDF_BYTES)
-   return json(400,'Upload the six-page PDF conversion of your mutual agreement.');
+ let bytes,uploaded=false;
+ if(file && typeof file!=='string' && file.size){
+   if(file.type!=='application/pdf'||file.size>MAX_PDF_BYTES)return json(400,'Upload a six-page PDF no larger than 3 MB.');
+   bytes=new Uint8Array(await file.arrayBuffer());
+   uploaded=true;
+ }else{
+   const stored=await env.LONGSTAY_DB.prepare('SELECT template_bytes FROM longstay_lease_templates WHERE template_name=?')
+     .bind('mutual-agreement-v10').first();
+   if(!stored?.template_bytes)return json(400,'No saved agreement template. Upload the converted six-page PDF the first time.');
+   bytes=Uint8Array.from(stored.template_bytes);
+ }
  const keys=['fullAddress','acceptedWeeklyRent','leaseStart','leaseEnd','cleaningBond','holdingFund',
    'rentFrequency','internet','electricity','water','bankDetails','providerSigner'];
  const settings=Object.fromEntries(keys.map(k=>[k,text(form.get(k),180)]));
@@ -111,10 +120,16 @@ export async function generateMutualLeaseDraft(request,env){
    return json(400,'Enter valid agreed lease dates.');
  let data;
  try{data=JSON.parse(row.summary_json||'{}');}catch{return json(503,'Approved application data is unavailable.');}
- const bytes=new Uint8Array(await file.arrayBuffer());
  if(![37,80,68,70,45].every((b,i)=>bytes[i]===b))return json(400,'Upload a genuine PDF file.');
  try{
   const result=await fillMutualAgreementPDF(bytes,data,settings,row.reference);
+  if(uploaded && form.get('saveTemplate')==='Yes'){
+    try{
+      await env.LONGSTAY_DB.prepare(
+        'INSERT INTO longstay_lease_templates (template_name,template_bytes,uploaded_by_reference,updated_at) VALUES (?,?,?,?) ON CONFLICT(template_name) DO UPDATE SET template_bytes=excluded.template_bytes, uploaded_by_reference=excluded.uploaded_by_reference, updated_at=excluded.updated_at'
+      ).bind('mutual-agreement-v10',bytes,row.reference,new Date().toISOString()).run();
+    }catch(e){console.error('Could not save master lease template',e?.message);return json(503,'Draft rendered but master template could not be saved. Please try again.');}
+  }
   return new Response(result,{
    status:200,headers:{...HDR,'Content-Type':'application/pdf',
     'Content-Disposition':'attachment; filename="ProHouse-Mutual-Agreement-DRAFT-'+row.reference+'.pdf"'}
