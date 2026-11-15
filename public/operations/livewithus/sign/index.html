@@ -50,6 +50,8 @@
 <label class="checkline"><input id="readAll" type="checkbox" required> I have read all six pages of the displayed PDF.</label>
 <label class="checkline"><input id="terms" type="checkbox" required> I agree to the terms of this rental agreement.</label>
 <label class="checkline"><input id="electronic" type="checkbox" required> I consent to signing electronically and receiving signed documents by email.</label>
+<p class="notice"><strong>Cancellation / withdrawal:</strong> If you withdraw after signing and transferring your first week's rent, ProHouse may apply that payment towards rent owed or lawful lease-break costs. Depending on the applicable agreement and state law, you may lose some or all of your first-week payment. This is not an automatic non-refundable fee. Any amount not lawfully owed will be refunded.</p>
+<label class="checkline"><input id="withdrawalNotice" type="checkbox" required> I have read and understand the cancellation and withdrawal notice, including that applicable law determines any amount retained or refunded.</label>
 <div class="field"><label>Draw your signature</label><div class="signatureWrap"><canvas id="signature" role="img" aria-label="Draw your signature"></canvas>
 <div class="signatureBar"><span>Finger or mouse</span><button type="button" id="clearSignature">Clear</button></div></div></div>
 <button type="submit" id="signButton" class="primary">Sign agreement</button></form>
@@ -133,7 +135,7 @@
   try{
    await api('tenant-sign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
     legalName:$('legalName').value,readAllPages:$('readAll').checked,agreeTerms:$('terms').checked,
-    agreeElectronicSign:$('electronic').checked,signature:canvas.toDataURL('image/png')})});
+    agreeElectronicSign:$('electronic').checked,acknowledgeWithdrawalTerms:$('withdrawalNotice').checked,signature:canvas.toDataURL('image/png')})});
    $('signForm').hidden=true;$('signedNotice').style.display='block';success('Your signature was recorded.');
   }catch(e){error(e.message);b.disabled=false;b.textContent='Sign agreement';}
  });
