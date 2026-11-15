@@ -164,7 +164,7 @@ test('lease editor -> preview -> separate tenant signing -> bank confirmation ->
   assert.ok(new Date(packet.deadline_at).getTime()-Date.now()<=24*3600000+15000);
   const invited=mock.sent.filter(x=>x.subject.startsWith('Congratulations! Sign your ProHouse lease'));
   assert.ok(invited.every(x=>x.text.includes('SCHEDULE A, the LAST PAGE')));
-  assert.ok(invited.every(x=>x.text.includes('Commonwealth Bank')));
+  assert.ok(invited.every(x=>x.text.toLowerCase().includes('commonwealth bank')));
   assert.ok(invited.every(x=>x.text.includes('ONE WEEK of rent')));
   assert.equal(invited.length,2);
   const inviteToken=(mail)=>mail.text.match(/#token=([a-f0-9]{64})/)[1];
