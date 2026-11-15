@@ -126,7 +126,7 @@ function leaseForm(pdf){
   guest2Name:'BOB EXAMPLE',guest2Email:'bob@example.com',guest2Phone:'0400222222',
   fullAddress:'G01/52-62 Arncliffe Street, Wolli Creek NSW 2205',rentedArea:'Room 1',
   acceptedWeeklyRent:'450.00',leaseStart:'2026-12-10',leaseEnd:'2027-06-09',
-  cleaningBond:'0',holdingFund:'0',rentFrequency:'Every 2 weeks',
+  cleaningBond:'0',holdingFund:'0',bondAmount:'1800.00',rentFrequency:'Every 2 weeks',
   internet:'$30 per calendar month',electricity:'Equally split',water:'Equally split',
   bankDetails:'067 873 - 1998 7232',payId:'hi@prohouse.com.au',providerSigner:'CU NGUYEN'};
  for(const [k,v] of Object.entries(data))f.set(k,v);
@@ -162,7 +162,10 @@ test('lease editor -> preview -> separate tenant signing -> bank confirmation ->
   const packet=mock.packets.get(mock.review.reference);
   assert.equal(packet.status,'sent');assert.ok(packet.first_token_hash&&packet.second_token_hash);
   assert.ok(new Date(packet.deadline_at).getTime()-Date.now()<=24*3600000+15000);
-  const invited=mock.sent.filter(x=>x.subject.startsWith('Action required in 24 hours'));
+  const invited=mock.sent.filter(x=>x.subject.startsWith('Congratulations! Sign your ProHouse lease'));
+  assert.ok(invited.every(x=>x.text.includes('SCHEDULE A, the LAST PAGE')));
+  assert.ok(invited.every(x=>x.text.includes('Commonwealth Bank')));
+  assert.ok(invited.every(x=>x.text.includes('ONE WEEK of rent')));
   assert.equal(invited.length,2);
   const inviteToken=(mail)=>mail.text.match(/#token=([a-f0-9]{64})/)[1];
   const t1=inviteToken(invited[0]),t2=inviteToken(invited[1]);
@@ -207,6 +210,10 @@ test('lease editor -> preview -> separate tenant signing -> bank confirmation ->
   const completeEmails=mock.sent.filter(x=>x.subject.startsWith('Your fully signed'));
   assert.equal(completeEmails.length,2);
   assert.ok(completeEmails.every(x=>x.attachments.length===1));
+  assert.ok(completeEmails.every(x=>x.text.includes('RENTAL BOND: AUD $1800.00')));
+  assert.ok(completeEmails.every(x=>x.text.includes('SECOND WEEK OF RENT: AUD $450.00')));
+  assert.ok(completeEmails.every(x=>x.text.includes('CLEARED and is VISIBLE in the ProHouse bank account')));
+  assert.ok(completeEmails.every(x=>x.text.includes('LAST PAGE')));
  }finally{globalThis.fetch=originalFetch}
 });
 test('24-hour expiration locks unsigned lease and alerts ProHouse',async()=>{
