@@ -10,11 +10,11 @@ const allowedTypes = new Set(['application/pdf', 'image/jpeg', 'image/png', 'ima
 export const applicationFields = [
   ['people','Number of applicants'], ['houseRules','Shared-house guideline accepted'],
   ['firstName','First name'], ['lastName','Family name'], ['email','Email'],
-  ['phone','Phone'], ['photoIdType','Identification type'], ['occupation','Occupation'], ['occupationOther','Other occupation'],
+  ['phone','Phone'], ['occupation','Occupation'], ['occupationOther','Other occupation'],
   ['workFromHome','Working from home'], ['workFromHomeOther','Working from home details'],
   ['employer','Employer or school'], ['income','Weekly income (AUD)'],
   ['secondEmail','Second applicant invited email'], ['secondFirstName','Second applicant first name'],
-  ['secondLastName','Second applicant family name'], ['secondPhone','Second applicant phone'], ['secondIdType','Second applicant identification type'],
+  ['secondLastName','Second applicant family name'], ['secondPhone','Second applicant phone'],
   ['secondOccupation','Second applicant occupation'], ['secondOccupationOther','Second applicant other occupation'],
   ['secondWorkFromHome','Second applicant working from home'],
   ['secondWorkFromHomeOther','Second applicant work from home details'],
