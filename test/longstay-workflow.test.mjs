@@ -203,6 +203,9 @@ test('two applicant lifecycle emails, PDF signatures and D1 cleanup',async()=>{
   assert.ok(approvalEmails.every(x=>x.text.includes('Your 24-hour countdown does NOT start')));
   assert.ok(approvalEmails.every(x=>x.text.toLowerCase().includes('schedule a, the last page')));
   assert.ok(approvalEmails.every(x=>x.text.includes('Commonwealth Bank')));
+  assert.ok(approvalEmails.every(x=>x.text.includes('IF YOU WITHDRAW AFTER SIGNING AND PAYING')));
+  assert.ok(approvalEmails.every(x=>x.text.includes('not an automatic non-refundable cancellation fee')));
+  assert.ok(approvalEmails.every(x=>x.text.includes('BEFORE ProHouse will countersign')));
   const repeatDecision=await decideLongStayReview(new Request('https://www.prohouse.com.au/api/longstay/review',{
     method:'POST',headers:{'Content-Type':'application/json',Origin:'https://www.prohouse.com.au'},
     body:JSON.stringify({token:reviewLink[1],decision:'rejected'})
