@@ -395,6 +395,37 @@ export async function verifyLeasePayment(request,env){
  catch(e){console.error('Payment verification notification error',e?.message)}
  return reply(200,'One-week rent payment marked verified.',{status:'verified'});
 }
+async function secureOtpHash(env,reference,code){
+ const data=new TextEncoder().encode((env.RESEND_API_KEY||'')+'|provider|'+reference+'|'+code);
+ const sha=await crypto.subtle.digest('SHA-256',data);
+ return [...new Uint8Array(sha)].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+export async function requestProviderOtp(request,env){
+ if(request.method!=='POST')return reply(405,'Method not allowed.');
+ if(request.headers.get('Origin')!==new URL(request.url).origin)return reply(403,'Invalid origin.');
+ const review=await adminRow(request,env);
+ if(!review)return reply(403,'Private ProHouse approval link required.');
+ const p=await currentPacket(env,review.reference);
+ if(!p||p.status!=='tenants_signed'||!p.payment_verified_at)
+  return reply(409,'All tenant signatures and bank-verified rent are required.');
+ if(p.provider_otp_sent&&Date.now()-Date.parse(p.provider_otp_sent)<60000)
+  return reply(429,'A signing code was just sent. Please check your ProHouse inbox.');
+ const random=crypto.getRandomValues(new Uint32Array(1))[0];
+ const code=String(random%1000000).padStart(6,'0');
+ const hash=await secureOtpHash(env,p.reference,code);
+ const now=iso(),expiry=future(10/60);
+ await env.LONGSTAY_DB.prepare(
+   'UPDATE longstay_lease_packets SET provider_otp_hash=?,provider_otp_expires=?,provider_otp_sent=?,provider_otp_attempts=0 WHERE reference=?'
+ ).bind(hash,expiry,now,p.reference).run();
+ try{
+  await mail(env,admins(env),'ProHouse lease countersignature code | '+p.reference,
+   'Your six-digit signing code is: '+code+
+   '\n\nReference: '+p.reference+
+   '\nExpires at: '+expiry+' UTC (10 minutes)'+
+   '\nOnly enter this code on the private ProHouse lease review page. Do not forward it.');
+ }catch(e){return reply(502,'Could not email the signing code. Check email settings.')}
+ return reply(200,'A six-digit signing code has been sent to hi@prohouse.com.au.',{expiresAt:expiry});
+}
 export async function signProvider(request,env){
  if(request.method!=='POST')return reply(405,'Method not allowed.');
  if(request.headers.get('Origin')!==new URL(request.url).origin)return reply(403,'Invalid origin.');
@@ -406,9 +437,17 @@ export async function signProvider(request,env){
  const settings=JSON.parse(p.settings_json);
  if(body.confirmRead!==true||str(body.providerName)!==settings.providerSigner||
     !goodSignature(body.signature))return reply(400,'Enter the authorised provider name, read the lease and sign.');
+ const code=str(body.verificationCode,16);
+ if(!/^\d{6}$/.test(code)||!p.provider_otp_hash||p.provider_otp_expires<iso()||
+    Number(p.provider_otp_attempts||0)>=5)return reply(403,'Request a fresh six-digit ProHouse signing code.');
+ if(await secureOtpHash(env,p.reference,code)!==p.provider_otp_hash){
+  await env.LONGSTAY_DB.prepare('UPDATE longstay_lease_packets SET provider_otp_attempts=provider_otp_attempts+1 WHERE reference=?')
+   .bind(p.reference).run();
+  return reply(403,'Incorrect signing code. Check the ProHouse email.');
+ }
  const now=iso();
  const claimed=await env.LONGSTAY_DB.prepare(
-  "UPDATE longstay_lease_packets SET status='provider_signing',provider_signature=?,provider_signed_at=?,updated_at=? WHERE reference=? AND status='tenants_signed'"
+  "UPDATE longstay_lease_packets SET status='provider_signing',provider_signature=?,provider_signed_at=?,updated_at=?,provider_otp_hash=NULL,provider_otp_expires=NULL WHERE reference=? AND status='tenants_signed'"
  ).bind(body.signature,now,now,p.reference).run();
  if(!claimed.meta?.changes)return reply(409,'Agreement signing already in progress.');
  p=await currentPacket(env,p.reference);
