@@ -2,6 +2,7 @@ import { buildApplicationPDF, applicationFields } from './longstay-application.j
 import { combineApplicationPDF } from './longstay-package.js';
 import { saveFirstPackage, loadFirstPackage, deleteFirstPackage } from './longstay-documents.js';
 import { createReview, cancelReview } from './longstay-review.js';
+import { diditTenantReady, verifiedTenantIdentity, markTenantIdentityUsed, cleanupTenantIdentitySessions } from './longstay-identity.js';
 
 // For joint applications, the first applicant's combined PDF is temporarily stored
 // as encrypted D1 chunks for up to the invitation window, then deleted.
@@ -49,12 +50,13 @@ function errorCheck(request){
     return reply(413,'Your files are too large. Reduce the total upload size.');
   return null;
 }
-async function readFiles(form,prefix=''){
+async function readFiles(form,prefix='',env={}){
+  const didit=diditTenantReady(env);
   const fields=prefix==='second'?
-    [['secondId','Second applicant photo ID'],['secondIncomeProof','Second applicant proof of income'],
-     ['secondIdExtra','Second applicant extra photo ID'],['secondIncomeExtra','Second applicant extra income proof']]:
-    [['photoId1','First applicant photo ID'],['incomeProof1','First applicant proof of income'],
-     ['photoId2','First applicant extra photo ID'],['incomeProof2','First applicant extra income proof']];
+    [...(didit?[]:[['secondId','Second applicant photo ID'],['secondIdExtra','Second applicant extra photo ID']]),
+     ['secondIncomeProof','Second applicant proof of income'],['secondIncomeExtra','Second applicant extra income proof']]:
+    [...(didit?[]:[['photoId1','First applicant photo ID'],['photoId2','First applicant extra photo ID']]),
+     ['incomeProof1','First applicant proof of income'],['incomeProof2','First applicant extra income proof']];
   const documents=[];let total=0;
   for(const [key,label] of fields){
     const entries=form.getAll(key);
@@ -75,8 +77,13 @@ async function readFiles(form,prefix=''){
       throw Error('One uploaded file does not match its PDF or image file type.');
     documents.push({key,label,filename:safeFileName(entry.name,key),type:entry.type,bytes});
   }
-  for(const key of (prefix==='second'?['secondId','secondIncomeProof']:['photoId1','incomeProof1']))
-    if(!documents.some(d=>d.key===key))throw Error('A photo ID and proof of income are both required.');
+  const required=prefix==='second'?
+    (didit?['secondIncomeProof']:['secondId','secondIncomeProof']):
+    (didit?['incomeProof1']:['photoId1','incomeProof1']);
+  for(const key of required)
+    if(!documents.some(d=>d.key===key))throw Error(didit?
+      'A proof of income document is required. Verify your ID through Didit.':
+      'A photo ID and proof of income are both required.');
   return documents;
 }
 async function retrieveFirstPackage(env,reference,emailId) {
@@ -219,6 +226,7 @@ async function cleanupPending(env){
     "DELETE FROM longstay_applications WHERE status='completed' AND completed_at < datetime('now','-14 days')"
   ).run();
   await env.LONGSTAY_DB.prepare("DELETE FROM longstay_reviews WHERE created_at < datetime('now','-90 days')").run();
+  await cleanupTenantIdentitySessions(env);
 }
 export async function cleanupLongStayInvitations(env){try{await cleanupPending(env);}catch(e){console.warn('Longstay cleanup error',e?.message)}}
 export async function submitLongStayFirst(request,env){
@@ -241,7 +249,16 @@ export async function submitLongStayFirst(request,env){
   }catch(e){return reply(400,e.message);}
   const signature=clean(form.get('signature'),550000);
   if(!okSignature(signature))return reply(400,'Please provide your signature.');
-  let documents;try{documents=await readFiles(form)}catch(e){return reply(400,e.message)}
+  const identityToken=clean(form.get('identityToken'),80);
+  let identity=null;
+  if(diditTenantReady(env)){
+    try{identity=await verifiedTenantIdentity(env,identityToken,{
+      role:'first',firstName:data.firstName,lastName:data.lastName,email:data.email
+    });}
+    catch(e){return reply(403,e.message);}
+    data.identityVerification=identity;
+  }
+  let documents;try{documents=await readFiles(form,'',env)}catch(e){return reply(400,e.message)}
   const ref='LH-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'-'+crypto.randomUUID().slice(0,8).toUpperCase();
   let firstPackage;
   try{
@@ -297,10 +314,12 @@ export async function submitLongStayFirst(request,env){
     if(reviewLink)await cancelReview(env,ref).catch(()=>{});
     return reply(502,'Could not deliver the merged application PDF. Please try again.');
   }
+  if(identity)await markTenantIdentityUsed(env,identityToken,ref).catch(e=>console.warn('Could not mark Didit proof used',ref,e?.message));
   const firstReceipt=['Hello '+data.firstName+',',
     'We received your ProHouse Live With Us application.','',summarise(data,ref),'',
     data.people==='Two people'?'We are inviting the second applicant to complete their own details and supporting documents.':'Our team will review your application.',
-    'Your identity and income files have been sent to the ProHouse team but are not attached to this email.',
+    identity?'Your identity was verified through Didit. ProHouse received the verification result and your income documents, not a copy of your ID or selfie.':
+     'Your identity and income files have been sent to ProHouse but are not attached to this email.',
     'We will email you as your application progresses.','',
     'ProHouse | hi@prohouse.com.au'].join('\n');
   let firstReceiptSent=false;
@@ -318,8 +337,8 @@ export async function submitLongStayFirst(request,env){
       summarise(data,ref),
       'First applicant email: '+data.email,
       '',
-      'You must complete your own legal name, contact details, occupation, work/study information, income and supporting documents.',
-      'The first applicant’s ID, proof-of-income documents and signature are not included in this email or shared with you.',
+      'You must complete your own legal name, contact details, occupation, work/study information and income proof, plus your own identity verification.',
+      'The first applicant’s identity verification result, proof-of-income files and signature are private and not shared with you.',
       '',
       'Complete your part of the joint application using this private invitation link:',
       inviteURL.toString(),
@@ -383,9 +402,18 @@ export async function submitLongStaySecond(request,env){
   catch(e){return reply(400,e.message)}
   const signature=clean(form.get('signature'),550000);
   if(!okSignature(signature))return reply(400,'Please sign the application.');
-  let documents;try{documents=await readFiles(form,'second')}catch(e){return reply(400,e.message)}
+  const identityToken=clean(form.get('identityToken'),80);
+  let identity=null;
+  if(diditTenantReady(env)){
+    try{identity=await verifiedTenantIdentity(env,identityToken,{
+      role:'second',firstName:extra.secondFirstName,lastName:extra.secondLastName,
+      email:row.second_email,inviteReference:row.reference
+    });}
+    catch(e){return reply(403,e.message);}
+  }
+  let documents;try{documents=await readFiles(form,'second',env)}catch(e){return reply(400,e.message)}
   const original=JSON.parse(row.first_data||'{}');
-  const combined={...original,...extra,secondEmail:row.second_email};
+  const combined={...original,...extra,secondEmail:row.second_email,...(identity?{secondIdentityVerification:identity}:{})};
   let pdf,allDocumentsInOnePDF=false;
   try{
     const summary=await buildApplicationPDF(combined,documents,row.reference,row.first_signature,signature);
@@ -427,7 +455,7 @@ export async function submitLongStaySecond(request,env){
     '',appText(combined),'',
     allDocumentsInOnePDF?
       'ONE merged PDF is attached containing both signatures and ALL supporting documents.':
-      'IMPORTANT: The attached PDF contains the completed joint form, both signatures, and SECOND-applicant documents only. The FIRST-applicant ID and income files were delivered in the EARLIER ProHouse admin email [1/3 received] for this same reference. Review BOTH email attachments before approving. The first applicant documents could not be combined automatically.',
+      'IMPORTANT: The attached PDF contains the completed joint form, both signatures, and SECOND-applicant documents only. The FIRST-applicant supporting documents were delivered in the EARLIER ProHouse admin email [1/3 received] for this same reference. Review BOTH email attachments before approving. The first applicant documents could not be combined automatically.',
     '',
     'Private link to APPROVE or REJECT this application:',
     reviewLink,
@@ -445,8 +473,9 @@ export async function submitLongStaySecond(request,env){
   await env.LONGSTAY_DB.prepare("UPDATE longstay_applications SET status='completed',first_data=NULL,first_signature=NULL,completed_at=? WHERE reference=? AND status='processing'")
     .bind(new Date().toISOString(),row.reference).run();
   await deleteFirstPackage(env,row.reference).catch(e=>console.warn('Pending document cleanup failed',row.reference,e?.message));
+  if(identity)await markTenantIdentityUsed(env,identityToken,row.reference).catch(e=>console.warn('Could not mark second Didit proof used',row.reference,e?.message));
   const done=['ProHouse joint rental application completed.','Reference: '+row.reference,'',
-    'Both applicants have now submitted their details and mandatory documents.',
+    'Both applicants have now submitted their details and required supporting information.',
     'The ProHouse team has been emailed the completed application and will review it.',
     'This confirmation is not approval of a tenancy or an executed agreement.',
     '','ProHouse | hi@prohouse.com.au'].join('\n');
