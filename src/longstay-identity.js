@@ -102,8 +102,9 @@ function safeStartFailure(e){
 }
 const checkedStatus=(result,identity)=>{
  const categories=['id_verifications','liveness_checks','face_matches'];
- const validChecks=categories.every(k=>Array.isArray(result[k])&&result[k].length>0
-  &&result[k].every(v=>v.status==='Approved'));
+ // Didit's final Approved decision may be the result of a human review. Still
+ // require all three checks to have actually run; the reviewer owns the verdict.
+ const validChecks=categories.every(k=>Array.isArray(result[k])&&result[k].length>0);
  const verifiedName=norm(result.id_verifications?.[0]?.full_name);
  const fullMatch=!!verifiedName&&nameKey(verifiedName)===nameKey(identity.legal_name);
  const approved=result.status==='Approved'&&validChecks&&fullMatch;
@@ -129,9 +130,102 @@ async function confirmFromDidit(env,row){
  await env.LONGSTAY_DB.prepare(
   'UPDATE longstay_identity_sessions SET provider_status=?,provider_name=?,checked_at=?,verified_at=? WHERE token_hash=?'
  ).bind(decision.status,decision.providerName,time,decision.approved?time:null,row.token_hash).run();
- return {...row,provider_status:decision.status,provider_name:decision.providerName,
+ const updated={...row,provider_status:decision.status,provider_name:decision.providerName,
   checked_at:time,verified_at:decision.approved?time:null};
+ // Do not let a notification delivery problem block the applicant's status check.
+ if(['In Review','Declined','Resubmitted'].includes(decision.status))
+  await notifyIdentityUpdate(env,updated).catch(e=>console.warn('Didit notification failed',e?.message));
+ return updated;
 }
+// Didit does not email the business on manual review. Send deduplicated
+// ProHouse alerts, with an hourly polling safety net for visitors who close the tab.
+// This table is created lazily so production needs no out-of-band D1 migration.
+async function notifyIdentityUpdate(env,row){
+ if(!env.RESEND_API_KEY||!env.LONGSTAY_DB)return;
+ if(!['In Review','Declined','Resubmitted'].includes(row.provider_status))return;
+ await env.LONGSTAY_DB.prepare(
+  'CREATE TABLE IF NOT EXISTS longstay_identity_alerts (token_hash TEXT NOT NULL, status TEXT NOT NULL, audience TEXT NOT NULL, sent_at TEXT, PRIMARY KEY(token_hash,status,audience))'
+ ).run();
+ const state=row.provider_status;
+ const recipients=[
+  {audience:'admin',to:env.PROHOUSE_ADMIN_EMAILS?.split(',').map(s=>s.trim()).filter(Boolean)||['hi@prohouse.com.au']},
+  ...(state==='Declined'||state==='Resubmitted'?[{audience:'applicant',to:[row.email]}]:[])
+ ];
+ for(const recipient of recipients){
+  try{
+   await env.LONGSTAY_DB.prepare(
+    'INSERT OR IGNORE INTO longstay_identity_alerts(token_hash,status,audience) VALUES(?,?,?)'
+   ).bind(row.token_hash,state,recipient.audience).run();
+   const delivery=await env.LONGSTAY_DB.prepare(
+    'SELECT sent_at FROM longstay_identity_alerts WHERE token_hash=? AND status=? AND audience=?'
+   ).bind(row.token_hash,state,recipient.audience).first();
+   if(delivery?.sent_at)continue;
+   const isAdmin=recipient.audience==='admin';
+   const subject=isAdmin?
+    (state==='In Review'?'[DIDIT MANUAL REVIEW REQUIRED] ':('[DIDIT '+state.toUpperCase()+'] '))+
+      'Live With Us | '+row.legal_name:
+    (state==='Resubmitted'?'Action needed: update your ProHouse ID check':
+     'Update about your ProHouse ID verification');
+   const body=isAdmin?[
+    'Didit identity verification requires attention.','',
+    'Status: '+state,
+    'Applicant: '+row.legal_name,
+    'Email: '+row.email,
+    'Applicant role: '+row.role,
+    'Application reference: '+(row.used_reference||row.invite_reference||'Not yet submitted'),
+    'Didit session ID: '+row.session_id,'',
+    'Open https://business.didit.me and go to Identity verification > User verifications.',
+    'Find the session, inspect its warnings, then approve, decline or request resubmission.',
+    'Do not approve the rental application while identity verification is pending or declined.'
+   ].join('\\n'):
+   state==='Resubmitted'?[
+    'Your ProHouse identity verification needs an updated ID or selfie step.',
+    'Please open the same secure Didit verification link to complete the requested check:',
+    row.session_url,'',
+    'Your rental application remains on hold until your identity is approved.',
+    'Contact hi@prohouse.com.au if you need help.'
+   ].join('\\n'):[
+    'Your Didit identity verification was not approved.',
+    'This does not automatically mean your rental application has been rejected.',
+    'ProHouse will review whether a new document or selfie submission is appropriate.',
+    'Please do not start a second check unless we ask you to.',
+    'Contact hi@prohouse.com.au if you need help.'
+   ].join('\\n');
+   const response=await fetch('https://api.resend.com/emails',{
+    method:'POST',headers:{Authorization:'Bearer '+env.RESEND_API_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify({
+     from:env.APPLICATION_FROM_EMAIL||'ProHouse <no-reply@prohouse.com.au>',
+     to:recipient.to,subject,text:body,
+     tags:[{name:'form',value:'livewithus'},{name:'stage',value:'didit-status'}]
+    })
+   });
+   if(!response.ok)throw Error('Resend returned '+response.status);
+   await env.LONGSTAY_DB.prepare(
+    'UPDATE longstay_identity_alerts SET sent_at=? WHERE token_hash=? AND status=? AND audience=?'
+   ).bind(now(),row.token_hash,state,recipient.audience).run();
+  }catch(error){
+   console.warn('Didit status mail failed',{audience:recipient.audience,status:state,error:error?.message});
+  }
+ }
+}
+
+export async function checkTenantIdentityReviews(env){
+ if(!diditTenantReady(env))return;
+ // Scan a bounded queue every hour: abandoned applicant tabs cannot block alerts.
+ // Used sessions are retained after the browser session expires for manual decisions.
+ const pending=await env.LONGSTAY_DB.prepare(
+  "SELECT * FROM longstay_identity_sessions WHERE (used_reference IS NOT NULL OR expires_at>?) AND started_at>? AND provider_status IN ('Not Started','In Progress','In Review','Resubmitted','Approved','Declined') ORDER BY checked_at ASC LIMIT 60"
+ ).bind(now(),new Date(Date.now()-90*86400000).toISOString()).all();
+ for(const row of pending.results||[]){
+  try{
+   // Approved/declined sessions with no recent changes are rechecked only while
+   // their rental review is open, to catch reviewer updates and resubmissions.
+   if(['Approved','Declined'].includes(row.provider_status)&&!row.used_reference)continue;
+   await confirmFromDidit(env,row);
+  }catch(e){console.warn('Didit review sweep could not check session',row.session_id,e?.name);}
+ }
+}
+
 // Read-only connection check. No personal details, no verification session created,
 // no secret or workflow ID returned. Cached to avoid repeated calls to Didit.
 let connectionCache={until:0,workflow:null,result:null};
@@ -326,26 +420,50 @@ export async function verifiedTenantIdentity(env,token,identity){
     nameKey(data.legal_name)!==nameKey(name)||
     (identity.role==='second'&&data.invite_reference!==identity.inviteReference))
   throw Error('Your Didit verification must match your application name and email.');
- if(data.provider_status!=='Approved')throw Error('Finish Didit ID and selfie verification, then check the result before submitting.');
- // Fresh check on submission: never trust browser-supplied status or stale Didit claims.
+ // Fresh decision check: an "In Review" result is accepted as a *pending*
+ // application attachment, never as an approved identity or tenancy.
  try{data=await confirmFromDidit(env,data);}
  catch{throw Error('Could not confirm your Didit result. Please try again before submitting.');}
+ if(data.provider_status==='In Review')
+  return {method:'Didit ID, selfie/liveness, face match',status:'In Review',
+   sessionId:data.session_id,verifiedAt:null,verifiedName:null};
  if(data.provider_status!=='Approved')
   throw Error(data.provider_status==='Name Mismatch'
    ?'Your name does not match the verified ID. Correct your application legal name or contact ProHouse.'
-   :'Didit has not approved the required ID, selfie and face-match checks.');
+   :data.provider_status==='Declined'
+    ?'Your ID verification was declined. Contact ProHouse to arrange a review or resubmission.'
+    :'Please finish the Didit ID and selfie checks before sending this application.');
  return prepared(data);
+}
+export async function identityReviewGate(env,reference,summary){
+ if(!diditTenantReady(env))return {ok:true};
+ for(const key of ['identityVerification','secondIdentityVerification']){
+  const verification=summary?.[key];
+  if(!verification?.sessionId)continue; // Older ID-upload application.
+  const row=await env.LONGSTAY_DB.prepare(
+   'SELECT * FROM longstay_identity_sessions WHERE used_reference=? AND session_id=?'
+  ).bind(reference,verification.sessionId).first();
+  if(!row)return {ok:false,message:'Didit identity session was not linked to this application. Contact ProHouse.'};
+  let current;
+  try{current=await confirmFromDidit(env,row);}
+  catch{return {ok:false,message:'Could not obtain the latest Didit decision. Try again before approving.'};}
+  if(current.provider_status!=='Approved')
+   return {ok:false,message:
+    (key==='secondIdentityVerification'?'Second applicant':'First applicant')+
+    ' identity verification is '+current.provider_status+'. Approve their identity in Didit or request a resubmission before approving the rental application.'};
+ }
+ return {ok:true};
 }
 export async function markTenantIdentityUsed(env,token,reference){
  if(!diditTenantReady(env))return;
  if(!validToken(token))throw Error('Verification reference missing.');
  await env.LONGSTAY_DB.prepare(
-  'UPDATE longstay_identity_sessions SET used_reference=? WHERE token_hash=? AND used_reference IS NULL AND provider_status=?'
- ).bind(reference,await hash(token),'Approved').run();
+  "UPDATE longstay_identity_sessions SET used_reference=? WHERE token_hash=? AND used_reference IS NULL AND provider_status IN ('Approved','In Review')"
+ ).bind(reference,await hash(token)).run();
 }
 export async function cleanupTenantIdentitySessions(env){
  if(!env.LONGSTAY_DB)return;
  await env.LONGSTAY_DB.prepare(
-  'DELETE FROM longstay_identity_sessions WHERE expires_at<? OR (used_reference IS NOT NULL AND started_at<?)'
+  'DELETE FROM longstay_identity_sessions WHERE (used_reference IS NULL AND expires_at<?) OR (used_reference IS NOT NULL AND started_at<?)'
  ).bind(now(),new Date(Date.now()-90*86400000).toISOString()).run();
 }
