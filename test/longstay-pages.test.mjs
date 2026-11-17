@@ -39,22 +39,29 @@ test('application forms do not ask applicants to choose ID type and do not offer
 });
 
 
-test('both applicant forms expose Didit, consent, result check and secure fallback until configured',()=>{
+test('both applicant forms show one Verify your ID button, consent and secure fallback until configured',()=>{
  const first=readFileSync('public/operations/livewithus/index.html','utf8');
  const second=readFileSync('public/operations/livewithus/second/index.html','utf8');
  for(const html of [first,second]){
-  for(const id of ['diditPanel','diditConsent','diditStart','diditOpen','diditCheck',
+  for(const id of ['diditPanel','diditConsent','diditStart',
    'diditStatus','identityToken','idUploadFields']){
    assert.match(html,new RegExp('id="'+id+'"'));
   }
   assert.match(html,/\/assets\/livewithus-didit\.js/);
   assert.match(html,/window\.ProHouseDidit\.validate\(\)/);
   assert.match(html,/didit\.me\/terms\/privacy-policy/);
+  assert.match(html,/<button[^>]*id="diditStart"[^>]*>Verify your ID<\/button>/);
+  assert.doesNotMatch(html,/id="diditOpen"|id="diditCheck"|Open secure Didit verification|Check verification result|Start Didit verification/);
  }
  const source=readFileSync('public/assets/livewithus-didit.js','utf8');
  assert.doesNotThrow(()=>new vm.Script(source,{filename:'livewithus-didit.js'}));
  assert.match(source,/\/api\/longstay\/identity\//);
  assert.match(source,/upload\.hidden=state\.enabled/);
  assert.match(source,/hidden\.value=state\.token/);
+ assert.match(source,/window\.open\('about:blank','_blank'\)/);
+ assert.match(source,/diditTab\.location\.replace\(verifiedUrl\.href\)/);
+ assert.match(source,/state\.pollTimer=setInterval\(refresh,9000\)/);
+ assert.match(source,/document\.addEventListener\('visibilitychange'/);
+ assert.doesNotMatch(source,/getElementById\('diditOpen'\)|getElementById\('diditCheck'\)/);
  assert.ok(existsSync('public/operations/livewithus/verification-complete/index.html'));
 });
