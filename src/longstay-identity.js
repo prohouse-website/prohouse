@@ -100,6 +100,32 @@ async function confirmFromDidit(env,row){
 // Read-only connection check. No personal details, no verification session created,
 // no secret or workflow ID returned. Cached to avoid repeated calls to Didit.
 let connectionCache={until:0,workflow:null,result:null};
+async function discoverAvailableWorkflows(env){
+ const endpoint='https://verification.didit.me/v3/workflows/';
+ const response=await fetch(endpoint,{
+  method:'GET',headers:{'x-api-key':String(env.DIDIT_API_KEY).trim(),Accept:'application/json'},
+  signal:AbortSignal.timeout(10000)
+ });
+ let candidates=[];
+ if(response.ok){
+  const data=await response.json();
+  const workflows=Array.isArray(data)?data:
+   Array.isArray(data?.results)?data.results:
+   Array.isArray(data?.workflows)?data.workflows:[];
+  candidates=workflows.slice(0,50).map(w=>({
+   id:String(w.workflow_id||w.uuid||w.id||'').slice(0,80),
+   label:String(w.workflow_label||w.name||'').slice(0,180),
+   type:String(w.workflow_type||w.type||'').slice(0,80),
+   status:String(w.status||w.workflow_status||'').slice(0,80),
+   published:typeof w.is_published==='boolean'?w.is_published:null,
+   is_default:typeof w.is_default==='boolean'?w.is_default:null
+  })).filter(x=>/^[a-z0-9_-]{5,80}$/i.test(x.id));
+ }
+ if(env.LONGSTAY_DB)await env.LONGSTAY_DB.prepare(
+  'INSERT INTO longstay_didit_workflow_diagnostics(id,fetched_at,fetch_status,workflows_json) VALUES(1,?,?,?) ON CONFLICT(id) DO UPDATE SET fetched_at=excluded.fetched_at,fetch_status=excluded.fetch_status,workflows_json=excluded.workflows_json'
+ ).bind(new Date().toISOString(),response.status,JSON.stringify(candidates)).run();
+ return {status:response.status,availableCount:candidates.length};
+}
 async function checkDiditConnection(env){
  if(!diditTenantReady(env))return {reachable:false,reason:'Not configured'};
  if(connectionCache.until>Date.now()&&connectionCache.workflow===env.DIDIT_WORKFLOW_ID)
@@ -121,6 +147,13 @@ async function checkDiditConnection(env){
     res.status===400?'Workflow configuration is invalid.':
     'Didit returned HTTP '+res.status+'.'
   };
+  if([403,404].includes(res.status)){
+   try{
+    const found=await discoverAvailableWorkflows(env);
+    result.accessibleWorkflows=found.availableCount;
+    result.workflowListStatus=found.status;
+   }catch(e){console.warn('Didit workflow discovery failed',{message:e?.name||'Error'});}
+  }
  }catch(e){
   result={reachable:false,reason:e?.name==='TimeoutError'?
    'Didit did not respond in time.':'Didit connection check failed.'};
