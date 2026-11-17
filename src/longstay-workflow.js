@@ -296,6 +296,7 @@ export async function submitLongStayFirst(request,env){
       subject:(token?'[1/3 received] ':'[REVIEW REQUIRED] ')+'Long-stay application '+ref+' | '+firstName,
       replyTo:data.email,tag:'first-received',
       text:['New Live With Us application submitted.','Stage: '+(token?'first applicant received, second applicant to be invited':'ready for approval/rejection'),
+        ...(identity?.status==='In Review'?['DIDIT MANUAL REVIEW PENDING: Approve identity in Didit before approving the rental application.']:[]),
         summarise(data,ref),'',appText(data),'',
         'ONE PDF is attached, including the signed application and every supporting document.',
         ...(reviewLink?['','Private review link (approve or reject):',reviewLink,'Do not forward this link.']:[])
@@ -318,7 +319,8 @@ export async function submitLongStayFirst(request,env){
   const firstReceipt=['Hello '+data.firstName+',',
     'We received your ProHouse Live With Us application.','',summarise(data,ref),'',
     data.people==='Two people'?'We are inviting the second applicant to complete their own details and supporting documents.':'Our team will review your application.',
-    identity?'Your identity was verified through Didit. ProHouse received the verification result and your income documents, not a copy of your ID or selfie.':
+    identity?.status==='Approved'?'Your identity was verified through Didit. ProHouse received the verification result and your income documents, not a copy of your ID or selfie.':
+     identity?.status==='In Review'?'Your Didit identity check is awaiting ProHouse manual review. Your rental application was received and will not be approved until the ID check is approved.':
      'Your identity and income files have been sent to ProHouse but are not attached to this email.',
     'We will email you as your application progresses.','',
     'ProHouse | hi@prohouse.com.au'].join('\n');
@@ -453,6 +455,8 @@ export async function submitLongStaySecond(request,env){
     'Applicant 1: '+row.first_name+' <'+row.first_email+'>',
     'Applicant 2: '+extra.secondFirstName+' '+extra.secondLastName+' <'+row.second_email+'>',
     '',appText(combined),'',
+    ...(combined.identityVerification?.status==='In Review'||combined.secondIdentityVerification?.status==='In Review'?
+      ['DIDIT MANUAL REVIEW PENDING: The application may be reviewed, but must not be approved until both applicants have approved identity checks.','']:[]),
     allDocumentsInOnePDF?
       'ONE merged PDF is attached containing both signatures and ALL supporting documents.':
       'IMPORTANT: The attached PDF contains the completed joint form, both signatures, and SECOND-applicant documents only. The FIRST-applicant supporting documents were delivered in the EARLIER ProHouse admin email [1/3 received] for this same reference. Review BOTH email attachments before approving. The first applicant documents could not be combined automatically.',
