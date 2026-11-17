@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
  identityConfig,startTenantIdentity,tenantIdentityStatus,verifiedTenantIdentity,
- markTenantIdentityUsed,diditTenantReady,cleanupTenantIdentitySessions
+ markTenantIdentityUsed,diditTenantReady,cleanupTenantIdentitySessions,identityReviewGate
 } from '../src/longstay-identity.js';
 
 const BASE='https://www.prohouse.com.au';
@@ -26,6 +26,8 @@ function mocks(){
       return {total:[...sessions.values()].filter(x=>x.started_at>=a[0]).length};
      if(sql.includes('FROM longstay_applications WHERE invite_hash='))return invites.get(a[0])||null;
      if(sql.includes('FROM longstay_identity_sessions WHERE token_hash='))return sessions.get(a[0])||null;
+     if(sql.includes('FROM longstay_identity_sessions WHERE used_reference=? AND session_id=?'))
+      return [...sessions.values()].find(r=>r.used_reference===a[0]&&r.session_id===a[1])||null;
      throw Error('Unmocked read SQL '+sql);
     },
     async run(){
@@ -72,7 +74,7 @@ function mockDidit(fetchState){
   assert.ok(uri.endsWith('/session/session-tenant-123/decision/'));
   return Response.json({
    session_id:'session-tenant-123',vendor_data:fetchState.vendorData,workflow_id:WORKFLOW,
-   status:'Approved',id_verifications:[{status:'Approved',full_name:fetchState.name||'Alice Example'}],
+   status:fetchState.status||'Approved',id_verifications:[{status:'Approved',full_name:fetchState.name||'Alice Example'}],
    liveness_checks:fetchState.liveness===false?[]:[{status:'Approved'}],
    face_matches:[{status:'Approved'}]
   });
@@ -178,4 +180,36 @@ test('until Didit credentials exist, legacy ID upload can continue without imper
  assert.equal(cfg.uploadFallback,true);
  const blocked=await startTenantIdentity(post('start',{role:'first',legalName:'Alice Example',email:'alice@example.com',consent:true}),env);
  assert.equal(blocked.status,503);
+});
+
+test('a completed Didit check In Review can be submitted but cannot approve the lease until approved',async()=>{
+ const {env}=mocks(),state={calls:[],status:'In Review'},original=globalThis.fetch;
+ globalThis.fetch=mockDidit(state);
+ try{
+  const started=await startTenantIdentity(post('start',{
+   role:'first',legalName:'Alice Example',email:'alice@example.com',consent:true
+  }),env);
+  assert.equal(started.status,200);
+  const token=(await started.json()).verificationToken;
+  const pending=await (await tenantIdentityStatus(post('status',{},token),env)).json();
+  assert.equal(pending.status,'In Review');
+  assert.equal(pending.verified,false);
+  const proof=await verifiedTenantIdentity(env,token,{
+   role:'first',firstName:'Alice',lastName:'Example',email:'alice@example.com'
+  });
+  assert.equal(proof.status,'In Review');
+  assert.ok(!proof.verifiedAt);
+  await markTenantIdentityUsed(env,token,'LH-REVIEW');
+  const summary={identityVerification:proof};
+  const before=await identityReviewGate(env,'LH-REVIEW',summary);
+  assert.equal(before.ok,false);
+  assert.match(before.message,/In Review/);
+  state.status='Declined';
+  const declined=await identityReviewGate(env,'LH-REVIEW',summary);
+  assert.equal(declined.ok,false);
+  assert.match(declined.message,/Declined/);
+  state.status='Approved';
+  const approved=await identityReviewGate(env,'LH-REVIEW',summary);
+  assert.equal(approved.ok,true);
+ }finally{globalThis.fetch=original;}
 });
