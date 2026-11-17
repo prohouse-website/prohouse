@@ -22,15 +22,48 @@ const prepared=data=>({
  sessionId:data.session_id,
  verifiedAt:data.verified_at
 });
+class DiditProviderError extends Error{
+ constructor(status){
+  super('Didit API returned '+status);
+  this.name='DiditProviderError';this.status=status;
+ }
+}
 async function provider(env,path,data){
  const r=await fetch('https://verification.didit.me/v3/'+path,{
   method:data?'POST':'GET',
-  headers:{'x-api-key':env.DIDIT_API_KEY,'Content-Type':'application/json'},
+  headers:{'x-api-key':String(env.DIDIT_API_KEY||'').trim(),'Content-Type':'application/json'},
   ...(data?{body:JSON.stringify(data)}:{}),
   signal:AbortSignal.timeout(15000)
  });
- if(!r.ok)throw Error('Didit verification is temporarily unavailable.');
+ if(!r.ok){
+  // Never return provider data (which may contain personal information) or the API key.
+  // The HTTP status alone is enough to direct staff to the right configuration.
+  console.warn('Didit request rejected', {endpoint:path.startsWith('session/')?'decision':'create-session',
+   status:r.status});
+  throw new DiditProviderError(r.status);
+ }
  return r.json();
+}
+function safeStartFailure(e){
+ if(!(e instanceof DiditProviderError)){
+  if(e?.message==='Unexpected Didit verification URL.')
+   return {status:502,message:'Didit returned an unexpected verification link. Contact ProHouse.'};
+  if(e?.name==='TimeoutError'||e?.name==='AbortError')
+   return {status:504,message:'Didit did not respond in time. Please try again.'};
+  return {status:502,message:'Could not start Didit verification. Please contact ProHouse if the problem continues.'};
+ }
+ const n=e.status;
+ if(n===400||n===422)return {status:502,message:
+  'Didit rejected the verification setup (HTTP '+n+'). ProHouse needs to check the workflow configuration.'};
+ if(n===401)return {status:503,message:
+  'Didit did not accept the API key (HTTP 401). ProHouse must check the API key in Cloudflare.'};
+ if(n===403||n===404)return {status:503,message:
+  'Didit cannot access the configured workflow (HTTP '+n+'). ProHouse must check that the workflow ID and API key belong to the same Didit application and Live/Sandbox environment.'};
+ if(n===402)return {status:503,message:
+  'Didit could not create the session because of an account or credit restriction (HTTP 402). Contact ProHouse.'};
+ if(n===429)return {status:429,message:
+  'Didit is rate-limiting new verification sessions. Please try again later.'};
+ return {status:502,message:'Didit could not start the verification (HTTP '+n+'). Please try again later.'};
 }
 const checkedStatus=(result,identity)=>{
  const categories=['id_verifications','liveness_checks','face_matches'];
@@ -129,8 +162,9 @@ export async function startTenantIdentity(request,env){
   return reply(200,'Verification started.',{verificationToken:token,url:uri.href,
    status:'Not Started',expiresAt:expiry});
  }catch(e){
-  console.error('Didit tenant session start failed',e?.message);
-  return reply(502,'Could not start Didit verification. Please try again.');
+  const failure=safeStartFailure(e);
+  console.error('Didit tenant session start failed',{reason:e?.name,status:e?.status||null,stage:'create-session'});
+  return reply(failure.status,failure.message);
  }
 }
 export async function tenantIdentityStatus(request,env){
