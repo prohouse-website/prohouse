@@ -51,7 +51,7 @@
    </section>
    <section class="step" data-step="1">
     <span class="stepMarker">02 / YOUR INFORMATION</span><h2>Tell us about you.</h2>
-    <p class="stepLead">Please use your legal details, then upload one photo ID and one proof of income.</p>
+    <p class="stepLead">Enter your legal details, then verify your identity and provide proof of income.</p>
     <div class="fieldGrid">
      <div class="field"><label for="secondFirstName">Legal first name <span class="req">*</span></label><input id="secondFirstName" name="secondFirstName" autocomplete="given-name" maxlength="90" required></div>
      <div class="field"><label for="secondLastName">Legal family name <span class="req">*</span></label><input id="secondLastName" name="secondLastName" autocomplete="family-name" maxlength="90" required></div>
@@ -66,14 +66,28 @@
      <div class="field"><label for="secondEmployer">Employer or school <span class="req">*</span></label><input id="secondEmployer" name="secondEmployer" maxlength="180" required></div>
      <div class="field"><label for="secondIncome">Your weekly income (AUD) <span class="req">*</span></label><input id="secondIncome" name="secondIncome" type="number" min="0" max="9999999" step=".01" inputmode="decimal" required></div>
     </div>
-    <h3 class="sectionTitle">Mandatory supporting documents</h3>
-    <p class="uploadNote">Upload a photo ID and proof of income. Only share documents relevant to your application. You may redact unnecessary bank transaction details. Accepted formats: PDF, JPG and PNG. Each file up to 5 MB; 15 MB combined.</p>
+    <section id="diditPanel" class="diditPanel" hidden>
+      <h3 class="sectionTitle">Verify your identity securely with Didit</h3>
+      <p class="uploadNote">Verify with your ID document, a selfie, liveness check and face match on Didit's secure website. You will <strong>not</strong> upload your ID scan or selfie to ProHouse. Your result is linked only to your part of this joint application.</p>
+      <label class="checkline"><input type="checkbox" id="diditConsent"><span>I agree to Didit processing my ID document, selfie and biometric face/liveness information for identity verification. <a href="https://didit.me/privacy-policy/" target="_blank" rel="noopener">Didit's privacy policy</a>.</span></label>
+      <div class="actions"><button id="diditStart" type="button" class="primary">Start Didit verification</button>
+      <a id="diditOpen" href="#" target="_blank" rel="noopener noreferrer" hidden class="secondary diditLink">Open secure Didit verification</a>
+      <button id="diditCheck" type="button" class="secondary" hidden>Check verification result</button></div>
+      <p id="diditStatus" class="diditStatus" role="status" aria-live="polite">Enter your legal name before verification.</p>
+      <input type="hidden" name="identityToken" id="identityToken">
+    </section>
+    <h3 class="sectionTitle">Mandatory income documents</h3>
+    <p class="uploadNote">Upload proof of income only. You may redact unnecessary transaction details. Accepted files: PDF, JPG or PNG, up to 5 MB each.</p>
     <div class="fieldGrid">
-      
- <div class="field"><label for="secondId">Australian driver licence or passport <span class="req">*</span></label><input id="secondId" name="secondId" type="file" accept=".pdf,.jpg,.jpeg,.png" required></div>
       <div class="field"><label for="secondIncomeProof">Proof of income <span class="req">*</span></label><input id="secondIncomeProof" name="secondIncomeProof" type="file" accept=".pdf,.jpg,.jpeg,.png" required></div>
-      <div class="field"><label for="secondIdExtra">Extra photo ID (optional)</label><input id="secondIdExtra" name="secondIdExtra" type="file" accept=".pdf,.jpg,.jpeg,.png"></div>
       <div class="field"><label for="secondIncomeExtra">Additional income proof (optional)</label><input id="secondIncomeExtra" name="secondIncomeExtra" type="file" accept=".pdf,.jpg,.jpeg,.png"></div>
+    </div>
+    <div id="idUploadFields" class="identityFallback">
+      <p class="uploadNote"><strong>Temporary ID method:</strong> Didit is being activated for ProHouse. Until it is available, upload a licence or passport here. This upload disappears when Didit is enabled.</p>
+      <div class="fieldGrid">
+        <div class="field"><label for="secondId">Australian driver licence or passport <span class="req">*</span></label><input id="secondId" name="secondId" type="file" data-required="true" accept=".pdf,.jpg,.jpeg,.png" required></div>
+        <div class="field"><label for="secondIdExtra">Extra photo ID (optional)</label><input id="secondIdExtra" name="secondIdExtra" type="file" accept=".pdf,.jpg,.jpeg,.png"></div>
+      </div>
     </div>
     <div class="actions"><button type="button" class="secondary back">← Back</button><button type="button" class="primary next">Sign & send <span aria-hidden="true">→</span></button></div>
    </section>
@@ -84,7 +98,7 @@
     <div class="policy">
       <p><strong>Application declaration.</strong> I confirm the details I have provided are true and consent to ProHouse reviewing them in connection with this rental application.</p>
       <p><strong>Rental conditions.</strong> Any eventual residential tenancy will be governed by a written agreement and applicable NSW or Victorian law. Completing this application does not guarantee approval or create a tenancy.</p>
-      <p><strong>Privacy and notifications.</strong> ProHouse receives my form, photo ID, proof of income, and signature by email. Both applicants will receive progress notifications by email, but uploaded identity and income documents will only be sent to the ProHouse administrator. <a href="/privacy/" target="_blank" rel="noopener">Privacy policy</a>.</p>
+      <p><strong>Privacy and notifications.</strong> ProHouse receives my form, identity verification result or temporary ID upload, proof of income, and signature by email. Both applicants will receive progress notifications by email, but uploaded identity and income documents will only be sent to the ProHouse administrator. <a href="/privacy/" target="_blank" rel="noopener">Privacy policy</a>.</p>
     </div>
     <label class="checkline"><input name="secondDeclaration" type="checkbox" value="Yes" required><span>I confirm my application information is correct. <span class="req">*</span></span></label>
     <div style="height:12px"></div>
@@ -116,6 +130,7 @@
 </main>
 <footer><span>© ProHouse Australia · Live With Us</span><span><a href="/privacy/">Privacy</a> · <a href="mailto:hi@prohouse.com.au">Contact</a></span></footer>
 <script src="/assets/qrcode.min.js"></script>
+<script src="/assets/livewithus-didit.js" defer></script>
 <script>
 (()=>{
  const form=document.getElementById('coApplication'),$=id=>document.getElementById(id);
@@ -167,7 +182,7 @@
   $(select).addEventListener('change',()=>{const selected=$(select).value==='Other';$(wrap).hidden=!selected;$(other).required=selected;});
  }
  for(const button of form.querySelectorAll('.next'))button.addEventListener('click',()=>{
-  if(validate()){if(active===1)render($('reviewSummary'),[
+  if(validate()){if(active===1&&window.ProHouseDidit&&!window.ProHouseDidit.validate())return;if(active===1)render($('reviewSummary'),[
    ['Your name',$('secondFirstName').value+' '+$('secondLastName').value],
    ['Phone',$('secondPhone').value],['Occupation',$('secondOccupation').value],
    ['Employer or school',$('secondEmployer').value]]);showStep(active+1);}
@@ -240,6 +255,7 @@
  form.addEventListener('submit',async e=>{
   e.preventDefault();$('submitError').classList.remove('visible');
   if(!validate())return;
+  if(window.ProHouseDidit&&!window.ProHouseDidit.validate()){$('submitError').textContent='Please complete your Didit identity check first.';$('submitError').classList.add('visible');return;}
   if(!hasSignature){$('submitError').textContent='Please sign the application.';$('submitError').classList.add('visible');return;}
   $('signature').value=canvas.toDataURL('image/png');
   const files=[...form.querySelectorAll('[type=file]')].flatMap(x=>[...x.files]);
