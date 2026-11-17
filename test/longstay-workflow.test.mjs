@@ -265,7 +265,7 @@ test('existing 48-hour invitation survives unavailable Resend attachment retriev
   const originalMail=m.sent.find(x=>x.subject.includes('[1/3 received]'));
   const secondMail=m.sent.find(x=>x.subject.includes('[REVIEW REQUIRED: TWO PDF EMAILS]'));
   assert.ok(originalMail&&secondMail,'Admin must receive both separate PDF attachments');
-  assert.match(secondMail.text,/FIRST-applicant ID and income files were delivered in the EARLIER ProHouse admin email/);
+  assert.match(secondMail.text,/FIRST-applicant supporting documents were delivered in the EARLIER ProHouse admin email/);
   assert.equal(originalMail.attachments.length,1);
   assert.equal(secondMail.attachments.length,1);
   assert.ok((await PDFDocument.load(Buffer.from(secondMail.attachments[0].content,'base64'))).getPageCount()>=3);
