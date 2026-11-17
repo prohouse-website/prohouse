@@ -67,9 +67,9 @@ function makeRequest(path,form,method='POST') {
  });
 }
 function mockEnv(){
- const rows=new Map(),reviews=new Map(),templates=new Map(),docs=new Map(),sent=[];
+ const rows=new Map(),reviews=new Map(),templates=new Map(),docs=new Map(),identities=new Map(),sent=[];
  return {
-  rows,reviews,templates,docs,sent,
+  rows,reviews,templates,docs,identities,sent,
   env:{
    RESEND_API_KEY:'unit-test-value',APPLICATION_FROM_EMAIL:'ProHouse TEST <no-reply@prohouse.com.au>',
    PROHOUSE_ADMIN_EMAILS:'hi@prohouse.com.au',
@@ -84,6 +84,7 @@ function mockEnv(){
          const b=docs.get(args.values[0])?.get(args.values[1]);
          return b?{ciphertext:[...b]}:null;
        }
+       if(sql.includes('FROM longstay_identity_sessions WHERE token_hash='))return identities.get(args.values[0])||null;
        if(sql.includes('WHERE invite_hash'))return [...rows.values()].find(x=>x.invite_hash===args.values[0])||null;
        if(sql.includes('WHERE token_hash'))return [...reviews.values()].find(x=>x.token_hash===args.values[0])||null;
        if(sql.includes('SELECT template_bytes FROM longstay_lease_templates'))return templates.has(args.values[0])?
@@ -92,6 +93,13 @@ function mockEnv(){
       },
       async run(){
        const v=args.values||[];
+       if(sql.startsWith('UPDATE longstay_identity_sessions SET provider_status=')){
+         const row=identities.get(v[4]);Object.assign(row,{provider_status:v[0],provider_name:v[1],checked_at:v[2],verified_at:v[3]});
+         return {meta:{changes:1}};
+       }
+       if(sql.startsWith('UPDATE longstay_identity_sessions SET used_reference=')){
+         identities.get(v[1]).used_reference=v[0];return {meta:{changes:1}};
+       }
        if(sql.startsWith('INSERT INTO longstay_application_documents')){
          let chunks=docs.get(v[0]);if(!chunks){chunks=new Map();docs.set(v[0],chunks);}
          chunks.set(v[1],v[2]);return {meta:{changes:1}};
@@ -130,6 +138,45 @@ function mockEnv(){
   }
  };
 }
+test('when Didit is activated, applicant submits WITHOUT uploading ID, income proof stays mandatory',async()=>{
+ const m=mockEnv(),saved=globalThis.fetch;
+ m.env.DIDIT_API_KEY='unit-didit-key';m.env.DIDIT_WORKFLOW_ID='unit-flow';
+ const identityToken='c'.repeat(64),hashed=[...new Uint8Array(await crypto.subtle.digest('SHA-256',
+  new TextEncoder().encode(identityToken)))].map(x=>x.toString(16).padStart(2,'0')).join('');
+ const row={token_hash:hashed,role:'first',legal_name:'TEST Applicant',
+  email:'first@example.com',vendor_data:'unit-tenant',session_id:'ses_unit',
+  provider_status:'Approved',verified_at:new Date().toISOString(),
+  expires_at:new Date(Date.now()+86400000).toISOString(),used_reference:null};
+ m.identities.set(hashed,row);
+ globalThis.fetch=async(url,options)=>{
+  if(String(url)==='https://verification.didit.me/v3/session/ses_unit/decision/'){
+   return Response.json({session_id:'ses_unit',vendor_data:'unit-tenant',workflow_id:'unit-flow',
+    status:'Approved',id_verifications:[{status:'Approved',full_name:'TEST Applicant'}],
+    liveness_checks:[{status:'Approved'}],face_matches:[{status:'Approved'}]});
+  }
+  assert.equal(String(url),'https://api.resend.com/emails');
+  const payload=JSON.parse(options.body);m.sent.push(payload);
+  return Response.json({id:'00000000-0000-4000-8000-000000000001'});
+ };
+ try{
+  const form=buildFirst({second:false});
+  form.delete('photoId1');form.set('identityToken',identityToken);
+  const submitted=await submitLongStayFirst(makeRequest('/api/longstay/application',form),m.env);
+  assert.equal(submitted.status,200,JSON.stringify(await submitted.clone().json()));
+  const data=await submitted.json();
+  assert.equal(data.status,'completed');
+  assert.equal(m.identities.get(hashed).used_reference,data.reference);
+  const admin=m.sent.find(x=>x.subject.startsWith('[REVIEW REQUIRED]'));
+  assert.ok(admin);
+  const document=await PDFDocument.load(Buffer.from(admin.attachments[0].content,'base64'));
+  assert.equal(document.getPageCount()>=2,true,'Summary and income proof should remain');
+  assert.doesNotMatch(admin.text,/First applicant photo ID: /);
+  const review=m.reviews.get(data.reference);
+  assert.equal(JSON.parse(review.summary_json).identityVerification.status,'Approved');
+  const receipt=m.sent.find(x=>x.subject.startsWith('ProHouse application received'));
+  assert.match(receipt.text,/identity was verified through Didit/);
+ }finally{globalThis.fetch=saved}
+});
 test('required photo ID and income proof are enforced without emailing',async()=>{
  const m=mockEnv(),original=globalThis.fetch;
  globalThis.fetch=async()=>{throw Error('Email should not have been called')};
