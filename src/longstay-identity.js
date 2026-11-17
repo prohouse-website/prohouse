@@ -97,16 +97,50 @@ async function confirmFromDidit(env,row){
  return {...row,provider_status:decision.status,provider_name:decision.providerName,
   checked_at:time,verified_at:decision.approved?time:null};
 }
+// Read-only connection check. No personal details, no verification session created,
+// no secret or workflow ID returned. Cached to avoid repeated calls to Didit.
+let connectionCache={until:0,workflow:null,result:null};
+async function checkDiditConnection(env){
+ if(!diditTenantReady(env))return {reachable:false,reason:'Not configured'};
+ if(connectionCache.until>Date.now()&&connectionCache.workflow===env.DIDIT_WORKFLOW_ID)
+  return connectionCache.result;
+ let result;
+ try{
+  const res=await fetch('https://verification.didit.me/v3/workflows/'+
+   encodeURIComponent(env.DIDIT_WORKFLOW_ID)+'/',{
+    method:'GET',headers:{'x-api-key':String(env.DIDIT_API_KEY).trim(),
+     Accept:'application/json'},signal:AbortSignal.timeout(10000)
+   });
+  result={
+   reachable:res.ok,
+   status:res.status,
+   reason:res.ok?'The API key can access the configured Didit workflow.':
+    res.status===401?'Didit rejected the API key.':
+    [403,404].includes(res.status)?
+      'The API key cannot access this workflow. Check its Didit application and Live/Sandbox environment.':
+    res.status===400?'Workflow configuration is invalid.':
+    'Didit returned HTTP '+res.status+'.'
+  };
+ }catch(e){
+  result={reachable:false,reason:e?.name==='TimeoutError'?
+   'Didit did not respond in time.':'Didit connection check failed.'};
+ }
+ connectionCache={workflow:env.DIDIT_WORKFLOW_ID,until:Date.now()+120000,result};
+ return result;
+}
 export async function identityConfig(request,env){
  if(request.method!=='GET')return reply(405,'Method not allowed.');
  const active=diditTenantReady(env);
- return reply(200,'Identity verification settings ready.',{
+ const result={
   diditAvailable:active,
   uploadFallback:!active,
   verificationMethods:active?['Didit identity document','Didit selfie/liveness','Didit face match']:[],
   instructions:active?'Verify your identity with Didit. ProHouse does not collect a scan of your ID.':
    'Online ID verification is being activated. For now the existing secure ID upload method remains available.'
- });
+ };
+ if(new URL(request.url).searchParams.get('check')==='1')
+  result.providerConnection=await checkDiditConnection(env);
+ return reply(200,'Identity verification settings ready.',result);
 }
 export async function startTenantIdentity(request,env){
  if(request.method!=='POST')return reply(405,'Method not allowed.');
