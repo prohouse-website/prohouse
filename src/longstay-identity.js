@@ -106,7 +106,15 @@ async function discoverAvailableWorkflows(env){
   method:'GET',headers:{'x-api-key':String(env.DIDIT_API_KEY).trim(),Accept:'application/json'},
   signal:AbortSignal.timeout(10000)
  });
- let candidates=[];
+ let candidates=[],errorDetail=null;
+ if(!response.ok){
+  try{
+   const raw=(await response.text()).slice(0,1200);
+   const data=JSON.parse(raw);
+   errorDetail=String(data.detail||data.message||data.error||data.code||'Unspecified provider error').slice(0,360);
+  }catch{errorDetail='Provider returned non-JSON HTTP '+response.status;}
+  errorDetail=errorDetail.replace(/[A-Za-z0-9_=-]{45,}/g,'[redacted]').replace(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g,'[redacted-email]');
+ }
  if(response.ok){
   const data=await response.json();
   const workflows=Array.isArray(data)?data:
@@ -123,7 +131,7 @@ async function discoverAvailableWorkflows(env){
  }
  if(env.LONGSTAY_DB)await env.LONGSTAY_DB.prepare(
   'INSERT INTO longstay_didit_workflow_diagnostics(id,fetched_at,fetch_status,workflows_json) VALUES(1,?,?,?) ON CONFLICT(id) DO UPDATE SET fetched_at=excluded.fetched_at,fetch_status=excluded.fetch_status,workflows_json=excluded.workflows_json'
- ).bind(new Date().toISOString(),response.status,JSON.stringify(candidates)).run();
+ ).bind(new Date().toISOString(),response.status,JSON.stringify({candidates,errorDetail})).run();
  return {status:response.status,availableCount:candidates.length};
 }
 async function checkDiditConnection(env){
