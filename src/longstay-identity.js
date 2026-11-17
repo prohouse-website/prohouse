@@ -466,4 +466,10 @@ export async function cleanupTenantIdentitySessions(env){
  await env.LONGSTAY_DB.prepare(
   'DELETE FROM longstay_identity_sessions WHERE (used_reference IS NULL AND expires_at<?) OR (used_reference IS NOT NULL AND started_at<?)'
  ).bind(now(),new Date(Date.now()-90*86400000).toISOString()).run();
+ // Remove alert deduplication keys when the corresponding ID session is purged.
+ try{
+  await env.LONGSTAY_DB.prepare(
+   'DELETE FROM longstay_identity_alerts WHERE token_hash NOT IN (SELECT token_hash FROM longstay_identity_sessions)'
+  ).run();
+ }catch{} // No alert table exists until an alert is sent.
 }
