@@ -4,7 +4,7 @@ import { prepareLease,leaseTemplateStatus,packetForAdmin,tenantPacket,leaseDocum
 import { getLongStayReview, decideLongStayReview } from './longstay-review.js';
 import { submitLongStayFirst, submitLongStaySecond, getLongStayInvitation, cleanupLongStayInvitations } from './longstay-workflow.js';
 import { startSignatureHandoff, signatureHandoffStatus, saveMobileSignature, cleanupSignatureSessions } from './longstay-signature-handoff.js';
-import { identityConfig,startTenantIdentity,tenantIdentityStatus } from './longstay-identity.js';
+import { identityConfig,startTenantIdentity,tenantIdentityStatus,checkTenantIdentityReviews } from './longstay-identity.js';
 import { cleanerPortal } from './cleaner-portal.js';
 import { vendorAPI } from './vendor-proxy.js';
 import { utilityPDF } from './utilities-pdf.js';
@@ -98,6 +98,7 @@ export default {
   },
   async scheduled(_event, env, ctx) {
     ctx.waitUntil(checkLeaseDeadlines(env).catch(e=>console.error('Lease expiry check failed',e?.message)));
+    ctx.waitUntil(checkTenantIdentityReviews(env).catch(e=>console.warn('Didit review alerts sweep failed',e?.message)));
     ctx.waitUntil(cleanupLongStayInvitations(env));
     ctx.waitUntil(cleanupSignatureSessions(env).catch(e=>console.warn('Signature session cleanup failed',e?.message)));
     if(_event.cron==='0 * * * *')return;
