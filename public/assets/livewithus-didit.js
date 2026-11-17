@@ -6,7 +6,7 @@
  if(!form)return;
  const second=form.id==='coApplication',role=second?'second':'first';
  const $=id=>document.getElementById(id),panel=$('diditPanel'),upload=$('idUploadFields');
- const state={enabled:false,verified:false,token:'',url:'',checking:false,pollTimer:null};
+ const state={enabled:false,verified:false,pendingReview:false,declined:false,token:'',url:'',checking:false,pollTimer:null};
  const consent=$('diditConsent'),status=$('diditStatus'),start=$('diditStart'),
   hidden=$('identityToken');
  const readName=()=>second?[$('secondFirstName').value,$('secondLastName').value].join(' ').trim():
@@ -18,7 +18,7 @@
  };
  function resetOnEdit(){
   if(!state.enabled)return;
-  state.verified=false;state.token='';state.url='';hidden.value='';
+  state.verified=false;state.pendingReview=false;state.declined=false;state.token='';state.url='';hidden.value='';
   stopPolling();
   start.hidden=false;start.disabled=false;start.textContent='Verify your ID';
   message('Your legal name or email changed. Verify your ID again to continue.','pending');
@@ -43,20 +43,31 @@
     'Authorization':'Bearer '+state.token,'Content-Type':'application/json'
    },body:'{}'});
    if(d.verified){
-    state.verified=true;
+    state.verified=true;state.pendingReview=false;state.declined=false;
     hidden.value=state.token;
     stopPolling();
     start.hidden=true;
-    message('ID verified successfully with Didit for '+d.verifiedName+'. You can continue your application.','approved');
+    message('Your ID has been approved by Didit for '+d.verifiedName+'. You can continue your application.','approved');
+   }else if(d.status==='In Review'){
+    // The ID/selfie work is finished; only ProHouse's manual decision remains.
+    state.pendingReview=true;state.declined=false;
+    hidden.value=state.token;
+    start.hidden=true;
+    message('ID submitted successfully. Awaiting ProHouse manual review. You can continue and submit your rental application; it cannot be approved until your ID is approved.','pending');
+   }else if(d.status==='Declined'||d.status==='Name Mismatch'){
+    state.pendingReview=false;state.declined=true;
+    hidden.value='';start.hidden=true;
+    stopPolling();
+    message(d.status==='Name Mismatch'?
+      'The name on your ID does not match your application. Please contact ProHouse to correct it.':
+      'Your ID verification was declined. ProHouse will review whether you can resubmit. Please contact hi@prohouse.com.au.','error');
+   }else if(d.status==='Resubmitted'){
+    state.pendingReview=false;hidden.value='';start.hidden=true;
+    message('ProHouse has requested that you redo a Didit check. Follow the secure resubmission link sent to you, then return here.','pending');
    }else{
-    hidden.value='';
-    if(d.status==='Name Mismatch'){
-     stopPolling();
-     message('The verified ID name does not match this application. Correct your legal name and select Verify your ID again.','error');
-     start.hidden=false;start.textContent='Verify your ID';
-    }else{
-     message('Verification in progress. Complete the Didit checks, then return here. Your result will update automatically.','pending');
-    }
+    state.pendingReview=false;hidden.value='';
+    start.hidden=false;start.textContent='Resume Didit verification';
+    message('Please finish the ID and selfie checks in Didit. Use Resume to reopen your existing verification link.','pending');
    }
   }catch(e){
    message('Could not check your verification yet. Your result will be checked again automatically when you return.','pending');
@@ -74,6 +85,11 @@
   }
   if(!consent.checked){
    message('Please consent to Didit checking your ID, selfie, liveness and face match.','error');return;
+  }
+  if(state.token&&state.url){
+   // Never create a duplicate session when someone resumes an unfinished check.
+   window.open(state.url,'_blank','noopener');
+   return;
   }
   const invitationToken=second?$('invitationToken')?.value||'':null;
   if(second&&!invitationToken){
@@ -98,7 +114,8 @@
    const verifiedUrl=new URL(d.url);
    if(verifiedUrl.protocol!=='https:'||verifiedUrl.hostname!=='verify.didit.me')
     throw Error('Unexpected Didit verification link. Please contact ProHouse.');
-   state.token=d.verificationToken;state.url=verifiedUrl.href;state.verified=false;
+   state.token=d.verificationToken;state.url=verifiedUrl.href;
+   state.verified=false;state.pendingReview=false;state.declined=false;
    hidden.value='';
    diditTab.location.replace(verifiedUrl.href);
    // Break the opener relationship after navigation is instructed.
@@ -110,13 +127,15 @@
    message(e.message,'error');
   }finally{
    start.disabled=false;
-   start.textContent='Verify your ID';
+   start.textContent=state.token?'Resume Didit verification':'Verify your ID';
   }
  }
  function validate(){
   if(!state.enabled)return true;
-  if(state.verified&&hidden.value===state.token)return true;
-  message('Please complete your Didit identity verification. When you return to this tab, the result will update automatically.','error');
+  if((state.verified||state.pendingReview)&&state.token&&hidden.value===state.token)return true;
+  message(state.declined?
+   'Your ID check needs attention before the application can be submitted. Contact ProHouse for resubmission.':
+   'Please finish the ID and selfie checks, or wait until Didit confirms your submission is In Review.','error');
   panel.scrollIntoView({behavior:'smooth',block:'center'});
   return false;
  }
