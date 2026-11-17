@@ -57,7 +57,7 @@
    }else if(d.status==='Declined'||d.status==='Name Mismatch'){
     state.pendingReview=false;state.declined=true;
     hidden.value='';start.hidden=true;
-    stopPolling();
+    // Keep checking for a ProHouse reviewer requesting resubmission.
     message(d.status==='Name Mismatch'?
       'The name on your ID does not match your application. Please contact ProHouse to correct it.':
       'Your ID verification was declined. ProHouse will review whether you can resubmit. Please contact hi@prohouse.com.au.','error');
