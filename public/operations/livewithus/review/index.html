@@ -257,6 +257,14 @@
    const d=document.createElement('div'),s=document.createElement('small'),b=document.createElement('strong');
    s.textContent=label;b.textContent=value;d.append(s,b);box.append(d);
   }
+  for(const [label,key] of [['Applicant 1 ID','identityVerification'],['Applicant 2 ID','secondIdentityVerification']]){
+   const id=app[key];
+   if(!id?.sessionId)continue;
+   const d=document.createElement('div'),sm=document.createElement('small'),strong=document.createElement('strong');
+   sm.textContent=label;
+   strong.textContent='Didit: '+id.status+' (at submission) | Session: '+id.sessionId;
+   d.append(sm,strong);box.append(d);
+  }
  }
  function fillEditor(app,settings){
   const base={
@@ -337,7 +345,12 @@
   $('loading').hidden=true;$('content').hidden=false;
   drawApplication(review.applicant);
   fillEditor(review.applicant);
-  $('applicationStatus').textContent=review.status==='pending'?'Awaiting your application decision.':'Application '+review.status+'.';
+  const awaitingDidit=['identityVerification','secondIdentityVerification'].some(
+   key=>review.applicant?.[key]?.status==='In Review');
+  $('applicationStatus').textContent=review.status==='pending'?
+   (awaitingDidit?'Didit ID manual review was pending when submitted. Review the session in Didit before approving. This page rechecks the latest decision.':
+    'Awaiting your application decision.'):
+   'Application '+review.status+'.';
   $('reviewBadge').textContent='APPLICATION '+review.status.toUpperCase();
   $('applicationActions').hidden=review.status!=='pending';
   $('leaseSection').hidden=review.status!=='approved';
