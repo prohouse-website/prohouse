@@ -11,7 +11,7 @@ on:
       - 'src/longstay-signing.js'
       - 'src/longstay-review.js'
       - 'test/longstay-workflow.test.mjs'
-      - 'test/longstay-signature.test.mjs test/longstay-didit.test.mjs'
+      - 'test/longstay-signature.test.mjs'
       - 'test/longstay-didit.test.mjs'
       - 'test/longstay-signing.test.mjs'
       - 'test/longstay-pages.test.mjs'
@@ -36,4 +36,4 @@ jobs:
           node-version: '24'
           cache: 'npm'
       - run: npm ci
-      - run: node --test test/longstay-workflow.test.mjs test/longstay-signing.test.mjs test/longstay-pages.test.mjs test/longstay-signature.test.mjs
+      - run: node --test test/longstay-workflow.test.mjs test/longstay-signing.test.mjs test/longstay-pages.test.mjs test/longstay-signature.test.mjs test/longstay-didit.test.mjs
