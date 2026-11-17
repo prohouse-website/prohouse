@@ -23,9 +23,9 @@ const prepared=data=>({
  verifiedAt:data.verified_at
 });
 class DiditProviderError extends Error{
- constructor(status){
+ constructor(status,reason=''){
   super('Didit API returned '+status);
-  this.name='DiditProviderError';this.status=status;
+  this.name='DiditProviderError';this.status=status;this.reason=reason;
  }
 }
 async function provider(env,path,data){
@@ -57,7 +57,9 @@ async function provider(env,path,data){
    }catch(e){console.warn('Could not store Didit diagnostic',e?.name);}
   }
   console.warn('Didit request rejected', {endpoint,status:r.status});
-  throw new DiditProviderError(r.status);
+  const reason=detail.toLowerCase().includes('no write access to sessions')?'sessions_write_denied':
+   detail.toLowerCase().includes('no read access to workflows')?'workflows_read_denied':'';
+  throw new DiditProviderError(r.status,reason);
  }
  return r.json();
 }
@@ -70,6 +72,10 @@ function safeStartFailure(e){
   return {status:502,message:'Could not start Didit verification. Please contact ProHouse if the problem continues.'};
  }
  const n=e.status;
+ if(e.reason==='sessions_write_denied')return {status:503,message:
+  'ProHouse Didit API key is missing permission to CREATE verification sessions. In the Didit Business Console, select the correct Live application under Developers → API keys and use a key with Sessions create/write access. Contact ProHouse until this is configured.'};
+ if(e.reason==='workflows_read_denied')return {status:503,message:
+  'ProHouse Didit API key lacks Workflows read permission. Check the permissions of the key under the same Live Didit application.'};
  if(n===400||n===422)return {status:502,message:
   'Didit rejected the verification setup (HTTP '+n+'). ProHouse needs to check the workflow configuration.'};
  if(n===401)return {status:503,message:
