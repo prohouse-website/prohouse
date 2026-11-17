@@ -153,6 +153,21 @@ test('second applicant Didit session is restricted to private invitation and inv
    firstName:'Bob',lastName:'Example',email:'bob@example.com',inviteReference:'LH-ANOTHER'}),/match your application/);
  }finally{globalThis.fetch=orig;}
 });
+test('Didit API key missing Sessions create permission returns actionable error without secrets',async()=>{
+ const {env}=mocks(),original=globalThis.fetch;
+ globalThis.fetch=async()=>Response.json({
+   detail:'This API key has no write access to sessions.'
+ },{status:403});
+ try{
+  const response=await startTenantIdentity(post('start',{
+   role:'first',legalName:'Alice Example',email:'alice@example.com',consent:true
+  }),env);
+  assert.equal(response.status,503);
+  const result=await response.json();
+  assert.match(result.message,/missing permission to CREATE verification sessions/);
+  assert.doesNotMatch(result.message,/unit-test-private-key/);
+ }finally{globalThis.fetch=original}
+});
 test('until Didit credentials exist, legacy ID upload can continue without impersonating verification',async()=>{
  const {env}=mocks();delete env.DIDIT_API_KEY;
  assert.equal(diditTenantReady(env),false);
