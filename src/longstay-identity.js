@@ -271,8 +271,11 @@ export async function startTenantIdentity(request,env){
  const callback=new URL('/operations/livewithus/verification-complete/',baseUrl.origin).toString();
  try{
   const start=await provider(env,'session/',{
+   // Didit's contact_details are optional and can reject certain applicant email
+   // formats even when ProHouse accepts the address. We keep their email privately
+   // in ProHouse and do not request a Didit invitation email.
    workflow_id:env.DIDIT_WORKFLOW_ID,vendor_data:vendorData,
-   callback,contact_details:{email,send_notification_emails:false}
+   callback
   });
   const uri=new URL(start.url);
   if(!start.session_id||uri.protocol!=='https:'||uri.hostname!=='verify.didit.me')
