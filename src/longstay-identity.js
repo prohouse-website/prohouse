@@ -41,8 +41,20 @@ async function provider(env,path,data){
   const endpoint=data?'create-session':'decision';
   let detail='Unspecified Didit error';
   try{
-   const payload=JSON.parse((await r.text()).slice(0,1800));
-   detail=String(payload.detail||payload.message||payload.error||payload.code||detail).slice(0,450);
+   const payload=JSON.parse((await r.text()).slice(0,3500));
+   const main=payload?.detail||payload?.message||payload?.error||payload?.code;
+   if(main)detail=typeof main==='object'?JSON.stringify(main):String(main);
+   else if(payload&&typeof payload==='object'){
+    // Didit/DRF field validation errors often use e.g. {"workflow_id":["..."]}
+    // without a top-level detail/message. Only record permitted error field names.
+    const keys=['workflow_id','vendor_data','callback','callback_method','contact_details',
+      'language','metadata','non_field_errors','errors'];
+    const fields=Object.entries(payload).filter(([key])=>keys.includes(key))
+     .map(([key,value])=>key+': '+(typeof value==='string'?value:JSON.stringify(value)));
+    if(fields.length)detail=fields.join('; ');
+    else detail='Validation fields: '+Object.keys(payload).slice(0,12).join(', ');
+   }
+   detail=detail.slice(0,600);
   }catch{detail='Didit returned a non-JSON error';}
   detail=detail.replace(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g,'[redacted-email]')
    .replace(/[A-Za-z0-9_=-]{45,}/g,'[redacted-token]');
@@ -168,7 +180,20 @@ async function checkDiditConnection(env){
     method:'GET',headers:{'x-api-key':String(env.DIDIT_API_KEY).trim(),
      Accept:'application/json'},signal:AbortSignal.timeout(10000)
    });
+  let workflow=null;
+  if(res.ok){
+   try{
+    const item=await res.json();
+    workflow={
+     status:String(item.status||'unknown').slice(0,80),
+     published:typeof item.is_published==='boolean'?item.is_published:null,
+     currentVersion:item.current_version??item.published_version??null,
+     label:String(item.workflow_label||'').slice(0,70)
+    };
+   }catch{}
+  }
   result={
+   ...(workflow?{workflow}:{}),
    reachable:res.ok,
    status:res.status,
    reason:res.ok?'The API key can access the configured Didit workflow.':
