@@ -118,8 +118,20 @@ export async function buildApplicationPDF(data, documents, reference, signature,
   row('Applicants', data.people); row('Housemate guideline', data.houseRules);
   section('Main applicant');
   applicationFields.slice(2,12).forEach(([key,label])=>row(label,data[key]));
+  if(data.identityVerification?.status==='Approved'){
+    row('Identity check','Didit: approved');
+    row('Name verified',data.identityVerification.verifiedName);
+    row('Didit session',data.identityVerification.sessionId);
+    row('Verified UTC',data.identityVerification.verifiedAt);
+  }
   section('Second applicant');
   applicationFields.slice(12,24).forEach(([key,label])=>row(label,data[key]));
+  if(data.secondIdentityVerification?.status==='Approved'){
+    row('Identity check','Didit: approved');
+    row('Name verified',data.secondIdentityVerification.verifiedName);
+    row('Didit session',data.secondIdentityVerification.sessionId);
+    row('Verified UTC',data.secondIdentityVerification.verifiedAt);
+  }
   section('Rental preferences');
   applicationFields.slice(24,35).forEach(([key,label])=>row(label,data[key]));
   section('Declarations');
