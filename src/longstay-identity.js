@@ -36,10 +36,27 @@ async function provider(env,path,data){
   signal:AbortSignal.timeout(15000)
  });
  if(!r.ok){
-  // Never return provider data (which may contain personal information) or the API key.
-  // The HTTP status alone is enough to direct staff to the right configuration.
-  console.warn('Didit request rejected', {endpoint:path.startsWith('session/')?'decision':'create-session',
-   status:r.status});
+  // Keep diagnostic detail private in D1. It must never expose the key,
+  // applicants' contact details or any provider response directly in the browser.
+  const endpoint=data?'create-session':'decision';
+  let detail='Unspecified Didit error';
+  try{
+   const payload=JSON.parse((await r.text()).slice(0,1800));
+   detail=String(payload.detail||payload.message||payload.error||payload.code||detail).slice(0,450);
+  }catch{detail='Didit returned a non-JSON error';}
+  detail=detail.replace(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g,'[redacted-email]')
+   .replace(/[A-Za-z0-9_=-]{45,}/g,'[redacted-token]');
+  if(env.LONGSTAY_DB&&data){
+   try{
+    await env.LONGSTAY_DB.prepare(
+     'INSERT INTO longstay_didit_api_errors(endpoint,http_status,detail,occurred_at) VALUES(?,?,?,?)'
+    ).bind(endpoint,r.status,detail,now()).run();
+    await env.LONGSTAY_DB.prepare(
+     'DELETE FROM longstay_didit_api_errors WHERE id NOT IN (SELECT id FROM longstay_didit_api_errors ORDER BY id DESC LIMIT 20)'
+    ).run();
+   }catch(e){console.warn('Could not store Didit diagnostic',e?.name);}
+  }
+  console.warn('Didit request rejected', {endpoint,status:r.status});
   throw new DiditProviderError(r.status);
  }
  return r.json();
