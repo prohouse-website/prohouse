@@ -65,11 +65,9 @@
     </div>
     <section id="diditPanel" class="diditPanel" hidden>
       <h3 class="sectionTitle">Secure identity verification with Didit</h3>
-      <p class="uploadNote">Verify your ID using Didit. Complete the ID document, selfie, liveness and face-match checks on Didit's secure website. <strong>You do not need to upload your ID to ProHouse.</strong> ProHouse receives the verification result, not the scanned ID or selfie.</p>
+      <p class="uploadNote">Click <strong>Verify your ID</strong> to open Didit directly. Complete the ID and selfie checks, then return here. Your result updates automatically. <strong>There is no ID upload to ProHouse.</strong> We receive only the verification result.</p>
       <label class="checkline"><input type="checkbox" id="diditConsent"><span>I agree to Didit processing my identity document, selfie and biometric liveness/face-match information to verify my identity for this rental application. <a href="https://didit.me/terms/privacy-policy/" target="_blank" rel="noopener">Didit's privacy policy</a>.</span></label>
-      <div class="actions"><button class="primary" id="diditStart" type="button">Start Didit verification</button>
-      <a id="diditOpen" href="#" target="_blank" rel="noopener noreferrer" hidden class="secondary diditLink">Open secure Didit verification</a>
-      <button id="diditCheck" class="secondary" type="button" hidden>Check verification result</button></div>
+      <div class="actions"><button class="primary" id="diditStart" type="button">Verify your ID</button></div>
       <p id="diditStatus" class="diditStatus" role="status" aria-live="polite">Enter your legal name and email before verification.</p>
       <input type="hidden" name="identityToken" id="identityToken">
     </section>
