@@ -177,20 +177,20 @@ async function notifyIdentityUpdate(env,row){
     'Open https://business.didit.me and go to Identity verification > User verifications.',
     'Find the session, inspect its warnings, then approve, decline or request resubmission.',
     'Do not approve the rental application while identity verification is pending or declined.'
-   ].join('\\n'):
+   ].join('\n'):
    state==='Resubmitted'?[
     'Your ProHouse identity verification needs an updated ID or selfie step.',
     'Please open the same secure Didit verification link to complete the requested check:',
     row.session_url,'',
     'Your rental application remains on hold until your identity is approved.',
     'Contact hi@prohouse.com.au if you need help.'
-   ].join('\\n'):[
+   ].join('\n'):[
     'Your Didit identity verification was not approved.',
     'This does not automatically mean your rental application has been rejected.',
     'ProHouse will review whether a new document or selfie submission is appropriate.',
     'Please do not start a second check unless we ask you to.',
     'Contact hi@prohouse.com.au if you need help.'
-   ].join('\\n');
+   ].join('\n');
    const response=await fetch('https://api.resend.com/emails',{
     method:'POST',headers:{Authorization:'Bearer '+env.RESEND_API_KEY,'Content-Type':'application/json'},
     body:JSON.stringify({
