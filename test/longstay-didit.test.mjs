@@ -91,7 +91,9 @@ test('tenant Didit first applicant: approved identity requires ID, liveness, fac
   const response=await started.json();
   assert.match(response.verificationToken,/^[a-f0-9]{64}$/);
   assert.equal(response.url,'https://verify.didit.me/s/tenant-mock');
-  assert.ok(state.calls[0].contact_details.email==='alice@example.com');
+  assert.deepEqual(Object.keys(state.calls[0]).sort(),['callback','vendor_data','workflow_id']);
+  assert.equal(state.calls[0].workflow_id,WORKFLOW);
+  assert.equal(state.calls[0].contact_details,undefined,'ID verification must not send unnecessary applicant email to Didit');
   assert.ok(!JSON.stringify([...sessions.keys()]).includes(response.verificationToken),'Must store token hash');
   const before=await tenantIdentityStatus(status(response.verificationToken),env);
   assert.equal((await before.json()).verified,false);
