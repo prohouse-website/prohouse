@@ -13,6 +13,7 @@ on:
       - 'test/longstay-workflow.test.mjs'
       - 'test/longstay-signature.test.mjs'
       - 'test/longstay-didit.test.mjs'
+      - 'test/longstay-didit-ui.test.mjs'
       - 'test/longstay-signing.test.mjs'
       - 'test/longstay-pages.test.mjs'
       - 'public/operations/livewithus/review/index.html'
@@ -36,4 +37,4 @@ jobs:
           node-version: '24'
           cache: 'npm'
       - run: npm ci
-      - run: node --test test/longstay-workflow.test.mjs test/longstay-signing.test.mjs test/longstay-pages.test.mjs test/longstay-signature.test.mjs test/longstay-didit.test.mjs
+      - run: node --test test/longstay-workflow.test.mjs test/longstay-signing.test.mjs test/longstay-pages.test.mjs test/longstay-signature.test.mjs test/longstay-didit.test.mjs test/longstay-didit-ui.test.mjs
