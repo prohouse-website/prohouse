@@ -1,3 +1,4 @@
+import { identityReviewGate } from './longstay-identity.js';
 // Review is a separate, one-time admin action. No decision is triggered by GET
 // or by an email link preview; a button click sends an authenticated-by-link POST.
 // The link token is never stored in plain text in D1.
@@ -65,6 +66,13 @@ export async function decideLongStayReview(request,env){
   if(!row)return response(404,'Review link not found.');
   if(row.expires_at<new Date().toISOString())return response(410,'Review link expired.');
   if(row.status!=='pending')return response(200,'This application was already reviewed.',{reference:row.reference,status:row.status});
+  if(decision==='approved'){
+    let summary;
+    try{summary=JSON.parse(row.summary_json||'{}');}
+    catch{return response(500,'Review data unavailable.');}
+    const gate=await identityReviewGate(env,row.reference,summary);
+    if(!gate.ok)return response(409,gate.message,{status:'identity_pending'});
+  }
   const decisionAt=new Date().toISOString();
   const changed=await env.LONGSTAY_DB.prepare(
     "UPDATE longstay_reviews SET status=?,decision_at=? WHERE reference=? AND status='pending' AND token_hash=?"
