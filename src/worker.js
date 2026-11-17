@@ -4,6 +4,7 @@ import { prepareLease,leaseTemplateStatus,packetForAdmin,tenantPacket,leaseDocum
 import { getLongStayReview, decideLongStayReview } from './longstay-review.js';
 import { submitLongStayFirst, submitLongStaySecond, getLongStayInvitation, cleanupLongStayInvitations } from './longstay-workflow.js';
 import { startSignatureHandoff, signatureHandoffStatus, saveMobileSignature, cleanupSignatureSessions } from './longstay-signature-handoff.js';
+import { identityConfig,startTenantIdentity,tenantIdentityStatus } from './longstay-identity.js';
 import { cleanerPortal } from './cleaner-portal.js';
 import { vendorAPI } from './vendor-proxy.js';
 import { utilityPDF } from './utilities-pdf.js';
@@ -45,6 +46,9 @@ export default {
     if (path === '/api/longstay/application') return submitLongStayFirst(request, env);
     if (path === '/api/longstay/invitation') return getLongStayInvitation(request, env);
     if (path === '/api/longstay/coapplicant') return submitLongStaySecond(request, env);
+    if (path === '/api/longstay/identity/config') return identityConfig(request,env);
+    if (path === '/api/longstay/identity/start') return startTenantIdentity(request,env);
+    if (path === '/api/longstay/identity/status') return tenantIdentityStatus(request,env);
     if (path === '/api/longstay/signature-session') return request.method==='POST'
       ? startSignatureHandoff(request,env) : signatureHandoffStatus(request,env);
     if (path === '/api/longstay/signature-save') return saveMobileSignature(request,env);
