@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 
-test('single Verify your ID click opens Didit and auto-imports result on return',async()=>{
+test('Didit In Review hides Verify, allows next step, then updates to Approved',async()=>{
  const js=readFileSync('public/assets/livewithus-didit.js','utf8');
  const callbacks=new Map(),globalCallbacks=new Map();
  const element=id=>({
@@ -28,6 +28,7 @@ test('single Verify your ID click opens Didit and auto-imports result on return'
  const fakeWindow={
   open(url,target){events.push('open:'+url+':'+target);return popup}
  };
+ const didit={status:'In Review',verified:false};
  const fetch=async(input,options={})=>{
   const url=String(input);
   events.push('fetch:'+url);
@@ -36,7 +37,7 @@ test('single Verify your ID click opens Didit and auto-imports result on return'
    verificationToken:'abc123',url:'https://verify.didit.me/s/prohouse-test'
   })};
   if(url.endsWith('/status'))return{ok:true,json:async()=>({
-   verified:true,verifiedName:'Alex Example'
+   ...didit,verifiedName:'Alex Example'
   })};
   throw Error('Unexpected request: '+url);
  };
@@ -63,11 +64,20 @@ test('single Verify your ID click opens Didit and auto-imports result on return'
  assert.ok(events.includes('navigate:https://verify.didit.me/s/prohouse-test'));
  assert.ok(events.includes('poll:9000'));
  assert.equal(nodes.get('identityToken').value,'');
+ // Resuming before completion reuses the same session and never bills again.
+ await callbacks.get('diditStart:click')();
+ assert.equal(events.filter(x=>x==='fetch:/api/longstay/identity/start').length,1);
  globalCallbacks.get('window:focus')();
  await new Promise(resolve=>setImmediate(resolve));
  assert.equal(nodes.get('identityToken').value,'abc123');
  assert.equal(nodes.get('diditStart').hidden,true);
  assert.equal(fakeWindow.ProHouseDidit.validate(),true);
- assert.match(nodes.get('diditStatus').textContent,/ID verified successfully/);
+ assert.match(nodes.get('diditStatus').textContent,/Awaiting ProHouse manual review/);
+ didit.status='Approved';didit.verified=true;
+ globalCallbacks.get('window:focus')();
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(nodes.get('diditStart').hidden,true);
+ assert.equal(fakeWindow.ProHouseDidit.isVerified(),true);
+ assert.match(nodes.get('diditStatus').textContent,/approved by Didit/);
  assert.ok(!events.includes('close'));
 });
