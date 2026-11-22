@@ -140,6 +140,11 @@ async function documentPDF(row,completed){
  let p,y;
  const safe=v=>pdfSafe(v===null||v===undefined||v===''?'Not specified':String(v));
  const money=v=>'AUD '+Number(v||0).toLocaleString('en-AU',{minimumFractionDigits:2,maximumFractionDigits:2});
+ const payid='hi@prohouse.com.au';
+ const bankParts=String(s.bank||'').split(/\s*[-–]\s*/);
+ const bsb=bankParts.length>1?bankParts[0].trim():'';
+ const account=bankParts.length>1?bankParts.slice(1).join('-').trim():String(s.bank||'').trim();
+
  function page(){
   p=d.addPage([W,H]);y=743;
   // Actual ProHouse transparent logo, without the previous oversized coloured header.
@@ -210,8 +215,41 @@ async function documentPDF(row,completed){
  groupTitle('Financial terms');
  summaryStrip();
  scheduleRow([['Internet',s.internet],['Utilities (electricity, gas and water)',s.utilities]]);
- scheduleRow([['PayID',s.payid],['Bank BSB / account',s.bank]]);
+
  page();
+ section('Payment instructions  |  Choose one method');
+ function paymentPanel(number,heading,rows,notice){
+  const x=L,w=C;
+  const blockH=rows.length*27+91;
+  ensure(blockH+10);
+  p.drawRectangle({x,y:y-blockH,width:w,height:blockH,color:white,borderColor:line,borderWidth:1});
+  p.drawRectangle({x,y:y-34,width:w,height:34,color:number===1?lime:charcoal});
+  p.drawText('OPTION '+number+'  |  '+heading,{x:x+14,y:y-22,font:bold,size:11,color:number===1?charcoal:white});
+  let ty=y-56;
+  for(const [label,value] of rows){
+   p.drawText(safe(label).toUpperCase(),{x:x+15,y:ty,font:bold,size:7.8,color:muted});
+   const valueText=safe(value);
+   const valSize=bold.widthOfTextAtSize(valueText,12.6)>w-194?10.6:12.6;
+   p.drawText(valueText,{x:x+164,y:ty-1,font:bold,size:valSize,color:charcoal});
+   ty-=27;
+  }
+  p.drawRectangle({x:x+11,y:y-blockH+12,width:w-22,height:29,color:light});
+  const warningLines=wrap(safe(notice),regular,8.1,w-44);
+  let ny=y-blockH+31;
+  for(const ln of warningLines.slice(0,2)){p.drawText(ln,{x:x+19,y:ny,font:regular,size:8.1,color:charcoal});ny-=10;}
+  y-=blockH+17;
+ }
+ paymentPanel(1,'PAYID',[
+  ['PayID email',payid],
+  ['Account name','Cu Nguyen']
+ ],'Commonwealth Bank may hold some first-time payments for up to 24 hours. PayID does not guarantee instant availability.');
+ paymentPanel(2,'DIRECT BANK TRANSFER',[
+  ['Bank','Commonwealth Bank of Australia'],
+  ['Account name','Cu Nguyen'],
+  ['BSB',bsb||'See Schedule A bank details'],
+  ['Account number',account||'See Schedule A bank details']
+ ],'Use the agreement reference when transferring. Allow time for funds to clear before the payment deadline.');
+ paragraph('PAYMENT REFERENCE: '+row.id,{boldText:true,size:10.2,pad:12});
  section('Payment and moving in');
  paragraph('1. ONE WEEK RENT ADVANCE: '+money(s.rent),{boldText:true,pad:4});
  paragraph('Requested within 24 hours after the provider countersigns and credited toward rent. Any consequences for late payment remain subject to applicable law.');
@@ -452,10 +490,20 @@ export async function rentalV2(req,env){
     'Refundable cleaning amount specified in Schedule A: '+AUD(schedule.bond),
     'These amounts are due only to the extent permitted by the law governing your tenancy. Any rental bond must comply with the applicable legal limit and official lodgement requirements. For a standard NSW residential tenancy, an additional cleaning bond cannot be added on top of the maximum four-week rental bond.',
     '',
-    'STEP 3  |  PAY USING THE DETAILS IN SCHEDULE A',
-    'PayID: '+(schedule.payid||'See attached Schedule A'),
-    'Bank BSB / account: '+(schedule.bank||'See attached Schedule A'),
-    'Payment reference: '+r.id,
+    'STEP 3  |  CHOOSE ONE OF TWO PAYMENT METHODS',
+    '',
+    'OPTION 1: PAYID',
+    'PayID email: hi@prohouse.com.au',
+    'Account name: Cu Nguyen',
+    'Important: Commonwealth Bank may hold some first-time payments for up to 24 hours. PayID does not guarantee instant availability.',
+    '',
+    'OPTION 2: DIRECT BANK TRANSFER',
+    'Bank: Commonwealth Bank of Australia',
+    'Account name: Cu Nguyen',
+    'BSB: '+(String(schedule.bank||'').split(/\\s*[-–]\\s*/).length>1?String(schedule.bank).split(/\\s*[-–]\\s*/)[0].trim():'See Schedule A bank details'),
+    'Account number: '+(String(schedule.bank||'').split(/\\s*[-–]\\s*/).length>1?String(schedule.bank).split(/\\s*[-–]\\s*/).slice(1).join('-').trim():String(schedule.bank||'See Schedule A bank details')),
+    '',
+    'PAYMENT REFERENCE: '+r.id,
     'Bank transfer receipt is not confirmation that cleared funds have arrived. ProHouse confirms receipt before releasing keys, subject to legal bond lodgement and tenancy requirements.',
     '',
     'BANK TRANSFER WARNING',
