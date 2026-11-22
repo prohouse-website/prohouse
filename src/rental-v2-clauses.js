@@ -411,7 +411,7 @@ export const RENTAL_CLAUSES = [
   {
     "id": "3.2.2",
     "section": "3",
-    "text": "Prior to the expiration of this Agreement (break lease), the GUEST agrees to give at least 28 days of notice and agrees to pay: - _3.2.2.1. Four (4) weeks rent if less than 25% of the fixed term has expired,_ - _3.2.2.2. Three (3) weeks rent if 25 % or more but less than 50% of the fixed term has expired,_ - _3.2.2.3. Two (2) weeks rent if 50% or more but less than 75% of the fixed term has expired,_ - _3.2.2.4. One (1) week rent if 75% or more of the fixed term has expired._",
+    "text": "If the GUEST ends the fixed-term agreement early (break lease), the GUEST must give at least 28 days' written notice. The break-lease fee is based on how much of the fixed term has elapsed:\n\n(a) Less than 25% elapsed: 4 weeks' rent.\n(b) 25% to less than 50% elapsed: 3 weeks' rent.\n(c) 50% to less than 75% elapsed: 2 weeks' rent.\n(d) 75% or more elapsed: 1 week's rent.\n\nAny notice requirement or fee applies only to the extent permitted by the law governing the agreement.",
     "heading": false
   },
   {
