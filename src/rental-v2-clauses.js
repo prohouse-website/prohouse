@@ -487,30 +487,6 @@ export const RENTAL_CLAUSES = [
     "heading": false
   },
   {
-    "id": "4.3",
-    "section": "4",
-    "text": "Rent payment options",
-    "heading": true
-  },
-  {
-    "id": "4.3.1",
-    "section": "4",
-    "text": "GUEST pays rent every 4-week in advance: no admin fee",
-    "heading": false
-  },
-  {
-    "id": "4.3.2",
-    "section": "4",
-    "text": "GUEST pays rent every 2-week in advance: add 1.5% admin fee",
-    "heading": false
-  },
-  {
-    "id": "4.3.3",
-    "section": "4",
-    "text": "GUEST pays rent every 1-week in advance: add 2% admin fee",
-    "heading": false
-  },
-  {
     "id": "5.1",
     "section": "5",
     "text": "GUEST will be served a 28-day termination notice or notice of vacate, without a Court Order for the following reason:",
