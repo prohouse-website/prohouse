@@ -1,4 +1,5 @@
 import { onRequestPost } from './survey.js';
+import { rentalV2 } from './rental-v2.js';
 import { generateMutualLeaseDraft } from './longstay-lease.js';
 import { prepareLease,leaseTemplateStatus,packetForAdmin,tenantPacket,leaseDocument,sendLease,tenantSign,tenantReportPayment,verifyLeasePayment,verifyPostSigningFunds,requestProviderOtp,signProvider,checkLeaseDeadlines } from './longstay-signing.js';
 import { getLongStayReview, decideLongStayReview } from './longstay-review.js';
@@ -93,6 +94,7 @@ export default {
       response.headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
       return response;
     }
+    if (path.startsWith('/api/rental-v2/')) return rentalV2(request,env);
     if (path.startsWith('/api/')) return new Response('Not found', { status: 404 });
     return env.ASSETS.fetch(request);
   },
