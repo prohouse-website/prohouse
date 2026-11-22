@@ -130,33 +130,103 @@ async function identityReceiptPDF(row){
  }return new Uint8Array(await d.save());
 }
 async function documentPDF(row,completed){
- const d=await PDFDocument.create();const regular=await d.embedFont(StandardFonts.Helvetica),bold=await d.embedFont(StandardFonts.HelveticaBold);
- d.setTitle('ProHouse Mutual Rental Agreement '+row.id);d.setAuthor('ProHouse');
+ const d=await PDFDocument.create();
+ const regular=await d.embedFont(StandardFonts.Helvetica);
+ const bold=await d.embedFont(StandardFonts.HelveticaBold);
+ d.setTitle('ProHouse | Rental Agreement | '+row.id);d.setAuthor('ProHouse Australia');
  const clauses=JSON.parse(row.clauses_json),s=JSON.parse(row.schedule_json);
- let p,y;const newpage=()=>{p=d.addPage([595,842]);y=780;p.drawText('PROHOUSE / RENTAL AGREEMENT',{x:46,y:806,font:bold,size:10,color:rgb(.16,.36,.23)})};
- function write(t,head=false){const font=head?bold:regular,size=head?13:9.5,leading=head?19:14;for(const line of wrap(t,font,size,503)){if(y<75)newpage();p.drawText(line||' ',{x:46,y,font,size,color:rgb(.11,.16,.21)});y-=leading;}y-=head?9:6}
- newpage();write('Mutual Rental Agreement',true);
- write('Reference '+row.id+' | '+(completed?'BOTH PARTIES SIGNED':'DRAFT / NOT COMPLETED'));
- write('SCHEDULE A',true);
- for(const [k,label] of [['provider','Provider'],['owneremail','Provider email'],['property','Property'],['area','Rented area'],['noaccess','No-access areas'],['rent','Weekly rent AUD'],['frequency','Payment frequency'],['start','Start date'],['period','Rental period'],['end','End date'],['bond','Cleaning bond AUD'],['holding','Holding fund AUD'],['internet','Internet'],['utilities','Electricity, gas and water'],['payid','PayID'],['bank','Bank BSB/account']])write(label+': '+(s[k]||'Not specified'));
- write('Guest: '+(row.guest_full_name||'(not signed)')+' | '+row.guest_email);
- write(paymentNotice(s));
- write('AGREED TERMS',true);
- let last='';let n=0;const names={'1':'Before rental period','2':'During rental period','3':'After rental period','4':'Special terms and conditions','5':'Termination and eviction'};
- for(const c of clauses){if(last!==c.section){last=c.section;write(names[last]||'Terms',true)}write((++n)+'. '+c.text)}
- if(y<230)newpage();write('EXECUTION RECORD',true);
- write('Guest full legal name: '+(row.guest_full_name||'Pending'));
- write('Payment terms acknowledgment version: '+PAYMENT_NOTICE_VERSION+' | '+(row.guest_signed_at?'Guest acknowledged before signing':'Pending'));
- write('Guest signed (UTC): '+(row.guest_signed_at||'Pending'));
- write('Didit status: '+(row.identity_status||'Pending')+' | Session: '+(row.identity_session_id||'Pending'));
- write('Provider signed (UTC): '+(row.provider_signed_at||'Pending'));
- write('Agreement content SHA-256: '+(row.content_sha256||'Recorded in portal'));
- for(const [value,title] of [[row.guest_signature,'Guest signature'],[row.provider_signature,'Provider signature']]){
-   if(!value){write(title+': Pending');continue;}
-   if(y<170)newpage();write(title+':');const image=await d.embedPng(Uint8Array.from(atob(value.split(',')[1]),x=>x.charCodeAt(0)));
-   const scale=Math.min(150/image.width,58/image.height,1);p.drawImage(image,{x:46,y:y-60,width:image.width*scale,height:image.height*scale});y-=84;
+ const navy=rgb(.095,.16,.21),green=rgb(.13,.37,.29),pink=rgb(.95,.20,.49),mint=rgb(.91,.97,.94),light=rgb(.965,.978,.973),slate=rgb(.40,.47,.50),white=rgb(1,1,1),border=rgb(.84,.89,.86);
+ const W=595,H=842,L=45,R=45,C=W-L-R;
+ let p,y;
+ const money=v=>'AUD '+Number(v||0).toLocaleString('en-AU',{minimumFractionDigits:2,maximumFractionDigits:2});
+ const safe=v=>pdfSafe(v===null||v===undefined||v===''?'Not specified':String(v));
+ function page(){
+  p=d.addPage([W,H]);y=746;
+  p.drawRectangle({x:0,y:H-78,width:W,height:78,color:navy});
+  p.drawRectangle({x:0,y:H-82,width:W,height:4,color:pink});
+  p.drawText('PROHOUSE',{x:L,y:H-44,font:bold,size:22,color:white});
+  p.drawText('AUSTRALIA  /  RENTAL AGREEMENT',{x:L+162,y:H-40,font:regular,size:9,color:rgb(.80,.91,.85)});
  }
- d.getPages().forEach((page,i)=>{page.drawText('ProHouse | '+row.id+' | '+(i+1)+' / '+d.getPageCount(),{x:46,y:28,size:8,font:regular,color:rgb(.48,.52,.51)})});
+ function ensure(height){if(y-height<65)page()}
+ function section(t){
+  ensure(46);y-=10;
+  p.drawRectangle({x:L,y:y-26,width:C,height:30,color:green});
+  p.drawText(safe(t).toUpperCase(),{x:L+13,y:y-17,font:bold,size:11,color:white});
+  y-=42;
+ }
+ function paragraph(t,{size=9.2,pad=9,color=navy,boldText=false,indent=0}={}){
+  const font=boldText?bold:regular;
+  const lines=wrap(safe(t),font,size,C-indent-5);
+  const leading=size+4.1;
+  for(const line of lines){ensure(leading);p.drawText(line||' ',{x:L+indent,y,font,size,color});y-=leading}
+  y-=pad;
+ }
+ function gridRows(rows){
+  const labelW=178;
+  for(let i=0;i<rows.length;i++){
+   const [label,value]=rows[i];
+   const vl=wrap(safe(value),regular,9,C-labelW-31);
+   const h=Math.max(29,vl.length*13+13);
+   ensure(h+2);
+   p.drawRectangle({x:L,y:y-h,width:C,height:h,color:i%2===0?light:white,borderColor:border,borderWidth:.5});
+   p.drawRectangle({x:L,y:y-h,width:labelW,height:h,color:i%2===0?mint:rgb(.95,.97,.95)});
+   p.drawText(safe(label),{x:L+12,y:y-17,font:bold,size:9,color:green});
+   let ty=y-17;for(const line of vl){p.drawText(line||' ',{x:L+labelW+12,y:ty,font:regular,size:9,color:navy});ty-=13}
+   y-=h;
+  }
+  y-=12;
+ }
+ function tag(t){ensure(29);p.drawRectangle({x:L,y:y-23,width:C,height:26,color:mint});p.drawText(safe(t),{x:L+11,y:y-16,font:bold,size:9,color:green});y-=36}
+ page();
+ paragraph('MUTUAL RENTAL AGREEMENT',{size:20,boldText:true,pad:5});
+ paragraph((completed?'FULLY EXECUTED  |  ':'DRAFT  |  ')+'AGREEMENT '+row.id,{size:8.3,color:slate,pad:17});
+ section('Schedule A  |  Key agreement details');
+ gridRows([
+  ['Property address',s.property],['Rented area',s.area],['Excluded areas',s.noaccess],
+  ['Provider',s.provider],['Provider email',s.owneremail],
+  ['Guest',row.guest_full_name||row.guest_email],['Guest email',row.guest_email],
+  ['Start date',s.start],['End date',s.end],['Agreement period',s.period],
+  ['Weekly rent',money(s.rent)],['Rent payment frequency',s.frequency],
+  ['Refundable holding / security amount',money(s.holding)],
+  ['Refundable cleaning amount',money(s.bond)],
+  ['Internet',s.internet],['Electricity, gas and water',s.utilities],
+  ['Payment PayID',s.payid],['Bank BSB and account',s.bank]
+ ]);
+ section('Payment and move-in information');
+ tag('1  |  ONE WEEK RENT ADVANCE   '+money(s.rent));
+ paragraph('Requested within 24 hours after the provider countersigns. The amount is credited toward rent. Any consequences of late payment are subject to applicable law.');
+ tag('2  |  BEFORE MOVE-IN');
+ paragraph('Refundable holding/security amount: '+money(s.holding)+'. Refundable cleaning amount listed: '+money(s.bond)+'. Only payments lawful for the tenancy type and location are collectible. Statutory rental bonds must follow the required lodgement process and limits.');
+ paragraph('Allow time for bank checks, including holds on some Commonwealth Bank first-time transfers. A transfer receipt is not proof of cleared funds. Keys are released after lawful payments and required bond lodgement are confirmed.',{pad:6});
+ section('Agreed clauses');
+ const names={'1':'Before rental period','2':'During rental period','3':'After rental period','4':'Special terms and conditions','5':'Termination and eviction'};
+ let last='',i=0;
+ for(const c of clauses){
+  if(c.section!==last){last=c.section;ensure(35);y-=10;p.drawText((last||'')+'  '+(names[last]||'Other terms').toUpperCase(),{x:L,y,font:bold,size:10,color:green});y-=22}
+  paragraph((++i)+'.  '+c.text,{size:9.2,indent:4,pad:7});
+ }
+ section('Signatures and verification record');
+ gridRows([
+  ['Guest name',row.guest_full_name||'Pending'],
+  ['Guest signed (UTC)',row.guest_signed_at||'Pending'],
+  ['Payment acknowledgment',row.guest_signed_at?'Acknowledged before signing':'Pending'],
+  ['Didit verification',row.identity_status||'Pending'],
+  ['Didit session reference',row.identity_session_id||'Pending'],
+  ['Provider signed (UTC)',row.provider_signed_at||'Pending']
+ ]);
+ for(const [value,name] of [[row.guest_signature,'GUEST SIGNATURE'],[row.provider_signature,'PROVIDER SIGNATURE']]){
+  ensure(115);p.drawText(name,{x:L,y,font:bold,size:9,color:green});y-=15;
+  p.drawRectangle({x:L,y:y-78,width:240,height:78,borderColor:border,borderWidth:.8,color:white});
+  if(value){const image=await d.embedPng(Uint8Array.from(atob(value.split(',')[1]),x=>x.charCodeAt(0)));const scale=Math.min(218/image.width,63/image.height,1);p.drawImage(image,{x:L+9,y:y-70,width:image.width*scale,height:image.height*scale});}
+  else p.drawText('Awaiting signature',{x:L+13,y:y-41,font:regular,size:10,color:slate});
+  y-=96;
+ }
+ paragraph('Integrity reference (SHA-256): '+(row.content_sha256||'Not yet recorded'),{size:8,color:slate});
+ d.getPages().forEach((pg,i)=>{
+  pg.drawLine({start:{x:L,y:49},end:{x:W-R,y:49},thickness:.7,color:border});
+  pg.drawText('PROHOUSE AUSTRALIA  |  CONFIDENTIAL AGREEMENT',{x:L,y:31,font:bold,size:7.5,color:green});
+  pg.drawText('PAGE '+(i+1)+' / '+d.getPageCount(),{x:W-R-59,y:31,font:regular,size:7.5,color:slate});
+ });
  return new Uint8Array(await d.save());
 }
 export async function rentalV2(req,env){
