@@ -164,7 +164,7 @@ export async function rentalV2(req,env){
    const t=token(),h=await hash(t),deadline=plus(24*60),sent=now();
    await db(env).prepare("UPDATE rental_v2_agreements SET status='sent',guest_token_hash=?,deadline_at=?,sent_at=?,updated_at=? WHERE id=? AND status='draft'").bind(h,deadline,sent,sent,id).run();
    // If delivery fails, the owner can resend a new link; old links are revoked.
-   await emailSend(env,r.guest_email,'ProHouse rental agreement: complete within 24 hours',`You have been invited to review and sign a ProHouse rental agreement.\n\nComplete by ${deadline}.\n\nOpen your private link: ${APP_ORIGIN}/operations/rental-v2/#guest=${t}\n\nYou will provide your legal name, date of birth and phone number, verify your ID with Didit, review the agreement and sign. The rent and selected terms cannot be changed.\n\nDo not forward your link.`);
+   await emailSend(env,r.guest_email,'ProHouse rental agreement: complete within 24 hours',`You have been invited to review and sign a ProHouse rental agreement.\n\nComplete by ${deadline}.\n\nOpen your private link: ${APP_ORIGIN(req)}/operations/rental-v2/#guest=${t}\n\nYou will provide your legal name, date of birth and phone number, verify your ID with Didit, review the agreement and sign. The rent and selected terms cannot be changed.\n\nDo not forward your link.`);
    return reply(200,'Invitation sent',{deadlineAt:deadline});
   }
   if(path==='owner/resend'&&req.method==='POST'){
@@ -174,7 +174,7 @@ export async function rentalV2(req,env){
    if(!r||!['sent','expired'].includes(r.status))return reply(409,'Resend only for unsigned agreements.');
    const t=token(),deadline=plus(24*60),stamp=now();
    await db(env).prepare("UPDATE rental_v2_agreements SET status='sent',guest_token_hash=?,deadline_at=?,sent_at=?,guest_full_name=NULL,guest_dob=NULL,guest_phone=NULL,identity_session_id=NULL,identity_status=NULL,verified_name=NULL,verified_dob=NULL,identity_checked_at=NULL,updated_at=? WHERE id=? AND status IN ('sent','expired')").bind(await hash(t),deadline,stamp,stamp,id).run();
-   await emailSend(env,r.guest_email,'Your new ProHouse rental agreement invitation',`Your previous invitation has been replaced. Complete your agreement within 24 hours by ${deadline}.\n\nPrivate link: ${APP_ORIGIN}/operations/rental-v2/#guest=${t}`);
+   await emailSend(env,r.guest_email,'Your new ProHouse rental agreement invitation',`Your previous invitation has been replaced. Complete your agreement within 24 hours by ${deadline}.\n\nPrivate link: ${APP_ORIGIN(req)}/operations/rental-v2/#guest=${t}`);
    return reply(200,'Fresh invitation issued',{deadlineAt:deadline});
   }
   if(path==='owner/get'&&req.method==='GET'){
