@@ -24,17 +24,20 @@ async function throttle(req,env,context){
  return !!r.success;
 }
 function isOwnOrigin(req){const v=req.headers.get('Origin');return !v||v===new URL(req.url).origin}
+function calculateEnd(start,period){if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(start)||!['3 months','6 months','12 months'].includes(period))return '';const [year,month,day]=start.split('-').map(Number);const first=new Date(Date.UTC(year,month-1,day));if(!Number.isFinite(first.getTime())||first.toISOString().slice(0,10)!==start)return '';const end=new Date(Date.UTC(year,month-1+parseInt(period,10),day-1));return end.toISOString().slice(0,10)}
 function scanFields(schedule){
  if(!schedule||typeof schedule!=='object'||Array.isArray(schedule))throw Error('Schedule A is required.');
- const keys=['property','area','noaccess','rent','frequency','start','end','bond','holding','internet','utilities','payid','bank','provider','owneremail'];
+ const keys=['property','area','noaccess','rent','frequency','start','period','end','bond','holding','internet','utilities','payid','bank','provider','owneremail'];
  const s=Object.fromEntries(keys.map(k=>[k,clean(schedule[k],350)]));
- for(const k of keys.filter(x=>!['noaccess','bond','holding','bank'].includes(x)))if(!s[k])throw Error('Schedule A is incomplete: '+k);
+ for(const k of keys.filter(x=>!['noaccess','bond','holding','bank','end'].includes(x)))if(!s[k])throw Error('Schedule A is incomplete: '+k);
  if(!email(s.owneremail))throw Error('Owner email is invalid.');
  if(!/^\d{1,6}(?:\.\d{1,2})?$/.test(s.rent)||+s.rent<=0)throw Error('Weekly rent must be positive AUD.');
  for(const k of ['bond','holding'])if(s[k]&&!/^\d{1,6}(?:\.\d{1,2})?$/.test(s[k]))throw Error('Invalid amount: '+k);
  if(!['Fortnightly','Every 4 weeks','Calendar monthly'].includes(s.frequency))throw Error('Invalid rent frequency.');
- for(const k of ['start','end'])if(!/^\d{4}-\d\d-\d\d$/.test(s[k])||Number.isNaN(Date.parse(s[k]+'T12:00:00Z')))throw Error('Invalid '+k+' date.');
- if(s.start>s.end)throw Error('End date cannot precede the start date.');
+ if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(s.start)||new Date(s.start+'T00:00:00Z').toISOString().slice(0,10)!==s.start)throw Error('Invalid start date.');
+ if(!['Guest chooses','3 months','6 months','12 months'].includes(s.period))throw Error('Select a 3, 6 or 12-month period or let the guest choose.');
+ const computed=calculateEnd(s.start,s.period);
+ if(s.period==='Guest chooses'){s.end='';}else if(!computed)throw Error('Could not calculate the agreement end date.');else s.end=computed;
  return s;
 }
 function chosen(ids){
@@ -105,7 +108,7 @@ async function documentPDF(row,completed){
  newpage();write('Mutual Rental Agreement',true);
  write('Reference '+row.id+' | '+(completed?'BOTH PARTIES SIGNED':'DRAFT / NOT COMPLETED'));
  write('SCHEDULE A',true);
- for(const [k,label] of [['provider','Provider'],['owneremail','Provider email'],['property','Property'],['area','Rented area'],['noaccess','No-access areas'],['rent','Weekly rent AUD'],['frequency','Payment frequency'],['start','Start date'],['end','End date'],['bond','Cleaning bond AUD'],['holding','Holding fund AUD'],['internet','Internet'],['utilities','Electricity, gas and water'],['payid','PayID'],['bank','Bank BSB/account']])write(label+': '+(s[k]||'Not specified'));
+ for(const [k,label] of [['provider','Provider'],['owneremail','Provider email'],['property','Property'],['area','Rented area'],['noaccess','No-access areas'],['rent','Weekly rent AUD'],['frequency','Payment frequency'],['start','Start date'],['period','Rental period'],['end','End date'],['bond','Cleaning bond AUD'],['holding','Holding fund AUD'],['internet','Internet'],['utilities','Electricity, gas and water'],['payid','PayID'],['bank','Bank BSB/account']])write(label+': '+(s[k]||'Not specified'));
  write('Guest: '+(row.guest_full_name||'(not signed)')+' | '+row.guest_email);
  write('AGREED TERMS',true);
  let last='';let n=0;const names={'1':'Before rental period','2':'During rental period','3':'After rental period','4':'Special terms and conditions','5':'Termination and eviction'};
@@ -133,7 +136,7 @@ export async function rentalV2(req,env){
    if(!await throttle(req,env,'login'))return reply(429,'Please try again later.');
    const {email:address}=await apiBody(req);if(!email(address)||!env.PROHOUSE_ADMIN_EMAILS?.split(',').map(s=>s.trim().toLowerCase()).includes(address.toLowerCase()))return reply(200,'If authorised, a sign-in link has been emailed.');
    const t=token();await db(env).prepare('INSERT INTO rental_v2_auth (token_hash,role,expires_at,created_at) VALUES (?,?,?,?)').bind(await hash(t),'owner_login',plus(15),now()).run();
-   await emailSend(env,address,'Your ProHouse Rental Portal login','Sign in within 15 minutes: '+APP_ORIGIN(req)+'/operations/rental-v2/#owner-login='+t+'\n\nIf you did not request this, ignore this email.');
+   await emailSend(env,address,'Your ProHouse Rental Portal login','Sign in within 15 minutes: '+APP_ORIGIN(req)+'/operations/rental/#owner-login='+t+'\n\nIf you did not request this, ignore this email.');
    return reply(200,'If authorised, a sign-in link has been emailed.');
   }
   if(path==='owner/verify'&&req.method==='POST'){
@@ -164,7 +167,7 @@ export async function rentalV2(req,env){
    const t=token(),h=await hash(t),deadline=plus(24*60),sent=now();
    await db(env).prepare("UPDATE rental_v2_agreements SET status='sent',guest_token_hash=?,deadline_at=?,sent_at=?,updated_at=? WHERE id=? AND status='draft'").bind(h,deadline,sent,sent,id).run();
    // If delivery fails, the owner can resend a new link; old links are revoked.
-   await emailSend(env,r.guest_email,'ProHouse rental agreement: complete within 24 hours',`You have been invited to review and sign a ProHouse rental agreement.\n\nComplete by ${deadline}.\n\nOpen your private link: ${APP_ORIGIN(req)}/operations/rental-v2/#guest=${t}\n\nYou will provide your legal name, date of birth and phone number, verify your ID with Didit, review the agreement and sign. The rent and selected terms cannot be changed.\n\nDo not forward your link.`);
+   await emailSend(env,r.guest_email,'ProHouse rental agreement: complete within 24 hours',`You have been invited to review and sign a ProHouse rental agreement.\n\nComplete by ${deadline}.\n\nOpen your private link: ${APP_ORIGIN(req)}/operations/rental/#guest=${t}\n\nYou will provide your legal name, date of birth and phone number, verify your ID with Didit, review the agreement and sign. The rent and selected terms cannot be changed.\n\nDo not forward your link.`);
    return reply(200,'Invitation sent',{deadlineAt:deadline});
   }
   if(path==='owner/resend'&&req.method==='POST'){
@@ -174,7 +177,7 @@ export async function rentalV2(req,env){
    if(!r||!['sent','expired'].includes(r.status))return reply(409,'Resend only for unsigned agreements.');
    const t=token(),deadline=plus(24*60),stamp=now();
    await db(env).prepare("UPDATE rental_v2_agreements SET status='sent',guest_token_hash=?,deadline_at=?,sent_at=?,guest_full_name=NULL,guest_dob=NULL,guest_phone=NULL,identity_session_id=NULL,identity_status=NULL,verified_name=NULL,verified_dob=NULL,identity_checked_at=NULL,updated_at=? WHERE id=? AND status IN ('sent','expired')").bind(await hash(t),deadline,stamp,stamp,id).run();
-   await emailSend(env,r.guest_email,'Your new ProHouse rental agreement invitation',`Your previous invitation has been replaced. Complete your agreement within 24 hours by ${deadline}.\n\nPrivate link: ${APP_ORIGIN(req)}/operations/rental-v2/#guest=${t}`);
+   await emailSend(env,r.guest_email,'Your new ProHouse rental agreement invitation',`Your previous invitation has been replaced. Complete your agreement within 24 hours by ${deadline}.\n\nPrivate link: ${APP_ORIGIN(req)}/operations/rental/#guest=${t}`);
    return reply(200,'Fresh invitation issued',{deadlineAt:deadline});
   }
   if(path==='owner/get'&&req.method==='GET'){
@@ -199,7 +202,7 @@ export async function rentalV2(req,env){
    const b=await apiBody(req),name=clean(b.name,140),dob=clean(b.dob,20),phone=clean(b.phone,45);
    if(name.length<3||!/^\d{4}-\d\d-\d\d$/.test(dob)||phone.length<7||b.consent!==true)return reply(400,'Complete legal name, DOB, phone and Didit consent.');
    if(r.identity_session_id)return reply(409,'Verification already started. Please check its result instead.');
-   const result=await didit(env,'session/',{workflow_id:env.DIDIT_WORKFLOW_ID,vendor_data:r.id,callback:APP_ORIGIN(req)+'/operations/rental-v2/'});
+   const result=await didit(env,'session/',{workflow_id:env.DIDIT_WORKFLOW_ID,vendor_data:r.id,callback:APP_ORIGIN(req)+'/operations/rental/'});
    const verificationUrl=result.url||result.verification_url||result.session_url;
    if(!/^https:\/\/verify\.didit\.me\//.test(verificationUrl||'')||!result.session_id)throw Error('Unexpected Didit session response.');
    await db(env).prepare("UPDATE rental_v2_agreements SET guest_full_name=?,guest_dob=?,guest_phone=?,identity_session_id=?,identity_status='In Progress',updated_at=? WHERE id=? AND status='sent' AND identity_session_id IS NULL").bind(name,dob,phone,result.session_id,now(),r.id).run();
@@ -219,16 +222,22 @@ export async function rentalV2(req,env){
   if(path==='guest/sign'&&req.method==='POST'){
    const r=await guest(req,env);if(!r||r.status!=='sent'||checkExpiry(r))return reply(409,'Invitation is not active.');
    const b=await apiBody(req);if(b.consent!==true||!dataUrl(b.signature))return reply(400,'Read and sign the agreement first.');
+    const scheduled=JSON.parse(r.schedule_json);
+    const period=scheduled.period==='Guest chooses'?clean(b.period,12):scheduled.period;
+    const end=calculateEnd(scheduled.start,period);
+    if(!end)return reply(400,'Choose a valid 3, 6 or 12-month agreement period before signing.');
+    if(scheduled.period!=='Guest chooses'&&b.period&&b.period!==scheduled.period)return reply(403,'The agreed rental period cannot be changed by the guest.');
+    scheduled.period=period;scheduled.end=end;
    // Re-query the provider decision at signing, rather than trusting a browser flag.
    if(!r.identity_session_id)return reply(409,'Complete Didit verification first.');
    const v=normalizeDidit(await didit(env,'session/'+encodeURIComponent(r.identity_session_id)+'/decision/'));
    if(!v.approved||!v.name||!namesEqual(v.name,r.guest_full_name)||v.dob&&v.dob!==r.guest_dob)return reply(409,'Identity verification is not approved or does not match the signer.');
    const signedAt=now();
-   const result=await db(env).prepare("UPDATE rental_v2_agreements SET status='guest_signed',guest_signature=?,guest_signed_at=?,identity_status='Approved',verified_name=?,verified_dob=?,identity_checked_at=?,updated_at=? WHERE id=? AND status='sent' AND deadline_at>?").bind(b.signature,signedAt,v.name,v.dob,signedAt,signedAt,r.id,signedAt).run();
+   const result=await db(env).prepare("UPDATE rental_v2_agreements SET status='guest_signed',schedule_json=?,guest_signature=?,guest_signed_at=?,identity_status='Approved',verified_name=?,verified_dob=?,identity_checked_at=?,updated_at=? WHERE id=? AND status='sent' AND deadline_at>?").bind(JSON.stringify(scheduled),b.signature,signedAt,v.name,v.dob,signedAt,signedAt,r.id,signedAt).run();
    if(result.meta?.changes!==1)return reply(409,'Invitation no longer valid.');
    const ownerMail=(env.PROHOUSE_ADMIN_EMAILS||'hi@prohouse.com.au').split(',').map(x=>x.trim()).filter(email);
    const receipt=await identityReceiptPDF({...r,identity_status:'Approved',verified_name:v.name,verified_dob:v.dob,identity_checked_at:signedAt});
-   await emailSend(env,ownerMail,'ProHouse lease ready for countersignature',`Guest: ${r.guest_full_name}\nDOB as entered: ${r.guest_dob}\nPhone: ${r.guest_phone}\nEmail: ${r.guest_email}\nDidit verified legal name: ${v.name}\nDidit session reference: ${r.identity_session_id}\n\nReview the secured verification record in your Didit console, then sign in to ProHouse Rental Portal.\nAgreement: ${r.id}\n\nFor privacy, no raw ID scan or biometric photo is transmitted by email.`,[{filename:'Didit-verification-summary-'+r.id+'.pdf',content:b64(receipt),content_type:'application/pdf'}]);
+   await emailSend(env,ownerMail,'ProHouse lease ready for countersignature',`Guest: ${r.guest_full_name}\nAgreement period: ${period} (${scheduled.start} to ${scheduled.end})\nDOB as entered: ${r.guest_dob}\nPhone: ${r.guest_phone}\nEmail: ${r.guest_email}\nDidit verified legal name: ${v.name}\nDidit session reference: ${r.identity_session_id}\n\nReview the secured verification record in your Didit console, then sign in to ProHouse Rental Portal.\nAgreement: ${r.id}\n\nFor privacy, no raw ID scan or biometric photo is transmitted by email.`,[{filename:'Didit-verification-summary-'+r.id+'.pdf',content:b64(receipt),content_type:'application/pdf'}]);
    return reply(200,'Signature recorded. ProHouse has been notified.');
   }
   if(path==='owner/sign'&&req.method==='POST'){
