@@ -95,7 +95,20 @@ function normalizeDidit(d){
 }
 async function didit(env,path,data){
  const r=await fetch('https://verification.didit.me/v3/'+path,{method:data?'POST':'GET',headers:{'x-api-key':env.DIDIT_API_KEY||'','Content-Type':'application/json'},...(data?{body:JSON.stringify(data)}:{}),signal:AbortSignal.timeout(12000)});
- if(!r.ok){console.warn('Didit rental v2 error',r.status);throw Error('Didit configuration or verification could not be completed (HTTP '+r.status+').');}
+ if(!r.ok){
+  let detail='';
+  try{
+   const body=await r.json();
+   const field=body?.detail||body?.message||body?.error||body?.workflow_id||body?.non_field_errors;
+   detail=Array.isArray(field)?field.join('; '):typeof field==='string'?field:'';
+  }catch{}
+  const reason=detail.replace(/[\\w.+-]+@[\\w.-]+\\.[A-Za-z]{2,}/g,'[redacted-email]').replace(/[A-Za-z0-9_=-]{45,}/g,'[redacted]').slice(0,220);
+  console.warn('Didit session request rejected',r.status,reason);
+  if(r.status===403)throw Error('Didit API key does not have permission to create verification sessions (HTTP 403). ProHouse must enable session-write access in Didit.');
+  if(r.status===401)throw Error('Didit API key was rejected (HTTP 401). ProHouse must correct the Didit API key.');
+  if(r.status===400)throw Error('Didit rejected session setup (HTTP 400). ProHouse must check the workflow configuration'+(reason?': '+reason:'')+'.');
+  throw Error('Didit verification service unavailable (HTTP '+r.status+').');
+ }
  return r.json();
 }
 function pdfSafe(s){return String(s??'').replace(/[\u2012-\u2015]/g,'-').replace(/[^\x20-\x7e]/g,'?')}
