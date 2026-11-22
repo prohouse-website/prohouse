@@ -120,9 +120,15 @@ test('unverified liveness or mismatched name must not pass tenant verification',
   const token=(await started.json()).verificationToken;
   const first=(await (await tenantIdentityStatus(post('status',{},token),env)).json());
   assert.equal(first.verified,false);
+  assert.equal(first.status,'Incomplete','Missing liveness must not be classified as manual review.');
   await assert.rejects(()=>verifiedTenantIdentity(env,token,{
    role:'first',firstName:'Alice',lastName:'Example',email:'alice@example.com'
   }),/Finish Didit/);
+  state.status='In Review';
+  await assert.rejects(()=>verifiedTenantIdentity(env,token,{
+   role:'first',firstName:'Alice',lastName:'Example',email:'alice@example.com'
+  }),/Finish Didit/);
+  state.status='Approved';
   state.liveness=true;state.name='Different Person';
   const second=await tenantIdentityStatus(post('status',{},token),env);
   // The browser may be asked to retry after rate limiting; direct backend check is definitive.
