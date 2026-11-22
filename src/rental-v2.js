@@ -135,22 +135,23 @@ async function documentPDF(row,completed){
  const bold=await d.embedFont(StandardFonts.HelveticaBold);
  d.setTitle('ProHouse | Rental Agreement | '+row.id);d.setAuthor('ProHouse Australia');
  const clauses=JSON.parse(row.clauses_json),s=JSON.parse(row.schedule_json);
- const navy=rgb(.095,.16,.21),green=rgb(.13,.37,.29),pink=rgb(.95,.20,.49),mint=rgb(.91,.97,.94),light=rgb(.965,.978,.973),slate=rgb(.40,.47,.50),white=rgb(1,1,1),border=rgb(.84,.89,.86);
+ const navy=rgb(.075,.095,.115),green=rgb(.10,.15,.12),pink=rgb(1,.15,.53),mint=rgb(.83,1,.20),light=rgb(.97,1,.91),slate=rgb(.39,.42,.41),white=rgb(1,1,1),border=rgb(.83,.88,.78);
  const W=595,H=842,L=45,R=45,C=W-L-R;
  let p,y;
  const money=v=>'AUD '+Number(v||0).toLocaleString('en-AU',{minimumFractionDigits:2,maximumFractionDigits:2});
  const safe=v=>pdfSafe(v===null||v===undefined||v===''?'Not specified':String(v));
  function page(){
   p=d.addPage([W,H]);y=746;
-  p.drawRectangle({x:0,y:H-78,width:W,height:78,color:navy});
-  p.drawRectangle({x:0,y:H-82,width:W,height:4,color:pink});
-  p.drawText('PROHOUSE',{x:L,y:H-44,font:bold,size:22,color:white});
-  p.drawText('AUSTRALIA  /  RENTAL AGREEMENT',{x:L+162,y:H-40,font:regular,size:9,color:rgb(.80,.91,.85)});
+  p.drawRectangle({x:0,y:H-78,width:W,height:78,color:mint});
+  p.drawRectangle({x:0,y:H-82,width:W,height:5,color:pink});
+  p.drawRectangle({x:0,y:H-78,width:13,height:78,color:pink});
+  p.drawText('PROHOUSE',{x:L,y:H-44,font:bold,size:22,color:navy});
+  p.drawText('AUSTRALIA  /  RENTAL AGREEMENT',{x:L+162,y:H-40,font:bold,size:9,color:navy});
  }
  function ensure(height){if(y-height<65)page()}
  function section(t){
   ensure(46);y-=10;
-  p.drawRectangle({x:L,y:y-26,width:C,height:30,color:green});
+  p.drawRectangle({x:L,y:y-26,width:C,height:30,color:pink});
   p.drawText(safe(t).toUpperCase(),{x:L+13,y:y-17,font:bold,size:11,color:white});
   y-=42;
  }
@@ -169,7 +170,7 @@ async function documentPDF(row,completed){
    const h=Math.max(29,vl.length*13+13);
    ensure(h+2);
    p.drawRectangle({x:L,y:y-h,width:C,height:h,color:i%2===0?light:white,borderColor:border,borderWidth:.5});
-   p.drawRectangle({x:L,y:y-h,width:labelW,height:h,color:i%2===0?mint:rgb(.95,.97,.95)});
+   p.drawRectangle({x:L,y:y-h,width:labelW,height:h,color:i%2===0?mint:rgb(.93,.98,.83)});
    p.drawText(safe(label),{x:L+12,y:y-17,font:bold,size:9,color:green});
    let ty=y-17;for(const line of vl){p.drawText(line||' ',{x:L+labelW+12,y:ty,font:regular,size:9,color:navy});ty-=13}
    y-=h;
@@ -198,13 +199,41 @@ async function documentPDF(row,completed){
  tag('2  |  BEFORE MOVE-IN');
  paragraph('Refundable holding/security amount: '+money(s.holding)+'. Refundable cleaning amount listed: '+money(s.bond)+'. Only payments lawful for the tenancy type and location are collectible. Statutory rental bonds must follow the required lodgement process and limits.');
  paragraph('Allow time for bank checks, including holds on some Commonwealth Bank first-time transfers. A transfer receipt is not proof of cleared funds. Keys are released after lawful payments and required bond lodgement are confirmed.',{pad:6});
- section('Agreed clauses');
+ // Start terms on a clean page, using two newspaper-style columns.
+ page();section('Agreed terms and conditions');
  const names={'1':'Before rental period','2':'During rental period','3':'After rental period','4':'Special terms and conditions','5':'Termination and eviction'};
- let last='',i=0;
- for(const c of clauses){
-  if(c.section!==last){last=c.section;ensure(35);y-=10;p.drawText((last||'')+'  '+(names[last]||'Other terms').toUpperCase(),{x:L,y,font:bold,size:10,color:green});y-=22}
-  paragraph((++i)+'.  '+c.text,{size:9.2,indent:4,pad:7});
+ const gap=24,colWidth=(C-gap)/2,termSize=8.1,termLeading=11.4;
+ let col=0,last='',i=0;
+ let termY=y,termX=L;
+ const nextColumn=()=>{if(col===0){col=1;termX=L+colWidth+gap;termY=746;}else{page();col=0;termX=L;termY=746;}};
+ function termRoom(height){if(termY-height<66)nextColumn()}
+ function termHeading(name){
+  termRoom(39);
+  termY-=10;
+  p.drawRectangle({x:termX,y:termY-21,width:colWidth,height:25,color:mint});
+  const headingLines=wrap(safe(name).toUpperCase(),bold,8.5,colWidth-18);
+  for(let k=0;k<Math.min(2,headingLines.length);k++)p.drawText(headingLines[k],{x:termX+8,y:termY-11-10*k,font:bold,size:8.5,color:navy});
+  termY-=34;
  }
+ function termBody(text){
+  // Preserve explicit line breaks for the break-lease fee tiers.
+  const segments=String(text).split(/\\n/);
+  for(const part of segments){
+   const lines=wrap(safe(part),regular,termSize,colWidth-10);
+   for(const line of lines){
+    termRoom(termLeading);
+    p.drawText(line||' ',{x:termX+4,y:termY,font:regular,size:termSize,color:navy});
+    termY-=termLeading;
+   }
+  }
+  termY-=8;
+ }
+ for(const c of clauses){
+  if(c.section!==last){last=c.section;termHeading((last||'')+'  '+(names[last]||'Other terms'));}
+  termBody((++i)+'.  '+c.text);
+ }
+ // Keep signatures together on a separate full-width page.
+ page();
  section('Signatures and verification record');
  gridRows([
   ['Guest name',row.guest_full_name||'Pending'],
