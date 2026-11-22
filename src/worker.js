@@ -22,6 +22,8 @@ export default {
       url.pathname = canonicalAliases[path] || path;
       return Response.redirect(url, 301);
     }
+    if (path === '/operations/livewithus/' || path === '/operations/livewithus' || path === '/operations/livewithus/index.html') return Response.redirect(new URL('/operations/rental/' + url.search, url.origin), 302);
+    if (path === '/operations/rental' || path === '/operations/rental/index.html' || path === '/operations/rental-v2' || path === '/operations/rental-v2/' || path === '/operations/rental-v2/index.html') return Response.redirect(new URL('/operations/rental/' + url.search, url.origin), 302);
     if (path.startsWith('/longstay/form/livewithus')) {
       const next=new URL(request.url);
       next.pathname=path.replace(/^\/longstay\/form\/livewithus/,'/operations/livewithus');
