@@ -364,7 +364,47 @@ export async function rentalV2(req,env){
    if(pdf.length>2_000_000)throw Error('PDF too large for storage.');
    await db(env).prepare("UPDATE rental_v2_agreements SET status='completed',provider_signature=?,provider_signed_at=?,content_sha256=?,final_pdf=?,updated_at=? WHERE id=? AND status='guest_signed'").bind(b.signature,signed,signatureHash,pdf,signed,r.id).run();
    const att=[{filename:'ProHouse-Signed-Rental-'+r.id+'.pdf',content:b64(pdf),content_type:'application/pdf'}];
-   await emailSend(env,[r.guest_email,...(env.PROHOUSE_ADMIN_EMAILS||'hi@prohouse.com.au').split(',').map(s=>s.trim()).filter(email)],'Completed signed ProHouse rental agreement',`Both parties have signed. Your executed agreement is attached as a PDF. Reference: ${r.id}.\n\nThe one-week rent advance of AUD ${Number(JSON.parse(r.schedule_json).rent).toFixed(2)} is requested within 24 hours from this countersignature, subject to applicable law. Before moving in, arrange any lawfully required bond/holding amount using the applicable statutory bond process. Keys are released after required cleared funds and/or bond lodgement are confirmed. New-payee transfers may be delayed, so arrange payment early.\n\nPayment reference: ${r.id}\nPayID: ${JSON.parse(r.schedule_json).payid}\nBank: ${JSON.parse(r.schedule_json).bank}`,att);
+   const schedule=JSON.parse(r.schedule_json);
+   const AUD=n=>'AUD '+Number(n||0).toLocaleString('en-AU',{minimumFractionDigits:2,maximumFractionDigits:2});
+   const dueAt=new Date(Date.parse(signed)+24*60*60*1000).toLocaleString('en-AU',{timeZone:'Australia/Sydney',dateStyle:'full',timeStyle:'short'});
+   const paymentEmail=[
+    'YOUR PROHOUSE RENTAL AGREEMENT IS SIGNED',
+    '',
+    'Hello '+(r.guest_full_name||'Guest')+',',
+    'Both parties have signed your rental agreement. Please read the payment steps below. The signed PDF is attached.',
+    '',
+    'PROPERTY: '+(schedule.property||'As agreed'),
+    'RENTAL PERIOD: '+schedule.start+' to '+schedule.end+' ('+schedule.period+')',
+    'AGREEMENT REFERENCE: '+r.id,
+    '',
+    'STEP 1  |  PAY ONE WEEK RENT WITHIN 24 HOURS',
+    'Amount: '+AUD(schedule.rent),
+    'Deadline: '+dueAt+' (Sydney time)',
+    'This is rent paid in advance and credited towards your tenancy.',
+    'IMPORTANT: If the required payment is not received by the deadline, ProHouse may take steps to cancel or terminate the arrangement only where permitted by the applicable law. A signed residential tenancy is not automatically void simply because payment is late.',
+    '',
+    'STEP 2  |  BEFORE YOUR MOVE-IN DATE ('+schedule.start+')',
+    'Refundable holding/security amount specified in Schedule A: '+AUD(schedule.holding),
+    'Refundable cleaning amount specified in Schedule A: '+AUD(schedule.bond),
+    'These amounts are due only to the extent permitted by the law governing your tenancy. Any rental bond must comply with the applicable legal limit and official lodgement requirements. For a standard NSW residential tenancy, an additional cleaning bond cannot be added on top of the maximum four-week rental bond.',
+    '',
+    'STEP 3  |  PAY USING THE DETAILS IN SCHEDULE A',
+    'PayID: '+(schedule.payid||'See attached Schedule A'),
+    'Bank BSB / account: '+(schedule.bank||'See attached Schedule A'),
+    'Payment reference: '+r.id,
+    'Bank transfer receipt is not confirmation that cleared funds have arrived. ProHouse confirms receipt before releasing keys, subject to legal bond lodgement and tenancy requirements.',
+    '',
+    'BANK TRANSFER WARNING',
+    'Commonwealth Bank (CBA) says first-time transfers to a new payee can be held for up to 24 hours, and some transfers can take longer. Allow extra time. If you cannot meet the payment deadline, contact ProHouse immediately about an alternative payment method, including another bank or a bank-branch deposit where available.',
+    '',
+    'QUESTIONS OR PAYMENT CONFIRMATION',
+    'Email: hi@prohouse.com.au',
+    'Rental portal: '+APP_ORIGIN(req)+'/operations/rental/',
+    '',
+    'Kind regards,',
+    'ProHouse Australia'
+   ].join('\n');
+   await emailSend(env,[r.guest_email,...(env.PROHOUSE_ADMIN_EMAILS||'hi@prohouse.com.au').split(',').map(x=>x.trim()).filter(email)],'ACTION REQUIRED: Pay first week rent by '+dueAt+' | ProHouse '+r.id,paymentEmail,att);
    return reply(200,'Agreement countersigned and completion email sent.');
   }
   return reply(404,'Unknown rental portal endpoint.');
