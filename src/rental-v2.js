@@ -131,130 +131,165 @@ async function identityReceiptPDF(row){
 }
 async function documentPDF(row,completed){
  const d=await PDFDocument.create();
- const regular=await d.embedFont(StandardFonts.Helvetica);
- const bold=await d.embedFont(StandardFonts.HelveticaBold);
- d.setTitle('ProHouse | Rental Agreement | '+row.id);d.setAuthor('ProHouse Australia');
+ const regular=await d.embedFont(StandardFonts.Helvetica),bold=await d.embedFont(StandardFonts.HelveticaBold);
+ const logo=await d.embedPng(Uint8Array.from(atob("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\n0wMAAAAASUVORK5CYII=\n"),v=>v.charCodeAt(0)));
+ d.setTitle('ProHouse Rental Agreement | '+row.id);d.setAuthor('ProHouse Australia');
  const clauses=JSON.parse(row.clauses_json),s=JSON.parse(row.schedule_json);
- const navy=rgb(.075,.095,.115),green=rgb(.10,.15,.12),pink=rgb(1,.15,.53),mint=rgb(.83,1,.20),light=rgb(.97,1,.91),slate=rgb(.39,.42,.41),white=rgb(1,1,1),border=rgb(.83,.88,.78);
- const W=595,H=842,L=45,R=45,C=W-L-R;
+ const charcoal=rgb(.12,.16,.15),lime=rgb(.84,1,.23),pink=rgb(1,.19,.53),muted=rgb(.43,.48,.46),white=rgb(1,1,1),light=rgb(.965,.975,.963),line=rgb(.84,.88,.84);
+ const W=595,H=842,L=43,R=43,C=W-L-R;
  let p,y;
- const money=v=>'AUD '+Number(v||0).toLocaleString('en-AU',{minimumFractionDigits:2,maximumFractionDigits:2});
  const safe=v=>pdfSafe(v===null||v===undefined||v===''?'Not specified':String(v));
+ const money=v=>'AUD '+Number(v||0).toLocaleString('en-AU',{minimumFractionDigits:2,maximumFractionDigits:2});
  function page(){
-  p=d.addPage([W,H]);y=746;
-  p.drawRectangle({x:0,y:H-78,width:W,height:78,color:mint});
-  p.drawRectangle({x:0,y:H-82,width:W,height:5,color:pink});
-  p.drawRectangle({x:0,y:H-78,width:13,height:78,color:pink});
-  p.drawText('PROHOUSE',{x:L,y:H-44,font:bold,size:22,color:navy});
-  p.drawText('AUSTRALIA  /  RENTAL AGREEMENT',{x:L+162,y:H-40,font:bold,size:9,color:navy});
+  p=d.addPage([W,H]);y=743;
+  // Actual ProHouse transparent logo, without the previous oversized coloured header.
+  p.drawImage(logo,{x:L,y:769,width:148,height:47});
+  p.drawLine({start:{x:L,y:756},end:{x:W-R,y:756},thickness:1.3,color:lime});
  }
- function ensure(height){if(y-height<65)page()}
- function section(t){
-  ensure(46);y-=10;
-  p.drawRectangle({x:L,y:y-26,width:C,height:30,color:pink});
-  p.drawText(safe(t).toUpperCase(),{x:L+13,y:y-17,font:bold,size:11,color:white});
-  y-=42;
+ function ensure(h){if(y-h<65)page()}
+ function section(name){
+  ensure(44);y-=7;
+  p.drawRectangle({x:L,y:y-26,width:5,height:29,color:pink});
+  p.drawRectangle({x:L+5,y:y-26,width:C-5,height:29,color:lime});
+  p.drawText(safe(name).toUpperCase(),{x:L+17,y:y-17,font:bold,size:10.5,color:charcoal});
+  y-=40;
  }
- function paragraph(t,{size=9.2,pad=9,color=navy,boldText=false,indent=0}={}){
-  const font=boldText?bold:regular;
-  const lines=wrap(safe(t),font,size,C-indent-5);
-  const leading=size+4.1;
-  for(const line of lines){ensure(leading);p.drawText(line||' ',{x:L+indent,y,font,size,color});y-=leading}
+ function paragraph(t,{size=9.1,pad=8,color=charcoal,boldText=false,width=C,indent=0}={}){
+  const font=boldText?bold:regular,leading=size+4;
+  for(const part of String(t).split('\n')){
+   const lines=wrap(safe(part||' '),font,size,width-indent-6);
+   for(const item of lines){ensure(leading);p.drawText(item||' ',{x:L+indent,y,font,size,color});y-=leading}
+  }
   y-=pad;
  }
- function gridRows(rows){
-  const labelW=178;
-  for(let i=0;i<rows.length;i++){
-   const [label,value]=rows[i];
-   const vl=wrap(safe(value),regular,9,C-labelW-31);
-   const h=Math.max(29,vl.length*13+13);
-   ensure(h+2);
-   p.drawRectangle({x:L,y:y-h,width:C,height:h,color:i%2===0?light:white,borderColor:border,borderWidth:.5});
-   p.drawRectangle({x:L,y:y-h,width:labelW,height:h,color:i%2===0?mint:rgb(.93,.98,.83)});
-   p.drawText(safe(label),{x:L+12,y:y-17,font:bold,size:9,color:green});
-   let ty=y-17;for(const line of vl){p.drawText(line||' ',{x:L+labelW+12,y:ty,font:regular,size:9,color:navy});ty-=13}
-   y-=h;
+ function groupTitle(name){
+  ensure(25);y-=4;
+  p.drawText(safe(name).toUpperCase(),{x:L+3,y,font:bold,size:9,color:charcoal});
+  p.drawLine({start:{x:L,y:y-7},end:{x:L+C,y:y-7},thickness:1,color:lime});y-=20;
+ }
+ function scheduleRow(fields){
+  const n=fields.length,space=10,w=(C-space*(n-1))/n;
+  const prepared=fields.map(([label,val])=>({label:safe(label).toUpperCase(),lines:wrap(safe(val),regular,9.5,w-22)}));
+  const height=Math.max(41,...prepared.map(v=>23+v.lines.length*12));
+  ensure(height+3);
+  for(let i=0;i<n;i++){
+   const x=L+i*(w+space);
+   p.drawRectangle({x,y:y-height,width:w,height,color:light,borderColor:line,borderWidth:.45});
+   p.drawRectangle({x,y:y-height,width:3,height,color:i===0?pink:lime});
+   p.drawText(prepared[i].label,{x:x+11,y:y-13,font:bold,size:7,color:muted});
+   let ty=y-27;for(const v of prepared[i].lines){p.drawText(v,{x:x+11,y:ty,font:regular,size:9.5,color:charcoal});ty-=12;}
   }
-  y-=12;
+  y-=height+7;
  }
- function tag(t){ensure(29);p.drawRectangle({x:L,y:y-23,width:C,height:26,color:mint});p.drawText(safe(t),{x:L+11,y:y-16,font:bold,size:9,color:green});y-=36}
+ function summaryStrip(){
+  ensure(76);
+  const items=[['WEEKLY RENT',money(s.rent)],['REFUNDABLE HOLDING',money(s.holding)],['CLEANING AMOUNT',money(s.bond)]];
+  const w=(C-16)/3;
+  for(let i=0;i<3;i++){
+   const x=L+i*(w+8);
+   p.drawRectangle({x,y:y-67,width:w,height:67,color:i===0?lime:light,borderColor:i===0?lime:line,borderWidth:.6});
+   p.drawText(items[i][0],{x:x+10,y:y-18,font:bold,size:7.2,color:charcoal});
+   const txt=items[i][1];const size=bold.widthOfTextAtSize(txt,12.5)>w-18?10.3:12.5;
+   p.drawText(txt,{x:x+10,y:y-44,font:bold,size,color:charcoal});
+  }
+  y-=78;
+ }
  page();
- paragraph('MUTUAL RENTAL AGREEMENT',{size:20,boldText:true,pad:5});
- paragraph((completed?'FULLY EXECUTED  |  ':'DRAFT  |  ')+'AGREEMENT '+row.id,{size:8.3,color:slate,pad:17});
- section('Schedule A  |  Key agreement details');
- gridRows([
-  ['Property address',s.property],['Rented area',s.area],['Excluded areas',s.noaccess],
-  ['Provider',s.provider],['Provider email',s.owneremail],
-  ['Guest',row.guest_full_name||row.guest_email],['Guest email',row.guest_email],
-  ['Start date',s.start],['End date',s.end],['Agreement period',s.period],
-  ['Weekly rent',money(s.rent)],['Rent payment frequency',s.frequency],
-  ['Refundable holding / security amount',money(s.holding)],
-  ['Refundable cleaning amount',money(s.bond)],
-  ['Internet',s.internet],['Electricity, gas and water',s.utilities],
-  ['Payment PayID',s.payid],['Bank BSB and account',s.bank]
- ]);
- section('Payment and move-in information');
- tag('1  |  ONE WEEK RENT ADVANCE   '+money(s.rent));
- paragraph('Requested within 24 hours after the provider countersigns. The amount is credited toward rent. Any consequences of late payment are subject to applicable law.');
- tag('2  |  BEFORE MOVE-IN');
- paragraph('Refundable holding/security amount: '+money(s.holding)+'. Refundable cleaning amount listed: '+money(s.bond)+'. Only payments lawful for the tenancy type and location are collectible. Statutory rental bonds must follow the required lodgement process and limits.');
- paragraph('Allow time for bank checks, including holds on some Commonwealth Bank first-time transfers. A transfer receipt is not proof of cleared funds. Keys are released after lawful payments and required bond lodgement are confirmed.',{pad:6});
- // Start terms on a clean page, using two newspaper-style columns.
- page();section('Agreed terms and conditions');
+ paragraph('RENTAL AGREEMENT',{size:18,boldText:true,pad:4});
+ paragraph((completed?'EXECUTED AGREEMENT':'DRAFT FOR REVIEW')+'  /  '+row.id,{size:8,color:muted,pad:12});
+ section('Schedule A  |  Agreement details');
+ groupTitle('The property');
+ scheduleRow([['Property address',s.property]]);
+ scheduleRow([['Rented area',s.area],['Excluded / no-access areas',s.noaccess]]);
+ groupTitle('The parties');
+ scheduleRow([['Provider',s.provider],['Provider email',s.owneremail]]);
+ scheduleRow([['Guest',row.guest_full_name||'Pending signature'],['Guest email',row.guest_email]]);
+ groupTitle('Rental period');
+ scheduleRow([['Start date',s.start],['End date',s.end]]);
+ scheduleRow([['Fixed term',s.period],['Payment frequency',s.frequency]]);
+ groupTitle('Financial terms');
+ summaryStrip();
+ scheduleRow([['Internet',s.internet],['Utilities (electricity, gas and water)',s.utilities]]);
+ scheduleRow([['PayID',s.payid],['Bank BSB / account',s.bank]]);
+ page();
+ section('Payment and moving in');
+ paragraph('1. ONE WEEK RENT ADVANCE: '+money(s.rent),{boldText:true,pad:4});
+ paragraph('Requested within 24 hours after the provider countersigns and credited toward rent. Any consequences for late payment remain subject to applicable law.');
+ paragraph('2. BEFORE MOVING IN',{boldText:true,pad:4});
+ paragraph('Refundable holding/security amount stated in Schedule A: '+money(s.holding)+'. Refundable cleaning amount stated in Schedule A: '+money(s.bond)+'. These are collectible only where lawful. Statutory bonds must follow applicable limits and lodgement requirements.');
+ paragraph('Allow time for bank processing, including possible holds on Commonwealth Bank first-time transfers. A payment receipt is not proof of cleared funds.');
+ page();
+ section('Agreed terms and conditions');
  const names={'1':'Before rental period','2':'During rental period','3':'After rental period','4':'Special terms and conditions','5':'Termination and eviction'};
- const gap=24,colWidth=(C-gap)/2,termSize=8.1,termLeading=11.4;
- let col=0,last='',i=0;
- let termY=y,termX=L;
- const nextColumn=()=>{if(col===0){col=1;termX=L+colWidth+gap;termY=746;}else{page();col=0;termX=L;termY=746;}};
- function termRoom(height){if(termY-height<66)nextColumn()}
- function termHeading(name){
-  termRoom(39);
-  termY-=10;
-  p.drawRectangle({x:termX,y:termY-21,width:colWidth,height:25,color:mint});
-  const headingLines=wrap(safe(name).toUpperCase(),bold,8.5,colWidth-18);
-  for(let k=0;k<Math.min(2,headingLines.length);k++)p.drawText(headingLines[k],{x:termX+8,y:termY-11-10*k,font:bold,size:8.5,color:navy});
-  termY-=34;
+ const gap=22,colWidth=(C-gap)/2,termSize=8.05,termLeading=11.2;
+ let col=0,last='',index=0,termY=y,termX=L;
+ function nextColumn(){
+  if(col===0){col=1;termX=L+colWidth+gap;termY=742;}
+  else{page();col=0;termX=L;termY=742;}
  }
- function termBody(text){
-  // Preserve explicit line breaks for the break-lease fee tiers.
-  const segments=String(text).split(/\n/);
-  for(const part of segments){
-   const lines=wrap(safe(part),regular,termSize,colWidth-10);
-   for(const line of lines){
+ function termRoom(h){if(termY-h<62)nextColumn()}
+ function termHeading(t){
+  const lines=wrap(safe(t).toUpperCase(),bold,8.2,colWidth-16),height=17+lines.length*10;
+  termRoom(height+12);termY-=7;
+  p.drawRectangle({x:termX,y:termY-height,width:colWidth,height,color:lime});
+  let ty=termY-13;for(const tline of lines){p.drawText(tline,{x:termX+7,y:ty,font:bold,size:8.2,color:charcoal});ty-=10}
+  termY-=height+6;
+ }
+ function termText(t){
+  for(const part of String(t).split('\n')){
+   if(!part.trim()){termY-=3;continue;}
+   const lines=wrap(safe(part),regular,termSize,colWidth-7);
+   for(const lineText of lines){
     termRoom(termLeading);
-    p.drawText(line||' ',{x:termX+4,y:termY,font:regular,size:termSize,color:navy});
+    p.drawText(lineText||' ',{x:termX+3,y:termY,font:regular,size:termSize,color:charcoal});
     termY-=termLeading;
    }
   }
-  termY-=8;
+  termY-=7;
+ }
+ function breakClause(number){
+  // Render legacy or new clause 3.2.2 as a proper tiered panel; ignore pasted numbering.
+  const intro='EARLY TERMINATION / BREAK LEASE';
+  const note="At least 28 days' written notice, subject to applicable law.";
+  const rows=[['Under 25% elapsed',"4 weeks' rent"],['25% to under 50%',"3 weeks' rent"],['50% to under 75%',"2 weeks' rent"],['75% or more',"1 week's rent"]];
+  const h=156;termRoom(h+8);
+  p.drawRectangle({x:termX,y:termY-h,width:colWidth,height:h,color:light,borderColor:line,borderWidth:.65});
+  p.drawRectangle({x:termX,y:termY-26,width:colWidth,height:26,color:lime});
+  p.drawText(number+'. '+intro,{x:termX+7,y:termY-17,font:bold,size:8.1,color:charcoal});
+  let ty=termY-40;
+  for(const t of wrap(note,regular,7.7,colWidth-14)){p.drawText(t,{x:termX+7,y:ty,font:regular,size:7.7,color:charcoal});ty-=10;}
+  ty-=8;
+  for(const [label,fee] of rows){
+   p.drawText(label,{x:termX+7,y:ty,font:regular,size:7.7,color:charcoal});
+   p.drawText(fee,{x:termX+colWidth-7-bold.widthOfTextAtSize(fee,7.7),y:ty,font:bold,size:7.7,color:charcoal});
+   ty-=19;
+  }
+  termY-=h+11;
  }
  for(const c of clauses){
   if(c.section!==last){last=c.section;termHeading((last||'')+'  '+(names[last]||'Other terms'));}
-  termBody((++i)+'.  '+c.text);
+  index++;
+  if(c.id==='3.2.2')breakClause(index);
+  else termText(index+'. '+c.text);
  }
- // Keep signatures together on a separate full-width page.
- page();
- section('Signatures and verification record');
- gridRows([
-  ['Guest name',row.guest_full_name||'Pending'],
-  ['Guest signed (UTC)',row.guest_signed_at||'Pending'],
-  ['Payment acknowledgment',row.guest_signed_at?'Acknowledged before signing':'Pending'],
-  ['Didit verification',row.identity_status||'Pending'],
-  ['Didit session reference',row.identity_session_id||'Pending'],
-  ['Provider signed (UTC)',row.provider_signed_at||'Pending']
- ]);
- for(const [value,name] of [[row.guest_signature,'GUEST SIGNATURE'],[row.provider_signature,'PROVIDER SIGNATURE']]){
-  ensure(115);p.drawText(name,{x:L,y,font:bold,size:9,color:green});y-=15;
-  p.drawRectangle({x:L,y:y-78,width:240,height:78,borderColor:border,borderWidth:.8,color:white});
-  if(value){const image=await d.embedPng(Uint8Array.from(atob(value.split(',')[1]),x=>x.charCodeAt(0)));const scale=Math.min(218/image.width,63/image.height,1);p.drawImage(image,{x:L+9,y:y-70,width:image.width*scale,height:image.height*scale});}
-  else p.drawText('Awaiting signature',{x:L+13,y:y-41,font:regular,size:10,color:slate});
+ page();section('Signatures and identity verification');
+ groupTitle('Execution record');
+ scheduleRow([['Guest name',row.guest_full_name||'Pending'],['Didit status',row.identity_status||'Pending']]);
+ scheduleRow([['Guest signed (UTC)',row.guest_signed_at||'Pending'],['Provider signed (UTC)',row.provider_signed_at||'Pending']]);
+ scheduleRow([['Didit session reference',row.identity_session_id||'Pending']]);
+ for(const [value,name] of [[row.guest_signature,'GUEST SIGNATURE'],[row.provider_signature,'PROHOUSE SIGNATURE']]){
+  ensure(120);
+  p.drawText(name,{x:L,y,font:bold,size:8.5,color:charcoal});y-=16;
+  p.drawRectangle({x:L,y:y-78,width:250,height:78,borderColor:line,borderWidth:.7,color:white});
+  if(value){const img=await d.embedPng(Uint8Array.from(atob(value.split(',')[1]),v=>v.charCodeAt(0)));const scale=Math.min(225/img.width,65/img.height,1);p.drawImage(img,{x:L+11,y:y-71,width:img.width*scale,height:img.height*scale});}
+  else p.drawText('Awaiting signature',{x:L+12,y:y-39,font:regular,size:9,color:muted});
   y-=96;
  }
- paragraph('Integrity reference (SHA-256): '+(row.content_sha256||'Not yet recorded'),{size:8,color:slate});
+ paragraph('Document integrity SHA-256: '+(row.content_sha256||'Recorded upon final signing'),{size:7.2,color:muted});
  d.getPages().forEach((pg,i)=>{
-  pg.drawLine({start:{x:L,y:49},end:{x:W-R,y:49},thickness:.7,color:border});
-  pg.drawText('PROHOUSE AUSTRALIA  |  CONFIDENTIAL AGREEMENT',{x:L,y:31,font:bold,size:7.5,color:green});
-  pg.drawText('PAGE '+(i+1)+' / '+d.getPageCount(),{x:W-R-59,y:31,font:regular,size:7.5,color:slate});
+  pg.drawLine({start:{x:L,y:49},end:{x:W-R,y:49},thickness:.7,color:line});
+  pg.drawText('PROHOUSE AUSTRALIA  |  PRIVATE AGREEMENT',{x:L,y:31,font:bold,size:7.4,color:charcoal});
+  pg.drawText('PAGE '+(i+1)+' OF '+d.getPageCount(),{x:W-R-66,y:31,font:regular,size:7.4,color:muted});
  });
  return new Uint8Array(await d.save());
 }
