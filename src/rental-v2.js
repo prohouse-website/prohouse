@@ -120,11 +120,13 @@ async function documentPDF(row,completed){
  write('SCHEDULE A',true);
  for(const [k,label] of [['provider','Provider'],['owneremail','Provider email'],['property','Property'],['area','Rented area'],['noaccess','No-access areas'],['rent','Weekly rent AUD'],['frequency','Payment frequency'],['start','Start date'],['period','Rental period'],['end','End date'],['bond','Cleaning bond AUD'],['holding','Holding fund AUD'],['internet','Internet'],['utilities','Electricity, gas and water'],['payid','PayID'],['bank','Bank BSB/account']])write(label+': '+(s[k]||'Not specified'));
  write('Guest: '+(row.guest_full_name||'(not signed)')+' | '+row.guest_email);
+ write(paymentNotice(s));
  write('AGREED TERMS',true);
  let last='';let n=0;const names={'1':'Before rental period','2':'During rental period','3':'After rental period','4':'Special terms and conditions','5':'Termination and eviction'};
  for(const c of clauses){if(last!==c.section){last=c.section;write(names[last]||'Terms',true)}write((++n)+'. '+c.text)}
  if(y<230)newpage();write('EXECUTION RECORD',true);
  write('Guest full legal name: '+(row.guest_full_name||'Pending'));
+ write('Payment terms acknowledgment version: '+PAYMENT_NOTICE_VERSION+' | '+(row.guest_signed_at?'Guest acknowledged before signing':'Pending'));
  write('Guest signed (UTC): '+(row.guest_signed_at||'Pending'));
  write('Didit status: '+(row.identity_status||'Pending')+' | Session: '+(row.identity_session_id||'Pending'));
  write('Provider signed (UTC): '+(row.provider_signed_at||'Pending'));
