@@ -18,10 +18,10 @@ const validToken=t=>/^[a-f0-9]{64}$/.test(t);
 const db=env=>{if(!env.LONGSTAY_DB)throw Error('LONGSTAY_DB is not configured.');return env.LONGSTAY_DB};
 const APP_ORIGIN=req=>new URL(req.url).origin;
 const PAYMENT_NOTICE_VERSION='2026-11-22';
-function paymentNotice(s){const rent=Number(s.rent||0),fund=rent*4,cleaning=Number(s.bond||0);return [
+function paymentNotice(s){const rent=Number(s.rent||0),fund=Number(s.holding||0),cleaning=Number(s.bond||0);return [
  'PAYMENT AND MOVE-IN ACKNOWLEDGMENT',
  'Within 24 hours after the owner or agent countersigns, the guest agrees to pay one week of rent in advance (AUD '+rent.toFixed(2)+'), credited toward rent payable, subject to applicable law.',
- 'Before move-in, the guest must arrange the refundable security/holding amount of four weeks rent (AUD '+fund.toFixed(2)+'), subject to applicable statutory bond limits, required lodgement and the appropriate bond-payment process. It is not an additional bond on top of another security bond.',
+ 'Before move-in, the guest must arrange the refundable security/holding amount specified in Schedule A (AUD '+fund.toFixed(2)+'), subject to applicable statutory bond limits, required lodgement and the appropriate bond-payment process. It is not an additional bond on top of another security bond.',
  'Any separately listed refundable cleaning amount (AUD '+cleaning.toFixed(2)+') is payable only if lawful for this occupancy type and jurisdiction. It must not cause the total security collected to exceed a statutory cap.',
  'Bank transfers, including payments from Commonwealth Bank, can be delayed by security checks. Some first-time payments may be held for up to 24 hours; other transfer types can take longer. Please pay early or use an approved alternative such as another bank or an over-the-counter bank deposit where available.',
  'A transfer receipt alone does not prove ProHouse received cleared funds. Keys and move-in access are provided only after all lawfully required amounts have been received or lodged through the required bond authority and verified. Failure to pay by a deadline will be managed in accordance with applicable law and does not automatically void an executed agreement.'
