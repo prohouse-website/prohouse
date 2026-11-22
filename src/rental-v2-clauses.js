@@ -541,6 +541,12 @@ export const RENTAL_CLAUSES = [
     "heading": false
   },
   {
+    "id": "5.1.5",
+    "section": "5",
+    "text": "The PROVIDER is required to return possession of the property to its OWNER following the expiry or termination of the PROVIDER's management, lease or occupancy arrangement. The GUEST will receive at least 28 days' written notice, or any longer notice required by applicable law.",
+    "heading": false
+  },
+  {
     "id": "5.2",
     "section": "5",
     "text": "GUEST will be served a 2-day termination notice or notice of vacate without a Court Order, no prepaid/deposit will be refunded for the following reason:",
