@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const catalogue=readFileSync(path.join(root,'src/rental-v2-clauses.js'),'utf8');
+const backend=readFileSync(path.join(root,'src/rental-v2.js'),'utf8');
+const frontend=readFileSync(path.join(root,'public/operations/rental-v2/index.html'),'utf8');
+const schema=readFileSync(path.join(root,'schema/rental-v2.sql'),'utf8');
+assert.match(catalogue,/RENTAL_CLAUSES/);
+assert.match(catalogue,/"id": "1\\.2"/);
+assert.match(catalogue,/"id": "5\\.3\\.5"/);
+assert.match(frontend,/sel\\[c.id\\]=true/);
+assert.match(backend,/filter\\(c=>distinct\\.has\\(c.id\\)&&!c.heading\\)/);
+assert.match(backend,/RENTAL_V2_SENDING_ENABLED/);
+assert.match(backend,/deadline_at>\\?/);
+assert.match(schema,/rental_v2_agreements/);
+console.log('Rental portal V2 static contract checks passed.');
