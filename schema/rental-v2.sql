@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS rental_v2_agreements (
  guest_dob TEXT,
  guest_phone TEXT,
  identity_session_id TEXT,
+ identity_verification_url TEXT,
  identity_status TEXT,
  verified_name TEXT,
  verified_dob TEXT,
