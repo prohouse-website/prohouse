@@ -203,7 +203,7 @@ export async function rentalV2(req,env){
    const id=clean((await apiBody(req)).agreementId,100),r=await agreement(env,id);
    if(!r||!['sent','expired'].includes(r.status))return reply(409,'Resend only for unsigned agreements.');
    const t=token(),deadline=plus(24*60),stamp=now();
-   await db(env).prepare("UPDATE rental_v2_agreements SET status='sent',guest_token_hash=?,deadline_at=?,sent_at=?,guest_full_name=NULL,guest_dob=NULL,guest_phone=NULL,identity_session_id=NULL,identity_status=NULL,verified_name=NULL,verified_dob=NULL,identity_checked_at=NULL,updated_at=? WHERE id=? AND status IN ('sent','expired')").bind(await hash(t),deadline,stamp,stamp,id).run();
+   await db(env).prepare("UPDATE rental_v2_agreements SET status='sent',guest_token_hash=?,deadline_at=?,sent_at=?,guest_full_name=NULL,guest_dob=NULL,guest_phone=NULL,identity_session_id=NULL,identity_verification_url=NULL,identity_status=NULL,verified_name=NULL,verified_dob=NULL,identity_checked_at=NULL,updated_at=? WHERE id=? AND status IN ('sent','expired')").bind(await hash(t),deadline,stamp,stamp,id).run();
    await emailSend(env,r.guest_email,'Your new ProHouse rental agreement invitation',`Your previous invitation has been replaced. Complete your agreement within 24 hours by ${deadline}.\n\nPrivate link: ${APP_ORIGIN(req)}/operations/rental/#guest=${t}`);
    return reply(200,'Fresh invitation issued',{deadlineAt:deadline});
   }
@@ -228,12 +228,16 @@ export async function rentalV2(req,env){
    if(!await throttle(req,env,'didit'))return reply(429,'Please try again shortly.');
    const b=await apiBody(req),name=clean(b.name,140),dob=clean(b.dob,20),phone=clean(b.phone,45);
    if(name.length<3||!/^\d{4}-\d\d-\d\d$/.test(dob)||phone.length<7||b.consent!==true)return reply(400,'Complete legal name, DOB, phone and Didit consent.');
-   if(r.identity_session_id)return reply(409,'Verification already started. Please check its result instead.');
+   // Reuse the guest's existing private Didit link when they return to the portal.
+   // Legacy sessions saved only the ID. A fresh link replaces that unusable session.
+   if(r.identity_session_id&&r.identity_verification_url&&/^https:\/\/verify\.didit\.me\//.test(r.identity_verification_url)){
+    return reply(200,'Resume your Didit verification',{verificationUrl:r.identity_verification_url,resumed:true});
+   }
    const result=await didit(env,'session/',{workflow_id:env.DIDIT_WORKFLOW_ID,vendor_data:r.id,callback:APP_ORIGIN(req)+'/operations/rental/'});
    const rawVerificationUrl=String(result.url||result.verification_url||result.session_url||'').trim();
    const verificationUrl=rawVerificationUrl.startsWith('verify.didit.me/')?'https://'+rawVerificationUrl:rawVerificationUrl;
    if(!/^https:\/\/verify\.didit\.me\//.test(verificationUrl)||!result.session_id)throw Error('Unexpected Didit session response.');
-   await db(env).prepare("UPDATE rental_v2_agreements SET guest_full_name=?,guest_dob=?,guest_phone=?,identity_session_id=?,identity_status='In Progress',updated_at=? WHERE id=? AND status='sent' AND identity_session_id IS NULL").bind(name,dob,phone,result.session_id,now(),r.id).run();
+   await db(env).prepare("UPDATE rental_v2_agreements SET guest_full_name=?,guest_dob=?,guest_phone=?,identity_session_id=?,identity_verification_url=?,identity_status='In Progress',updated_at=? WHERE id=? AND status='sent' AND deadline_at>?").bind(name,dob,phone,result.session_id,verificationUrl,now(),r.id,now()).run();
    return reply(200,'Open secure ID verification',{verificationUrl});
   }
   if(path==='guest/identity/status'&&req.method==='POST'){
