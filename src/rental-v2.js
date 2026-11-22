@@ -217,7 +217,7 @@ async function documentPDF(row,completed){
  }
  function termBody(text){
   // Preserve explicit line breaks for the break-lease fee tiers.
-  const segments=String(text).split(/\\n/);
+  const segments=String(text).split(/\n/);
   for(const part of segments){
    const lines=wrap(safe(part),regular,termSize,colWidth-10);
    for(const line of lines){
