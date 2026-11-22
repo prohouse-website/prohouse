@@ -16,7 +16,7 @@ const hash=v=>crypto.subtle.digest('SHA-256',new TextEncoder().encode(String(v))
 const bearer=req=>(req.headers.get('Authorization')||'').replace(/^Bearer /i,'').trim();
 const validToken=t=>/^[a-f0-9]{64}$/.test(t);
 const db=env=>{if(!env.LONGSTAY_DB)throw Error('LONGSTAY_DB is not configured.');return env.LONGSTAY_DB};
-const APP_ORIGIN='https://www.prohouse.com.au';
+const APP_ORIGIN=req=>new URL(req.url).origin;
 async function throttle(req,env,context){
  if(!env.LONGSTAY_FORM_LIMIT)return true;
  const ip=req.headers.get('CF-Connecting-IP')||'unknown';
@@ -133,7 +133,7 @@ export async function rentalV2(req,env){
    if(!await throttle(req,env,'login'))return reply(429,'Please try again later.');
    const {email:address}=await apiBody(req);if(!email(address)||!env.PROHOUSE_ADMIN_EMAILS?.split(',').map(s=>s.trim().toLowerCase()).includes(address.toLowerCase()))return reply(200,'If authorised, a sign-in link has been emailed.');
    const t=token();await db(env).prepare('INSERT INTO rental_v2_auth (token_hash,role,expires_at,created_at) VALUES (?,?,?,?)').bind(await hash(t),'owner_login',plus(15),now()).run();
-   await emailSend(env,address,'Your ProHouse Rental Portal login','Sign in within 15 minutes: '+APP_ORIGIN+'/operations/rental-v2/#owner-login='+t+'\n\nIf you did not request this, ignore this email.');
+   await emailSend(env,address,'Your ProHouse Rental Portal login','Sign in within 15 minutes: '+APP_ORIGIN(req)+'/operations/rental-v2/#owner-login='+t+'\n\nIf you did not request this, ignore this email.');
    return reply(200,'If authorised, a sign-in link has been emailed.');
   }
   if(path==='owner/verify'&&req.method==='POST'){
@@ -199,7 +199,7 @@ export async function rentalV2(req,env){
    const b=await apiBody(req),name=clean(b.name,140),dob=clean(b.dob,20),phone=clean(b.phone,45);
    if(name.length<3||!/^\d{4}-\d\d-\d\d$/.test(dob)||phone.length<7||b.consent!==true)return reply(400,'Complete legal name, DOB, phone and Didit consent.');
    if(r.identity_session_id)return reply(409,'Verification already started. Please check its result instead.');
-   const result=await didit(env,'session/',{workflow_id:env.DIDIT_WORKFLOW_ID,vendor_data:r.id,callback:APP_ORIGIN+'/operations/rental-v2/'});
+   const result=await didit(env,'session/',{workflow_id:env.DIDIT_WORKFLOW_ID,vendor_data:r.id,callback:APP_ORIGIN(req)+'/operations/rental-v2/'});
    const verificationUrl=result.url||result.verification_url||result.session_url;
    if(!/^https:\/\/verify\.didit\.me\//.test(verificationUrl||'')||!result.session_id)throw Error('Unexpected Didit session response.');
    await db(env).prepare("UPDATE rental_v2_agreements SET guest_full_name=?,guest_dob=?,guest_phone=?,identity_session_id=?,identity_status='In Progress',updated_at=? WHERE id=? AND status='sent' AND identity_session_id IS NULL").bind(name,dob,phone,result.session_id,now(),r.id).run();
