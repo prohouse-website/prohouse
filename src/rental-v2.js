@@ -301,8 +301,8 @@ export async function rentalV2(req,env){
    const r=await guest(req,env);if(!r||r.status!=='sent'||checkExpiry(r))return reply(409,'Invitation is not active.');
    if(!env.DIDIT_API_KEY||!env.DIDIT_WORKFLOW_ID)return reply(503,'Didit is not configured.');
    if(!await throttle(req,env,'didit'))return reply(429,'Please try again shortly.');
-   const b=await apiBody(req),name=clean(b.name,140),dob=clean(b.dob,20),phone=clean(b.phone,45);
-   if(name.length<3||!/^\d{4}-\d\d-\d\d$/.test(dob)||phone.length<7||b.consent!==true)return reply(400,'Complete legal name, DOB, phone and Didit consent.');
+   const b=await apiBody(req),givenNames=clean(b.givenNames,100),familyName=clean(b.familyName,100),name=givenNames&&familyName?clean(givenNames+' '+familyName,140):'',dob=clean(b.dob,20),phone=clean(b.phone,45);
+   if(!givenNames||!familyName||name.length<3||!/^\d{4}-\d\d-\d\d$/.test(dob)||phone.length<7||b.consent!==true)return reply(400,'Complete given name(s), family name, DOB, phone and Didit consent.');
    // Reuse the guest's existing private Didit link when they return to the portal.
    // Legacy sessions saved only the ID. A fresh link replaces that unusable session.
    if(r.identity_session_id&&r.identity_verification_url&&/^https:\/\/verify\.didit\.me\//.test(r.identity_verification_url)){
