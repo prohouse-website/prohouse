@@ -17,7 +17,7 @@ Each article needs a unique stable slug, title, description, category, actual pu
 
 ## Standing publishing authorisation
 
-Brian authorised automatic blog creation and ongoing publication on 6 November 2026. Research/check daily; publish at most one useful new article on Tuesday and Friday in Australia/Sydney, initially two articles a week. The launch collection has four articles, with three guest guides and one owner guide. Maintain that approximate 3:1 balance across the collection. Quality and factual accuracy take precedence over a quota; skip publication when nothing distinct and useful is ready.
+Brian authorised automatic blog creation and ongoing publication on 6 November 2026. Research/check SEO and publish one distinct useful new article daily in Australia/Sydney, as Brian reconfirmed on 23 November 2026. This supersedes the earlier Tuesday/Friday cadence. The launch collection has four articles, with three guest guides and one owner guide. Maintain that approximate 3:1 balance across the collection. Quality and factual accuracy take precedence over a quota; skip publication when nothing distinct and useful is ready.
 
 Use a separate branch and pull request. Inspect the exact-head diff, run source SEO checks, wait for successful CI and a successful matching Cloudflare preview, inspect rendered preview pages, then merge the blog change without asking for another approval. Verify the resulting production URLs. If preview or checks cannot be verified, keep the change unmerged and report the blocker. Do not change account/build settings to bypass the workflow.
 
