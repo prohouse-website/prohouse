@@ -52,7 +52,8 @@
     "VENDOR_PORTAL_ORIGIN": "https://new-vendor-agreement-portal-prohouse.hi-07f.workers.dev",
     "ANALYTICS_FROM_EMAIL": "ProHouse Share Bill <no-reply@prohouse.com.au>",
     "DIDIT_WORKFLOW_ID": "f7f47ff2-b92d-4676-9280-132b116adbde",
-    "DIDIT_LONGSTAY_MONTHLY_LIMIT": "50"
+    "DIDIT_LONGSTAY_MONTHLY_LIMIT": "50",
+    "RENTAL_V2_SENDING_ENABLED": "true"
   },
   "previews": {
     "ai": {
@@ -93,7 +94,8 @@
       "DIDIT_MONTHLY_LIMIT": "25",
       "VENDOR_PORTAL_ORIGIN": "https://new-vendor-agreement-portal-prohouse.hi-07f.workers.dev",
       "ANALYTICS_FROM_EMAIL": "ProHouse Share Bill Preview <no-reply@prohouse.com.au>",
-      "DIDIT_LONGSTAY_MONTHLY_LIMIT": "25"
+      "DIDIT_LONGSTAY_MONTHLY_LIMIT": "25",
+      "RENTAL_V2_SENDING_ENABLED": "true"
     },
     "d1_databases": [
       {
