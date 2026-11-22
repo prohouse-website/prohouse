@@ -215,8 +215,9 @@ export async function rentalV2(req,env){
    if(name.length<3||!/^\d{4}-\d\d-\d\d$/.test(dob)||phone.length<7||b.consent!==true)return reply(400,'Complete legal name, DOB, phone and Didit consent.');
    if(r.identity_session_id)return reply(409,'Verification already started. Please check its result instead.');
    const result=await didit(env,'session/',{workflow_id:env.DIDIT_WORKFLOW_ID,vendor_data:r.id,callback:APP_ORIGIN(req)+'/operations/rental/'});
-   const verificationUrl=result.url||result.verification_url||result.session_url;
-   if(!/^https:\/\/verify\.didit\.me\//.test(verificationUrl||'')||!result.session_id)throw Error('Unexpected Didit session response.');
+   const rawVerificationUrl=String(result.url||result.verification_url||result.session_url||'').trim();
+   const verificationUrl=rawVerificationUrl.startsWith('verify.didit.me/')?'https://'+rawVerificationUrl:rawVerificationUrl;
+   if(!/^https:\/\/verify\.didit\.me\//.test(verificationUrl)||!result.session_id)throw Error('Unexpected Didit session response.');
    await db(env).prepare("UPDATE rental_v2_agreements SET guest_full_name=?,guest_dob=?,guest_phone=?,identity_session_id=?,identity_status='In Progress',updated_at=? WHERE id=? AND status='sent' AND identity_session_id IS NULL").bind(name,dob,phone,result.session_id,now(),r.id).run();
    return reply(200,'Open secure ID verification',{verificationUrl});
   }
