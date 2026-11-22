@@ -13,7 +13,8 @@ const legacyRedirects = {
   "/about-us/contact-us": "/contact/",
   "/owner-and-investor": "/owners/",
   "/policies/complaint-policy": "/complaints/",
-  "/policies/customer-service-commitment": "/policies/"
+  "/policies/customer-service-commitment": "/policies/",
+  "/preauth": "/blog/card-authorisation-hold/"
 };
 const redirectRules = readFileSync(resolve(publicDir, '_redirects'), 'utf8')
   .split(/\r?\n/).map(line => line.trim()).filter(line => line && !line.startsWith('#'))
