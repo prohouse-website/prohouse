@@ -24,7 +24,7 @@ async function throttle(req,env,context){
  return !!r.success;
 }
 function isOwnOrigin(req){const v=req.headers.get('Origin');return !v||v===new URL(req.url).origin}
-function calculateEnd(start,period){if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(start)||!['3 months','6 months','12 months'].includes(period))return '';const [year,month,day]=start.split('-').map(Number);const first=new Date(Date.UTC(year,month-1,day));if(!Number.isFinite(first.getTime())||first.toISOString().slice(0,10)!==start)return '';const end=new Date(Date.UTC(year,month-1+parseInt(period,10),day-1));return end.toISOString().slice(0,10)}
+function calculateEnd(start,period){if(!/^\d{4}-\d{2}-\d{2}$/.test(start)||!['3 months','6 months','12 months'].includes(period))return '';const [year,month,day]=start.split('-').map(Number);const first=new Date(Date.UTC(year,month-1,day));if(!Number.isFinite(first.getTime())||first.toISOString().slice(0,10)!==start)return '';const end=new Date(Date.UTC(year,month-1+parseInt(period,10),day-1));return end.toISOString().slice(0,10)}
 function scanFields(schedule){
  if(!schedule||typeof schedule!=='object'||Array.isArray(schedule))throw Error('Schedule A is required.');
  const keys=['property','area','noaccess','rent','frequency','start','period','end','bond','holding','internet','utilities','payid','bank','provider','owneremail'];
@@ -34,7 +34,7 @@ function scanFields(schedule){
  if(!/^\d{1,6}(?:\.\d{1,2})?$/.test(s.rent)||+s.rent<=0)throw Error('Weekly rent must be positive AUD.');
  for(const k of ['bond','holding'])if(s[k]&&!/^\d{1,6}(?:\.\d{1,2})?$/.test(s[k]))throw Error('Invalid amount: '+k);
  if(!['Fortnightly','Every 4 weeks','Calendar monthly'].includes(s.frequency))throw Error('Invalid rent frequency.');
- if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(s.start)||new Date(s.start+'T00:00:00Z').toISOString().slice(0,10)!==s.start)throw Error('Invalid start date.');
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(s.start)||new Date(s.start+'T00:00:00Z').toISOString().slice(0,10)!==s.start)throw Error('Invalid start date.');
  if(!['Guest chooses','3 months','6 months','12 months'].includes(s.period))throw Error('Select a 3, 6 or 12-month period or let the guest choose.');
  const computed=calculateEnd(s.start,s.period);
  if(s.period==='Guest chooses'){s.end='';}else if(!computed)throw Error('Could not calculate the agreement end date.');else s.end=computed;
