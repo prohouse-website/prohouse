@@ -17,6 +17,16 @@ const bearer=req=>(req.headers.get('Authorization')||'').replace(/^Bearer /i,'')
 const validToken=t=>/^[a-f0-9]{64}$/.test(t);
 const db=env=>{if(!env.LONGSTAY_DB)throw Error('LONGSTAY_DB is not configured.');return env.LONGSTAY_DB};
 const APP_ORIGIN=req=>new URL(req.url).origin;
+const PAYMENT_NOTICE_VERSION='2026-11-22';
+function paymentNotice(s){const rent=Number(s.rent||0),fund=rent*4,cleaning=Number(s.bond||0);return [
+ 'PAYMENT AND MOVE-IN ACKNOWLEDGMENT',
+ 'Within 24 hours after the owner or agent countersigns, the guest agrees to pay one week of rent in advance (AUD '+rent.toFixed(2)+'), credited toward rent payable, subject to applicable law.',
+ 'Before move-in, the guest must arrange the refundable security/holding amount of four weeks rent (AUD '+fund.toFixed(2)+'), subject to applicable statutory bond limits, required lodgement and the appropriate bond-payment process. It is not an additional bond on top of another security bond.',
+ 'Any separately listed refundable cleaning amount (AUD '+cleaning.toFixed(2)+') is payable only if lawful for this occupancy type and jurisdiction. It must not cause the total security collected to exceed a statutory cap.',
+ 'Bank transfers, including payments from Commonwealth Bank, can be delayed by security checks. Some first-time payments may be held for up to 24 hours; other transfer types can take longer. Please pay early or use an approved alternative such as another bank or an over-the-counter bank deposit where available.',
+ 'A transfer receipt alone does not prove ProHouse received cleared funds. Keys and move-in access are provided only after all lawfully required amounts have been received or lodged through the required bond authority and verified. Failure to pay by a deadline will be managed in accordance with applicable law and does not automatically void an executed agreement.'
+ ].join('\\n');}
+
 async function throttle(req,env,context){
  if(!env.LONGSTAY_FORM_LIMIT)return true;
  const ip=req.headers.get('CF-Connecting-IP')||'unknown';
@@ -221,7 +231,7 @@ export async function rentalV2(req,env){
   }
   if(path==='guest/sign'&&req.method==='POST'){
    const r=await guest(req,env);if(!r||r.status!=='sent'||checkExpiry(r))return reply(409,'Invitation is not active.');
-   const b=await apiBody(req);if(b.consent!==true||!dataUrl(b.signature))return reply(400,'Read and sign the agreement first.');
+   const b=await apiBody(req);if(b.consent!==true||b.paymentAcknowledged!==true||!dataUrl(b.signature))return reply(400,'Please read and acknowledge the payment deadlines before signing.');
     const scheduled=JSON.parse(r.schedule_json);
     const period=scheduled.period==='Guest chooses'?clean(b.period,12):scheduled.period;
     const end=calculateEnd(scheduled.start,period);
@@ -246,13 +256,13 @@ export async function rentalV2(req,env){
    const b=await apiBody(req),r=await agreement(env,clean(b.agreementId,100));
    if(!r||r.status!=='guest_signed')return reply(409,'A verified guest signature is required first.');
    if(!dataUrl(b.signature)||b.consent!==true)return reply(400,'Provider signature and confirmation required.');
-   const signed=now();const payload=JSON.stringify({id:r.id,clauses:r.clauses_json,schedule:r.schedule_json,guest:r.guest_email,guestSignedAt:r.guest_signed_at,providerSignedAt:signed});const signatureHash=await hash(payload);
+   const signed=now();const payload=JSON.stringify({id:r.id,clauses:r.clauses_json,schedule:r.schedule_json,paymentNoticeVersion:PAYMENT_NOTICE_VERSION,guest:r.guest_email,guestSignedAt:r.guest_signed_at,providerSignedAt:signed});const signatureHash=await hash(payload);
    const completed={...r,provider_signature:b.signature,provider_signed_at:signed,content_sha256:signatureHash,status:'completed'};
    const pdf=await documentPDF(completed,true);
    if(pdf.length>2_000_000)throw Error('PDF too large for storage.');
    await db(env).prepare("UPDATE rental_v2_agreements SET status='completed',provider_signature=?,provider_signed_at=?,content_sha256=?,final_pdf=?,updated_at=? WHERE id=? AND status='guest_signed'").bind(b.signature,signed,signatureHash,pdf,signed,r.id).run();
    const att=[{filename:'ProHouse-Signed-Rental-'+r.id+'.pdf',content:b64(pdf),content_type:'application/pdf'}];
-   await emailSend(env,[r.guest_email,...(env.PROHOUSE_ADMIN_EMAILS||'hi@prohouse.com.au').split(',').map(s=>s.trim()).filter(email)],'Completed signed ProHouse rental agreement','Both parties have signed. Your executed agreement is attached as a PDF. Reference: '+r.id,att);
+   await emailSend(env,[r.guest_email,...(env.PROHOUSE_ADMIN_EMAILS||'hi@prohouse.com.au').split(',').map(s=>s.trim()).filter(email)],'Completed signed ProHouse rental agreement',`Both parties have signed. Your executed agreement is attached as a PDF. Reference: ${r.id}.\n\nThe one-week rent advance of AUD ${Number(JSON.parse(r.schedule_json).rent).toFixed(2)} is requested within 24 hours from this countersignature, subject to applicable law. Before moving in, arrange any lawfully required bond/holding amount using the applicable statutory bond process. Keys are released after required cleared funds and/or bond lodgement are confirmed. New-payee transfers may be delayed, so arrange payment early.\n\nPayment reference: ${r.id}\nPayID: ${JSON.parse(r.schedule_json).payid}\nBank: ${JSON.parse(r.schedule_json).bank}`,att);
    return reply(200,'Agreement countersigned and completion email sent.');
   }
   return reply(404,'Unknown rental portal endpoint.');
