@@ -94,20 +94,22 @@ function normalizeDidit(d){
    name:clean(identity.full_name||identity.fullName),dob:clean(identity.date_of_birth||identity.birth_date||identity.dob,30),status:clean(z.status||d.status,40)};
 }
 async function didit(env,path,data){
- const r=await fetch('https://verification.didit.me/v3/'+path,{method:data?'POST':'GET',headers:{'x-api-key':env.DIDIT_API_KEY||'','Content-Type':'application/json'},...(data?{body:JSON.stringify(data)}:{}),signal:AbortSignal.timeout(12000)});
+ const r=await fetch('https://verification.didit.me/v3/'+path,{method:data?'POST':'GET',headers:{'x-api-key':String(env.DIDIT_API_KEY||'').trim(),'Content-Type':'application/json'},...(data?{body:JSON.stringify(data)}:{}),signal:AbortSignal.timeout(15000)});
  if(!r.ok){
-  let detail='';
+  let detail='Unknown provider response';
   try{
    const body=await r.json();
-   const field=body?.detail||body?.message||body?.error||body?.workflow_id||body?.non_field_errors;
-   detail=Array.isArray(field)?field.join('; '):typeof field==='string'?field:'';
+   const top=body?.detail||body?.message||body?.error||body?.code;
+   const value=top||Object.fromEntries(Object.entries(body||{}).filter(([key])=>['workflow_id','vendor_data','callback','callback_method','non_field_errors','errors'].includes(key)));
+   detail=typeof value==='string'?value:JSON.stringify(value);
   }catch{}
-  const reason=detail.replace(/[\\w.+-]+@[\\w.-]+\\.[A-Za-z]{2,}/g,'[redacted-email]').replace(/[A-Za-z0-9_=-]{45,}/g,'[redacted]').slice(0,220);
-  console.warn('Didit session request rejected',r.status,reason);
-  if(r.status===403)throw Error('Didit API key does not have permission to create verification sessions (HTTP 403). ProHouse must enable session-write access in Didit.');
-  if(r.status===401)throw Error('Didit API key was rejected (HTTP 401). ProHouse must correct the Didit API key.');
-  if(r.status===400)throw Error('Didit rejected session setup (HTTP 400). ProHouse must check the workflow configuration'+(reason?': '+reason:'')+'.');
-  throw Error('Didit verification service unavailable (HTTP '+r.status+').');
+  detail=detail.replace(/[\\w.+-]+@[\\w.-]+\\.[A-Za-z]{2,}/g,'[redacted-email]').replace(/[A-Za-z0-9_=-]{45,}/g,'[redacted-token]').slice(0,400);
+  console.warn('Didit rental session failure',{status:r.status,endpoint:data?'create-session':'decision'});
+  if(data&&env.LONGSTAY_DB)try{await env.LONGSTAY_DB.prepare('INSERT INTO longstay_didit_api_errors(endpoint,http_status,detail,occurred_at) VALUES(?,?,?,?)').bind('rental-v2-create-session',r.status,detail,now()).run();}catch{}
+  if(r.status===403)throw Error('Didit rejected session creation (HTTP 403). The Didit API key needs Sessions write permission and must belong to the application owning this workflow.');
+  if(r.status===401)throw Error('Didit rejected the API key (HTTP 401). ProHouse must replace its Didit API key.');
+  if(r.status===400||r.status===422)throw Error('Didit rejected the workflow configuration (HTTP '+r.status+'). ProHouse needs to check the workflow ID and the Live/Sandbox application settings.');
+  throw Error('Didit service returned HTTP '+r.status+'. Contact ProHouse.');
  }
  return r.json();
 }
