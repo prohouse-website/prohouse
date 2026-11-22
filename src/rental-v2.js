@@ -25,7 +25,7 @@ function paymentNotice(s){const rent=Number(s.rent||0),fund=rent*4,cleaning=Numb
  'Any separately listed refundable cleaning amount (AUD '+cleaning.toFixed(2)+') is payable only if lawful for this occupancy type and jurisdiction. It must not cause the total security collected to exceed a statutory cap.',
  'Bank transfers, including payments from Commonwealth Bank, can be delayed by security checks. Some first-time payments may be held for up to 24 hours; other transfer types can take longer. Please pay early or use an approved alternative such as another bank or an over-the-counter bank deposit where available.',
  'A transfer receipt alone does not prove ProHouse received cleared funds. Keys and move-in access are provided only after all lawfully required amounts have been received or lodged through the required bond authority and verified. Failure to pay by a deadline will be managed in accordance with applicable law and does not automatically void an executed agreement.'
- ].join('\\n');}
+ ].join('\n');}
 
 async function throttle(req,env,context){
  if(!env.LONGSTAY_FORM_LIMIT)return true;
