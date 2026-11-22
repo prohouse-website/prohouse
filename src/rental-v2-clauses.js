@@ -259,12 +259,6 @@ export const RENTAL_CLAUSES = [
     "heading": false
   },
   {
-    "id": "2.7.7",
-    "section": "2",
-    "text": "Refer to House’s rule 4g",
-    "heading": false
-  },
-  {
     "id": "2.7.8",
     "section": "2",
     "text": "The GUEST agrees that the open fireplace(s) shall not be used and are designated for ornamental purposes only.",
