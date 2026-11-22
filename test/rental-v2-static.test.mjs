@@ -5,7 +5,7 @@ import path from 'node:path';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const catalogue=readFileSync(path.join(root,'src/rental-v2-clauses.js'),'utf8');
 const backend=readFileSync(path.join(root,'src/rental-v2.js'),'utf8');
-const frontend=readFileSync(path.join(root,'public/operations/rental-v2/index.html'),'utf8');
+const frontend=readFileSync(path.join(root,'public/operations/rental/index.html'),'utf8');
 const schema=readFileSync(path.join(root,'schema/rental-v2.sql'),'utf8');
 assert.ok(catalogue.includes('RENTAL_CLAUSES'));
 assert.ok(catalogue.includes('"id": "1.2"'));
@@ -15,4 +15,9 @@ assert.ok(backend.includes('distinct.has(c.id)&&!c.heading'), 'Selected substant
 assert.ok(backend.includes("RENTAL_V2_SENDING_ENABLED"), 'Legal approval gate');
 assert.ok(backend.includes("deadline_at>?"), 'Server-side expiry');
 assert.ok(schema.includes("rental_v2_agreements"));
+assert.ok(frontend.includes("'3 months|6 months|12 months'") || frontend.includes("Guest chooses|3 months|6 months|12 months"), '3/6/12 month period options');
+assert.ok(frontend.includes("id==='end'?'readonly"), 'Calculated end date cannot be edited');
+assert.ok(frontend.includes("id=\"guestPeriod\""), 'Guest may choose term when owner delegates');
+assert.ok(backend.includes("scheduled.period=period;scheduled.end=end;"), 'Guest term frozen into signed schedule');
+assert.ok(backend.includes("schedule_json=?"), 'Chosen term saved with signed agreement');
 console.log('Rental portal V2 static safety checks passed.');
