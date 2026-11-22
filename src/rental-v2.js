@@ -82,6 +82,11 @@ async function guest(req,env){
 }
 async function apiBody(req){if((req.headers.get('Content-Length')|0)>160000)throw Error('Request too large.');return req.json()}
 const dataUrl=v=>/^data:image\/png;base64,[A-Za-z0-9+/=]{150,300000}$/.test(v||'');
+const identityOutcome=(v,guestName,guestDob)=>{
+ const verified=v.approved&&!!v.name&&namesEqual(v.name,guestName)&&(!v.dob||v.dob===guestDob);
+ const inReview=/^in review$/i.test(v.status||'');
+ return {approved:verified,inReview,status:verified?'Approved':v.approved?'Name or DOB mismatch':inReview?'In Review':v.status||'Pending'};
+};
 const namesEqual=(a,b)=>String(a||'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^\p{L}\p{N}]/gu,'')===String(b||'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^\p{L}\p{N}]/gu,'');
 function checkExpiry(row){return row.status==='sent'&&row.deadline_at&&row.deadline_at<=now()}
 function normalizeDidit(d){
@@ -244,12 +249,9 @@ export async function rentalV2(req,env){
    const r=await guest(req,env);if(!r||r.status!=='sent'||checkExpiry(r))return reply(409,'Invitation is not active.');
    if(!r.identity_session_id)return reply(400,'Start verification first.');
    const result=normalizeDidit(await didit(env,'session/'+encodeURIComponent(r.identity_session_id)+'/decision/'));
-   const sameName=!!result.name&&namesEqual(result.name,r.guest_full_name);
-   const dobMatch=!result.dob||result.dob===r.guest_dob; // require DOB only when returned; operator must confirm if absent
-   const approved=result.approved&&sameName&&dobMatch;
-   const status=approved?'Approved':result.approved?'Name or DOB mismatch':result.status||'In Review';
-   await db(env).prepare('UPDATE rental_v2_agreements SET identity_status=?,verified_name=?,verified_dob=?,identity_checked_at=?,updated_at=? WHERE id=?').bind(status,result.name,result.dob,now(),now(),r.id).run();
-   return reply(200,'Identity status',{status,approved});
+   const outcome=identityOutcome(result,r.guest_full_name,r.guest_dob);
+   await db(env).prepare('UPDATE rental_v2_agreements SET identity_status=?,verified_name=?,verified_dob=?,identity_checked_at=?,updated_at=? WHERE id=?').bind(outcome.status,result.name,result.dob,now(),now(),r.id).run();
+   return reply(200,'Identity status',{status:outcome.status,approved:outcome.approved,inReview:outcome.inReview,maySign:outcome.approved||outcome.inReview});
   }
   if(path==='guest/sign'&&req.method==='POST'){
    const r=await guest(req,env);if(!r||r.status!=='sent'||checkExpiry(r))return reply(409,'Invitation is not active.');
@@ -263,13 +265,15 @@ export async function rentalV2(req,env){
    // Re-query the provider decision at signing, rather than trusting a browser flag.
    if(!r.identity_session_id)return reply(409,'Complete Didit verification first.');
    const v=normalizeDidit(await didit(env,'session/'+encodeURIComponent(r.identity_session_id)+'/decision/'));
-   if(!v.approved||!v.name||!namesEqual(v.name,r.guest_full_name)||v.dob&&v.dob!==r.guest_dob)return reply(409,'Identity verification is not approved or does not match the signer.');
+   const outcome=identityOutcome(v,r.guest_full_name,r.guest_dob);
+   if(!outcome.approved&&!outcome.inReview)return reply(409,'Didit must be Approved or In Review before signing. Status: '+outcome.status);
+   // In Review records the guest signature, but the provider cannot countersign until verification is approved.
    const signedAt=now();
-   const result=await db(env).prepare("UPDATE rental_v2_agreements SET status='guest_signed',schedule_json=?,guest_signature=?,guest_signed_at=?,identity_status='Approved',verified_name=?,verified_dob=?,identity_checked_at=?,updated_at=? WHERE id=? AND status='sent' AND deadline_at>?").bind(JSON.stringify(scheduled),b.signature,signedAt,v.name,v.dob,signedAt,signedAt,r.id,signedAt).run();
+   const result=await db(env).prepare("UPDATE rental_v2_agreements SET status='guest_signed',schedule_json=?,guest_signature=?,guest_signed_at=?,identity_status=?,verified_name=?,verified_dob=?,identity_checked_at=?,updated_at=? WHERE id=? AND status='sent' AND deadline_at>?").bind(JSON.stringify(scheduled),b.signature,signedAt,outcome.status,v.name,v.dob,signedAt,signedAt,r.id,signedAt).run();
    if(result.meta?.changes!==1)return reply(409,'Invitation no longer valid.');
    const ownerMail=(env.PROHOUSE_ADMIN_EMAILS||'hi@prohouse.com.au').split(',').map(x=>x.trim()).filter(email);
-   const receipt=await identityReceiptPDF({...r,identity_status:'Approved',verified_name:v.name,verified_dob:v.dob,identity_checked_at:signedAt});
-   await emailSend(env,ownerMail,'ProHouse lease ready for countersignature',`Guest: ${r.guest_full_name}\nAgreement period: ${period} (${scheduled.start} to ${scheduled.end})\nDOB as entered: ${r.guest_dob}\nPhone: ${r.guest_phone}\nEmail: ${r.guest_email}\nDidit verified legal name: ${v.name}\nDidit session reference: ${r.identity_session_id}\n\nReview the secured verification record in your Didit console, then sign in to ProHouse Rental Portal.\nAgreement: ${r.id}\n\nFor privacy, no raw ID scan or biometric photo is transmitted by email.`,[{filename:'Didit-verification-summary-'+r.id+'.pdf',content:b64(receipt),content_type:'application/pdf'}]);
+   const receipt=await identityReceiptPDF({...r,identity_status:outcome.status,verified_name:v.name,verified_dob:v.dob,identity_checked_at:signedAt});
+   await emailSend(env,ownerMail,outcome.inReview?'ACTION REQUIRED: Review Didit before countersigning ProHouse lease':'ProHouse lease ready for countersignature',`Didit status: ${outcome.status}\n${outcome.inReview?'MANUAL REVIEW REQUIRED: The guest has signed while Didit is In Review. Review the Didit session and obtain an Approved result before ProHouse countersigns.\n\n':''}Guest: ${r.guest_full_name}\nAgreement period: ${period} (${scheduled.start} to ${scheduled.end})\nDOB as entered: ${r.guest_dob}\nPhone: ${r.guest_phone}\nEmail: ${r.guest_email}\nDidit verified legal name: ${v.name}\nDidit session reference: ${r.identity_session_id}\n\nReview the secured verification record in your Didit console, then sign in to ProHouse Rental Portal.\nAgreement: ${r.id}\n\nFor privacy, no raw ID scan or biometric photo is transmitted by email.`,[{filename:'Didit-verification-summary-'+r.id+'.pdf',content:b64(receipt),content_type:'application/pdf'}]);
    return reply(200,'Signature recorded. ProHouse has been notified.');
   }
   if(path==='owner/sign'&&req.method==='POST'){
@@ -278,6 +282,12 @@ export async function rentalV2(req,env){
    const b=await apiBody(req),r=await agreement(env,clean(b.agreementId,100));
    if(!r||r.status!=='guest_signed')return reply(409,'A verified guest signature is required first.');
    if(!dataUrl(b.signature)||b.consent!==true)return reply(400,'Provider signature and confirmation required.');
+   if(!r.identity_session_id)return reply(409,'Didit verification is missing.');
+   const latest=normalizeDidit(await didit(env,'session/'+encodeURIComponent(r.identity_session_id)+'/decision/'));
+   const decision=identityOutcome(latest,r.guest_full_name,r.guest_dob);
+   if(!decision.approved)return reply(409,'Countersignature blocked. Didit status: '+decision.status+'. Resolve manual review or mismatch in Didit first.');
+   await db(env).prepare('UPDATE rental_v2_agreements SET identity_status=?,verified_name=?,verified_dob=?,identity_checked_at=? WHERE id=?').bind('Approved',latest.name,latest.dob,now(),r.id).run();
+   r.identity_status='Approved';r.verified_name=latest.name;r.verified_dob=latest.dob;
    const signed=now();const payload=JSON.stringify({id:r.id,clauses:r.clauses_json,schedule:r.schedule_json,paymentNoticeVersion:PAYMENT_NOTICE_VERSION,guest:r.guest_email,guestSignedAt:r.guest_signed_at,providerSignedAt:signed});const signatureHash=await hash(payload);
    const completed={...r,provider_signature:b.signature,provider_signed_at:signed,content_sha256:signatureHash,status:'completed'};
    const pdf=await documentPDF(completed,true);
