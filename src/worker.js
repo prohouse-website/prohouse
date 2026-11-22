@@ -1,4 +1,5 @@
 import { onRequestPost } from './survey.js';
+import { rentalV2 } from './rental-v2.js';
 import { generateMutualLeaseDraft } from './longstay-lease.js';
 import { prepareLease,leaseTemplateStatus,packetForAdmin,tenantPacket,leaseDocument,sendLease,tenantSign,tenantReportPayment,verifyLeasePayment,verifyPostSigningFunds,requestProviderOtp,signProvider,checkLeaseDeadlines } from './longstay-signing.js';
 import { getLongStayReview, decideLongStayReview } from './longstay-review.js';
@@ -21,6 +22,8 @@ export default {
       url.pathname = canonicalAliases[path] || path;
       return Response.redirect(url, 301);
     }
+    if (path === '/operations/livewithus/' || path === '/operations/livewithus' || path === '/operations/livewithus/index.html') return Response.redirect(new URL('/operations/rental/' + url.search, url.origin), 302);
+    if (path === '/operations/rental' || path === '/operations/rental/index.html' || path === '/operations/rental-v2' || path === '/operations/rental-v2/' || path === '/operations/rental-v2/index.html') return Response.redirect(new URL('/operations/rental/' + url.search, url.origin), 302);
     if (path.startsWith('/longstay/form/livewithus')) {
       const next=new URL(request.url);
       next.pathname=path.replace(/^\/longstay\/form\/livewithus/,'/operations/livewithus');
@@ -93,6 +96,7 @@ export default {
       response.headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
       return response;
     }
+    if (path.startsWith('/api/rental-v2/')) return rentalV2(request,env);
     if (path.startsWith('/api/')) return new Response('Not found', { status: 404 });
     return env.ASSETS.fetch(request);
   },
