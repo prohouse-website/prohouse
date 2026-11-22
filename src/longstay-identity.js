@@ -102,17 +102,18 @@ function safeStartFailure(e){
 }
 const checkedStatus=(result,identity)=>{
  const categories=['id_verifications','liveness_checks','face_matches'];
- // Didit's final Approved decision may be the result of a human review. Still
- // require all three checks to have actually run; the reviewer owns the verdict.
+ // An incomplete ID/selfie/face check must never be treated as a completed
+ // manual review. Only a genuine In Review decision with all checks present
+ // and a matching legal name may be submitted for human approval.
  const validChecks=categories.every(k=>Array.isArray(result[k])&&result[k].length>0);
  const verifiedName=norm(result.id_verifications?.[0]?.full_name);
  const fullMatch=!!verifiedName&&nameKey(verifiedName)===nameKey(identity.legal_name);
- const approved=result.status==='Approved'&&validChecks&&fullMatch;
- return {
-  status:approved?'Approved':(result.status==='Approved'&&!fullMatch?'Name Mismatch':
-   (result.status==='Approved'?'In Review':norm(result.status)||'In Review')),
-  providerName:verifiedName,approved
- };
+ const providerStatus=norm(result.status);
+ const needsIdentity=(providerStatus==='Approved'||providerStatus==='In Review');
+ const status=needsIdentity&&!validChecks?'Incomplete':
+  needsIdentity&&!fullMatch?'Name Mismatch':
+  providerStatus||'Not Started';
+ return {status,providerName:verifiedName,approved:status==='Approved'};
 };
 async function session(env,token){
  if(!validToken(token))return null;
@@ -432,7 +433,7 @@ export async function verifiedTenantIdentity(env,token,identity){
    ?'Your name does not match the verified ID. Correct your application legal name or contact ProHouse.'
    :data.provider_status==='Declined'
     ?'Your ID verification was declined. Contact ProHouse to arrange a review or resubmission.'
-    :'Please finish the Didit ID and selfie checks before sending this application.');
+    :'Finish Didit ID and selfie checks before sending this application.');
  return prepared(data);
 }
 export async function identityReviewGate(env,reference,summary){
