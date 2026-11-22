@@ -71,7 +71,7 @@ async function owner(req,env){
 }
 async function agreement(env,id){return db(env).prepare('SELECT * FROM rental_v2_agreements WHERE id=?').bind(id).first()}
 function safe(row,admin=false){
- const obj={id:row.id,status:row.status,clauses:JSON.parse(row.clauses_json),schedule:JSON.parse(row.schedule_json),guestEmail:row.guest_email,sentAt:row.sent_at,deadlineAt:row.deadline_at,guestSignedAt:row.guest_signed_at,providerSignedAt:row.provider_signed_at,identityStatus:row.identity_status};
+ const obj={id:row.id,status:row.status,clauses:JSON.parse(row.clauses_json),schedule:JSON.parse(row.schedule_json),guestEmail:row.guest_email,sentAt:row.sent_at,deadlineAt:row.deadline_at,guestSignedAt:row.guest_signed_at,providerSignedAt:row.provider_signed_at,identityStatus:row.identity_status,diditStarted:!!row.identity_session_id};
  if(admin){obj.guestName=row.guest_full_name;obj.guestDob=row.guest_dob;obj.guestPhone=row.guest_phone;obj.verifiedName=row.verified_name;obj.verifiedDob=row.verified_dob;obj.identityCheckedAt=row.identity_checked_at;obj.diditSessionId=row.identity_session_id;}
  return obj;
 }
