@@ -223,8 +223,8 @@ async function documentPDF(row,completed){
   const blockH=rows.length*27+91;
   ensure(blockH+10);
   p.drawRectangle({x,y:y-blockH,width:w,height:blockH,color:white,borderColor:line,borderWidth:1});
-  p.drawRectangle({x,y:y-34,width:w,height:34,color:number===1?lime:charcoal});
-  p.drawText('OPTION '+number+'  |  '+heading,{x:x+14,y:y-22,font:bold,size:11,color:number===1?charcoal:white});
+  p.drawRectangle({x,y:y-34,width:w,height:34,color:lime});
+  p.drawText('OPTION '+number+'  |  '+heading,{x:x+14,y:y-22,font:bold,size:11,color:charcoal});
   let ty=y-56;
   for(const [label,value] of rows){
    p.drawText(safe(label).toUpperCase(),{x:x+15,y:ty,font:bold,size:7.8,color:muted});
@@ -240,8 +240,7 @@ async function documentPDF(row,completed){
   y-=blockH+17;
  }
  paymentPanel(1,'PAYID',[
-  ['PayID email',payid],
-  ['Account name','Cu Nguyen']
+  ['PayID email',payid]
  ],'Commonwealth Bank may hold some first-time payments for up to 24 hours. PayID does not guarantee instant availability.');
  paymentPanel(2,'DIRECT BANK TRANSFER',[
   ['Bank','Commonwealth Bank of Australia'],
@@ -494,7 +493,6 @@ export async function rentalV2(req,env){
     '',
     'OPTION 1: PAYID',
     'PayID email: hi@prohouse.com.au',
-    'Account name: Cu Nguyen',
     'Important: Commonwealth Bank may hold some first-time payments for up to 24 hours. PayID does not guarantee instant availability.',
     '',
     'OPTION 2: DIRECT BANK TRANSFER',
