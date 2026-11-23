@@ -1,5 +1,6 @@
 import { onRequestPost } from './survey.js';
 import { rentalV2 } from './rental-v2.js';
+import rentalPage from '../public/operations/rental/index.html';
 import { generateMutualLeaseDraft } from './longstay-lease.js';
 import { prepareLease,leaseTemplateStatus,packetForAdmin,tenantPacket,leaseDocument,sendLease,tenantSign,tenantReportPayment,verifyLeasePayment,verifyPostSigningFunds,requestProviderOtp,signProvider,checkLeaseDeadlines } from './longstay-signing.js';
 import { getLongStayReview, decideLongStayReview } from './longstay-review.js';
@@ -16,6 +17,14 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
+    // Serve the current Rental Portal from the same commit as its API.
+    // Avoid stale static assets overriding admin sign-in and edit controls.
+    if(path==='/operations/rental')return Response.redirect(url.origin+'/operations/rental/',308);
+    if(path==='/operations/rental/'||path==='/operations/rental/index.html')
+      return new Response(rentalPage,{headers:{
+        'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store',
+        'X-Robots-Tag':'noindex, nofollow','X-Content-Type-Options':'nosniff'
+      }});
     const canonicalAliases = {"/operations/livewithus": "/operations/livewithus/", "/operations/livewithus/index.html": "/operations/livewithus/", "/operations/livewithus/second": "/operations/livewithus/second/", "/operations/livewithus/second/index.html": "/operations/livewithus/second/", "/operations/livewithus/review": "/operations/livewithus/review/", "/operations/livewithus/review/index.html": "/operations/livewithus/review/", "/longstay/form/livewithus/second": "/longstay/form/livewithus/second/", "/longstay/form/livewithus/second/index.html": "/longstay/form/livewithus/second/", "/longstay/form/livewithus": "/longstay/form/livewithus/", "/longstay/form/livewithus/index.html": "/longstay/form/livewithus/", "/index.html": "/", "/stays": "/stays/", "/stays.html": "/stays/", "/stays/index.html": "/stays/", "/location": "/location/", "/location.html": "/location/", "/location/index.html": "/location/", "/properties": "/properties/", "/properties.html": "/properties/", "/properties/index.html": "/properties/", "/book": "/book/", "/book.html": "/book/", "/book/index.html": "/book/", "/owners": "/owners/", "/owners.html": "/owners/", "/owners/index.html": "/owners/", "/contact": "/contact/", "/contact.html": "/contact/", "/contact/index.html": "/contact/", "/why-prohouse": "/why-prohouse/", "/why-prohouse.html": "/why-prohouse/", "/why-prohouse/index.html": "/why-prohouse/", "/terms": "/terms/", "/terms.html": "/terms/", "/terms/index.html": "/terms/", "/privacy": "/privacy/", "/privacy.html": "/privacy/", "/privacy/index.html": "/privacy/", "/complaints": "/complaints/", "/complaints.html": "/complaints/", "/complaints/index.html": "/complaints/", "/sydney-airport-accommodation": "/sydney-airport-accommodation/", "/sydney-airport-accommodation.html": "/sydney-airport-accommodation/", "/sydney-airport-accommodation/index.html": "/sydney-airport-accommodation/", "/stays/room-1": "/stays/room-1/", "/stays/room-1.html": "/stays/room-1/", "/stays/room-1/index.html": "/stays/room-1/", "/stays/room-2": "/stays/room-2/", "/stays/room-2.html": "/stays/room-2/", "/stays/room-2/index.html": "/stays/room-2/", "/stays/room-3": "/stays/room-3/", "/stays/room-3.html": "/stays/room-3/", "/stays/room-3/index.html": "/stays/room-3/", "/terms-and-conditions/": "/terms/", "/terms-and-conditions": "/terms/", "/terms-and-conditions/index.html": "/terms/", "/privacy-policy/": "/privacy/", "/privacy-policy": "/privacy/", "/privacy-policy/index.html": "/privacy/", "/complaint-policy/": "/complaints/", "/complaint-policy": "/complaints/", "/complaint-policy/index.html": "/complaints/"};
     if ((url.hostname === 'prohouse.com.au' || url.hostname === 'www.prohouse.com.au') && (url.protocol !== 'https:' || url.hostname !== 'www.prohouse.com.au')) {
       url.protocol = 'https:'; url.hostname = 'www.prohouse.com.au';
