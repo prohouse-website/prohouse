@@ -451,9 +451,9 @@ export async function rentalV2(req,env){
    const stamp=now(),isDraft=old.status==='draft',newToken=isDraft?null:token(),deadline=isDraft?null:plus(24*60);
    // A revision is atomic with the change: a guest signing in the meantime makes the edit fail.
    const update=await db(env).prepare(
-    "UPDATE rental_v2_agreements SET status=?,clauses_json=?,schedule_json=?,guest_email=?,guest_full_name=?,guest_token_hash=?,deadline_at=?,sent_at=?,guest_dob=NULL,guest_phone=NULL,identity_session_id=NULL,identity_verification_url=NULL,identity_status=NULL,verified_name=NULL,verified_dob=NULL,identity_checked_at=NULL,updated_at=? WHERE id=? AND status=? AND guest_signed_at IS NULL")
+    "UPDATE rental_v2_agreements SET status=?,clauses_json=?,schedule_json=?,guest_email=?,guest_full_name=?,guest_token_hash=?,deadline_at=?,sent_at=?,guest_dob=NULL,guest_phone=NULL,identity_session_id=NULL,identity_verification_url=NULL,identity_status=NULL,verified_name=NULL,verified_dob=NULL,identity_checked_at=NULL,updated_at=? WHERE id=? AND status=? AND guest_signed_at IS NULL AND updated_at=?")
     .bind(isDraft?'draft':'sent',JSON.stringify(selected),JSON.stringify(schedule),to,guestName||null,
-      newToken?await hash(newToken):null,deadline,isDraft?null:stamp,stamp,id,old.status).run();
+      newToken?await hash(newToken):null,deadline,isDraft?null:stamp,stamp,id,old.status,old.updated_at).run();
    if(update.meta?.changes!==1)return reply(409,'The guest has signed or the agreement changed. Refresh and try again.');
    await db(env).prepare('INSERT INTO rental_v2_revisions (agreement_id,previous_guest_email,previous_guest_name,previous_schedule_json,previous_clauses_json,changed_at) VALUES (?,?,?,?,?,?)')
     .bind(id,old.guest_email,old.guest_full_name,old.schedule_json,old.clauses_json,stamp).run();
