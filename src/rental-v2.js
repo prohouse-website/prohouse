@@ -481,7 +481,7 @@ export async function rentalV2(req,env){
    const id=clean((await apiBody(req)).agreementId,100),r=await agreement(env,id);
    if(!r||!['sent','expired'].includes(r.status))return reply(409,'Resend only for unsigned agreements.');
    const t=token(),deadline=plus(24*60),stamp=now();
-   await db(env).prepare("UPDATE rental_v2_agreements SET status='sent',guest_token_hash=?,deadline_at=?,sent_at=?,guest_full_name=NULL,guest_dob=NULL,guest_phone=NULL,identity_session_id=NULL,identity_verification_url=NULL,identity_status=NULL,verified_name=NULL,verified_dob=NULL,identity_checked_at=NULL,updated_at=? WHERE id=? AND status IN ('sent','expired')").bind(await hash(t),deadline,stamp,stamp,id).run();
+   await db(env).prepare("UPDATE rental_v2_agreements SET status='sent',guest_token_hash=?,deadline_at=?,sent_at=?,guest_dob=NULL,guest_phone=NULL,identity_session_id=NULL,identity_verification_url=NULL,identity_status=NULL,verified_name=NULL,verified_dob=NULL,identity_checked_at=NULL,updated_at=? WHERE id=? AND status IN ('sent','expired')").bind(await hash(t),deadline,stamp,stamp,id).run();
    await emailSend(env,r.guest_email,'Your new ProHouse rental agreement invitation',`Your previous invitation has been replaced. Complete your agreement within 24 hours by ${deadline}.\n\nPrivate link: ${APP_ORIGIN(req)}/operations/rental/#guest=${t}`);
    return reply(200,'Fresh invitation issued',{deadlineAt:deadline});
   }
@@ -506,6 +506,7 @@ export async function rentalV2(req,env){
    if(!await throttle(req,env,'didit'))return reply(429,'Please try again shortly.');
    const b=await apiBody(req),givenNames=clean(b.givenNames,100),familyName=clean(b.familyName,100),name=givenNames&&familyName?clean(givenNames+' '+familyName,140):'',dob=clean(b.dob,20),phone=clean(b.phone,45);
    if(!givenNames||!familyName||name.length<3||!/^\d{4}-\d\d-\d\d$/.test(dob)||phone.length<7||b.consent!==true)return reply(400,'Complete given name(s), family name, DOB, phone and Didit consent.');
+   if(r.guest_full_name&&!namesEqual(r.guest_full_name,name))return reply(409,'The name on your ID does not match the name ProHouse entered. Ask ProHouse to correct your agreement before verifying.');
    // Reuse the guest's existing private Didit link when they return to the portal.
    // Legacy sessions saved only the ID. A fresh link replaces that unusable session.
    if(r.identity_session_id&&r.identity_verification_url&&/^https:\/\/verify\.didit\.me\//.test(r.identity_verification_url)){
@@ -515,7 +516,8 @@ export async function rentalV2(req,env){
    const rawVerificationUrl=String(result.url||result.verification_url||result.session_url||'').trim();
    const verificationUrl=rawVerificationUrl.startsWith('verify.didit.me/')?'https://'+rawVerificationUrl:rawVerificationUrl;
    if(!/^https:\/\/verify\.didit\.me\//.test(verificationUrl)||!result.session_id)throw Error('Unexpected Didit session response.');
-   await db(env).prepare("UPDATE rental_v2_agreements SET guest_full_name=?,guest_dob=?,guest_phone=?,identity_session_id=?,identity_verification_url=?,identity_status='In Progress',updated_at=? WHERE id=? AND status='sent' AND deadline_at>?").bind(name,dob,phone,result.session_id,verificationUrl,now(),r.id,now()).run();
+   const identityWrite=await db(env).prepare("UPDATE rental_v2_agreements SET guest_full_name=?,guest_dob=?,guest_phone=?,identity_session_id=?,identity_verification_url=?,identity_status='In Progress',updated_at=? WHERE id=? AND guest_token_hash=? AND status='sent' AND deadline_at>?").bind(name,dob,phone,result.session_id,verificationUrl,now(),r.id,await hash(bearer(req)),now()).run();
+   if(identityWrite.meta?.changes!==1)return reply(409,'Invitation replaced. Please use the newest link in your email.');
    return reply(200,'Open secure ID verification',{verificationUrl});
   }
   if(path==='guest/identity/status'&&req.method==='POST'){
@@ -523,7 +525,8 @@ export async function rentalV2(req,env){
    if(!r.identity_session_id)return reply(400,'Start verification first.');
    const result=normalizeDidit(await didit(env,'session/'+encodeURIComponent(r.identity_session_id)+'/decision/'));
    const outcome=identityOutcome(result,r.guest_full_name,r.guest_dob);
-   await db(env).prepare('UPDATE rental_v2_agreements SET identity_status=?,verified_name=?,verified_dob=?,identity_checked_at=?,updated_at=? WHERE id=?').bind(outcome.status,result.name,result.dob,now(),now(),r.id).run();
+   const statusWrite=await db(env).prepare('UPDATE rental_v2_agreements SET identity_status=?,verified_name=?,verified_dob=?,identity_checked_at=?,updated_at=? WHERE id=? AND guest_token_hash=? AND status=?').bind(outcome.status,result.name,result.dob,now(),now(),r.id,await hash(bearer(req)),'sent').run();
+   if(statusWrite.meta?.changes!==1)return reply(409,'Invitation replaced. Please use the newest guest link.');
    return reply(200,'Identity status',{status:outcome.status,approved:outcome.approved,inReview:outcome.inReview,maySign:outcome.approved||outcome.inReview});
   }
   if(path==='guest/sign'&&req.method==='POST'){
@@ -542,7 +545,7 @@ export async function rentalV2(req,env){
    if(!outcome.approved&&!outcome.inReview)return reply(409,'Didit must be Approved or In Review before signing. Status: '+outcome.status);
    // In Review records the guest signature, but the provider cannot countersign until verification is approved.
    const signedAt=now();
-   const result=await db(env).prepare("UPDATE rental_v2_agreements SET status='guest_signed',schedule_json=?,guest_signature=?,guest_signed_at=?,identity_status=?,verified_name=?,verified_dob=?,identity_checked_at=?,updated_at=? WHERE id=? AND status='sent' AND deadline_at>?").bind(JSON.stringify(scheduled),b.signature,signedAt,outcome.status,v.name,v.dob,signedAt,signedAt,r.id,signedAt).run();
+   const result=await db(env).prepare("UPDATE rental_v2_agreements SET status='guest_signed',schedule_json=?,guest_signature=?,guest_signed_at=?,identity_status=?,verified_name=?,verified_dob=?,identity_checked_at=?,updated_at=? WHERE id=? AND guest_token_hash=? AND status='sent' AND deadline_at>?").bind(JSON.stringify(scheduled),b.signature,signedAt,outcome.status,v.name,v.dob,signedAt,signedAt,r.id,await hash(bearer(req)),signedAt).run();
    if(result.meta?.changes!==1)return reply(409,'Invitation no longer valid.');
    const ownerMail=(env.PROHOUSE_ADMIN_EMAILS||'hi@prohouse.com.au').split(',').map(x=>x.trim()).filter(email);
    const receipt=await identityReceiptPDF({...r,identity_status:outcome.status,verified_name:v.name,verified_dob:v.dob,identity_checked_at:signedAt});
