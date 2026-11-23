@@ -357,6 +357,60 @@ export async function rentalV2(req,env){
  const u=new URL(req.url),path=u.pathname.replace(/^\/api\/rental-v2\/?/,'');
  try{
   if(path==='catalogue'&&req.method==='GET')return reply(200,'Clause catalogue', {clauses:RENTAL_CLAUSES});
+  if(path==='owner/password/request'&&req.method==='POST'){
+   if(!isOwnOrigin(req))return reply(403,'Origin not allowed.');
+   if(!await throttle(req,env,'password-request'))return reply(429,'Please try again later.');
+   const address=ownerEmail((await apiBody(req)).email,env);
+   const generic='If this is your authorised ProHouse email, a password setup or reset link will arrive shortly.';
+   if(!address)return reply(200,generic);
+   const existing=await db(env).prepare('SELECT email FROM rental_v2_owner_credentials WHERE email=?').bind(address).first();
+   const t=token(),h=await hash(t),purpose=existing?'reset':'setup';
+   await db(env).prepare('DELETE FROM rental_v2_password_tokens WHERE email=?').bind(address).run();
+   await db(env).prepare('INSERT INTO rental_v2_password_tokens (token_hash,email,purpose,expires_at,created_at) VALUES (?,?,?,?,?)')
+    .bind(h,address,purpose,plus(20),now()).run();
+   const link=APP_ORIGIN(req)+'/operations/rental/#owner-password='+t;
+   await emailSend(env,address,'ProHouse Rental Portal: '+(existing?'Reset your password':'Set up your password'),
+    'A password '+(existing?'reset':'setup')+' was requested for your ProHouse Rental Portal.\n\nOpen this private link within 20 minutes:\n'+link+'\n\nIf you did not request this, ignore the email. Never forward this link.');
+   return reply(200,generic);
+  }
+  if(path==='owner/password/confirm'&&req.method==='POST'){
+   if(!isOwnOrigin(req))return reply(403,'Origin not allowed.');
+   if(!await throttle(req,env,'password-confirm'))return reply(429,'Please try again later.');
+   const b=await apiBody(req),t=clean(b.token,100),password=b.password;
+   if(!validToken(t))return reply(403,'Invalid or expired password link.');
+   if(!strongPassword(password))return reply(400,'Use a password of 12 to 128 characters, without control characters.');
+   const h=await hash(t),record=await db(env).prepare('SELECT * FROM rental_v2_password_tokens WHERE token_hash=? AND expires_at>?').bind(h,now()).first();
+   if(!record||!ownerEmail(record.email,env))return reply(403,'Invalid or expired password link.');
+   const existing=await db(env).prepare('SELECT email FROM rental_v2_owner_credentials WHERE email=?').bind(record.email).first();
+   if(record.purpose!==(existing?'reset':'setup'))return reply(409,'This setup link is no longer valid. Request a new one.');
+   const salt=randomBytesHex(16),derived=await passwordHash(password,salt);
+   const consumed=await db(env).prepare('DELETE FROM rental_v2_password_tokens WHERE token_hash=? AND expires_at>?').bind(h,now()).run();
+   if(consumed.meta?.changes!==1)return reply(403,'This password link has already been used or has expired.');
+   await db(env).prepare('INSERT INTO rental_v2_owner_credentials (email,password_salt,password_hash,iterations,updated_at) VALUES (?,?,?,?,?) ON CONFLICT(email) DO UPDATE SET password_salt=excluded.password_salt,password_hash=excluded.password_hash,iterations=excluded.iterations,updated_at=excluded.updated_at')
+    .bind(record.email,salt,derived,OWNER_PASSWORD_ITERATIONS,now()).run();
+   await db(env).prepare("DELETE FROM rental_v2_auth WHERE role='owner_session' OR role='owner_login'").run();
+   await db(env).prepare('DELETE FROM rental_v2_password_tokens WHERE email=?').bind(record.email).run();
+   return reply(200,'Password saved. Sign in with your email and new password.');
+  }
+  if(path==='owner/password/login'&&req.method==='POST'){
+   if(!isOwnOrigin(req))return reply(403,'Origin not allowed.');
+   if(!await throttle(req,env,'password-login'))return reply(429,'Too many sign-in attempts. Please try later.');
+   const b=await apiBody(req),address=ownerEmail(b.email,env);
+   if(!address||typeof b.password!=='string')return reply(403,'Incorrect email or password.');
+   const credential=await db(env).prepare('SELECT password_salt,password_hash,iterations FROM rental_v2_owner_credentials WHERE email=?').bind(address).first();
+   if(!credential)return reply(403,'Incorrect email or password. Set up a password first if needed.');
+   const candidate=await passwordHash(b.password,credential.password_salt,credential.iterations);
+   if(!sameHash(candidate,credential.password_hash))return reply(403,'Incorrect email or password.');
+   return reply(200,'Signed in',{session:await createOwnerSession(env)});
+  }
+  if(path==='owner/logout'&&req.method==='POST'){
+   if(!isOwnOrigin(req))return reply(403,'Origin not allowed.');
+   const t=bearer(req);
+   if(validToken(t))await db(env).prepare("DELETE FROM rental_v2_auth WHERE token_hash=? AND role='owner_session'").bind(await hash(t)).run();
+   return reply(200,'Signed out');
+  }
+  if((path==='owner/login'||path==='owner/verify')&&req.method==='POST')
+   return reply(410,'Admin sign-in links have been replaced with password login. Use Set up password or Forgot password.');
   if(path==='owner/login'&&req.method==='POST'){
    if(!isOwnOrigin(req))return reply(403,'Origin not allowed.');
    if(!await throttle(req,env,'login'))return reply(429,'Please try again later.');
