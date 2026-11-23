@@ -47,6 +47,7 @@ async function passwordLogin(){
  try{
   const r=await request('owner/password/login',{method:'POST',body:{email:$('loginEmail').value.trim(),password:$('loginPassword').value},auth:''});
   sessionStorage.setItem(STORE_OWNER,r.session);
+  sessionStorage.removeItem(STORE_GUEST);
   $('loginPassword').value='';
   await ownerLoad();
  }catch(e){alertMsg(e.message,true)}
@@ -70,7 +71,23 @@ async function saveAdminPassword(){
   $('loginPassword').focus();
  }catch(e){alertMsg(e.message,true)}
 }
-async function ownerLoad(){$('login').classList.add('hidden');$('owner').classList.remove('hidden');try{const r=await request('catalogue',{auth:''});clauses=r.clauses;clauses.forEach(c=>sel[c.id]=true);renderClauses();buildFields();await refreshAgreements();const requested=new URLSearchParams(location.search).get('agreement');if(requested&&/^[0-9a-f-]{36}$/i.test(requested)){ownerStep(3);await openAgreement(requested);$('selectedAgreement').scrollIntoView({block:'start'})}}catch(e){alertMsg(e.message,true)}}
+async function ownerLoad(){
+ try{
+  await request('owner/me');
+  $('login').classList.add('hidden');$('owner').classList.remove('hidden');
+  const r=await request('catalogue',{auth:''});
+  clauses=r.clauses;clauses.forEach(c=>sel[c.id]=true);
+  renderClauses();buildFields();await refreshAgreements();
+  const requested=new URLSearchParams(location.search).get('agreement');
+  if(requested&&/^[0-9a-f-]{36}$/i.test(requested)){
+   ownerStep(3);await openAgreement(requested);$('selectedAgreement').scrollIntoView({block:'start'});
+  }
+ }catch(e){
+  sessionStorage.removeItem(STORE_OWNER);
+  $('owner').classList.add('hidden');$('login').classList.remove('hidden');
+  alertMsg('Admin sign-in required. '+e.message,true);
+ }
+}
 async function logout(){try{await request('owner/logout',{method:'POST'})}catch{}sessionStorage.removeItem(STORE_OWNER);location.reload()}
 function ownerStep(i){for(let j=0;j<4;j++){const active=j===i;$('editor'+j).classList.toggle('hidden',!active);$('step'+j).classList.toggle('active',active);if(active)$('step'+j).setAttribute('aria-current','step');else $('step'+j).removeAttribute('aria-current')}if(i===2)renderPreview();if(i===3)refreshAgreements();window.scrollTo(0,0)}
 function selectAll(v){clauses.forEach(c=>sel[c.id]=v);renderClauses()}
@@ -165,7 +182,7 @@ async function resendInvitation(){try{const r=await request('owner/resend',{meth
 async function downloadAgreement(){try{const r=await fetch(API+'owner/pdf?id='+encodeURIComponent(current.id),{headers:{Authorization:'Bearer '+sessionStorage.getItem(STORE_OWNER)}});if(!r.ok)throw Error('PDF could not be downloaded.');const url=URL.createObjectURL(await r.blob());const a=document.createElement('a');a.href=url;a.download='ProHouse-Rental-'+current.id+'.pdf';a.click();setTimeout(()=>URL.revokeObjectURL(url),3000)}catch(e){alertMsg(e.message,true)}}
 async function providerSign(){try{if(!$('providerConsent').checked||!signatures.ownerCanvas)throw Error('Sign and confirm the agreement.');await request('owner/sign',{method:'POST',body:{agreementId:current.id,signature:$('ownerCanvas').toDataURL('image/png'),consent:true}});alertMsg('Signed. The final PDF has been emailed to both parties.');await openAgreement(current.id);await refreshAgreements()}catch(e){alertMsg(e.message,true)}}
 async function showPaymentNotice(s){const rent=Number(s.rent||0),holding=Number(s.holding||0),cleaning=Number(s.bond||0);$('paymentNotice').innerHTML=`<p><b>Within 24 hours after ProHouse countersigns:</b> Pay one week of rent in advance <b>AU${rent.toFixed(2)}</b>, credited towards rent.</p><p><b>Before move-in:</b> Arrange a refundable security/holding amount as specified in Schedule A (normally four weeks rent) <b>AU${holding.toFixed(2)}</b>, subject to the applicable legal bond cap and required bond lodgement process. A separately specified refundable cleaning amount <b>AU${cleaning.toFixed(2)}</b> applies only where lawful, and must not exceed the total security cap.</p><p><b>Bank processing:</b> Commonwealth Bank and other banks may delay new-payee payments. Some transfers are held up to 24 hours and others may take longer. Arrange payment early, use a different bank where suitable, or ask about depositing directly at a branch if available.</p><p><b>Cleared funds:</b> A screenshot or transfer confirmation is not proof that ProHouse has received payment. Keys and move-in access are provided only once lawful required payments are cleared or the relevant bond has been lodged and verified. Payment delays are handled under applicable law; they do not automatically invalidate a signed agreement.</p>`;}
-async function guestLoad(){$('login').classList.add('hidden');$('guest').classList.remove('hidden');try{const r=await request('guest/get',{auth:sessionStorage.getItem(STORE_GUEST)});const a=r.agreement;current=a;$('guestDeadline').textContent='Complete by: '+new Date(a.deadlineAt).toLocaleString('en-AU',{dateStyle:'full',timeStyle:'short'});$('lockedSchedule').innerHTML=`<h2>$${esc(a.schedule.rent)} / week</h2><p>${esc(a.schedule.property)} · ${esc(a.schedule.area)}</p><p><b>Term:</b> <span data-term>${esc(a.schedule.period==='Guest chooses'?'Select an agreement period below':a.schedule.start+' to '+a.schedule.end+' ('+a.schedule.period+')')}</span></p><p><b>Payable:</b> ${esc(a.schedule.frequency)}</p>`;$('guestPeriodBox').classList.toggle('hidden',a.schedule.period!=='Guest chooses');showPaymentNotice(a.schedule);$('gEmail').value=a.guestEmail;$('guestTerms').innerHTML=termsMarkup(a.clauses);$('diditStatus').textContent=a.identityStatus||'Not started';if(a.status!=='sent'){disableGuest();$('guestComplete').classList.remove('hidden')}else if(a.diditStarted){startDiditAutoCheck();}setupCanvas('guestCanvas')}catch(e){alertMsg(e.message,true)}}
+async function guestLoad(){$('login').classList.add('hidden');$('guest').classList.remove('hidden');try{const r=await request('guest/get',{auth:sessionStorage.getItem(STORE_GUEST)});const a=r.agreement;current=a;$('guestDeadline').textContent='Complete by: '+new Date(a.deadlineAt).toLocaleString('en-AU',{dateStyle:'full',timeStyle:'short'});$('lockedSchedule').innerHTML=`<h2>$${esc(a.schedule.rent)} / week</h2><p>${esc(a.schedule.property)} · ${esc(a.schedule.area)}</p><p><b>Term:</b> <span data-term>${esc(a.schedule.period==='Guest chooses'?'Select an agreement period below':a.schedule.start+' to '+a.schedule.end+' ('+a.schedule.period+')')}</span></p><p><b>Payable:</b> ${esc(a.schedule.frequency)}</p>`;$('guestPeriodBox').classList.toggle('hidden',a.schedule.period!=='Guest chooses');showPaymentNotice(a.schedule);if(a.guestName)$('lockedSchedule').insertAdjacentHTML('beforeend','<p><b>Guest legal name:</b> '+esc(a.guestName)+'</p>');$('gEmail').value=a.guestEmail;$('guestTerms').innerHTML=termsMarkup(a.clauses);$('diditStatus').textContent=a.identityStatus||'Not started';if(a.status!=='sent'){disableGuest();$('guestComplete').classList.remove('hidden')}else if(a.diditStarted){startDiditAutoCheck();}setupCanvas('guestCanvas')}catch(e){alertMsg(e.message,true)}}
 function guestPeriodChanged(){const period=$('guestPeriod').value;const end=calculateEnd(current.schedule.start,period);$('guestPeriodEnd').textContent=end?'Your lease will end on '+end+'. This period will be included in the signed agreement.':'Select 3, 6 or 12 months before signing.';if($('lockedSchedule'))$('lockedSchedule').querySelector('[data-term]')?.replaceChildren(document.createTextNode(period?current.schedule.start+' to '+end+' ('+period+')':'Select an agreement period below'));}
 function disableGuest(){if($('guestPeriod'))$('guestPeriod').disabled=true;for(const id of ['gGivenNames','gFamilyName','gDob','gPhone','diditButton','guestSignBtn'])$(id).disabled=true}
 async function startDidit(){
