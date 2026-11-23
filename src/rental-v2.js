@@ -64,6 +64,29 @@ async function emailSend(env,to,subject,body,attachments=[]){
  const r=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:'Bearer '+env.RESEND_API_KEY,'Content-Type':'application/json'},body:JSON.stringify(payload)});
  if(!r.ok)throw Error('Email delivery failed ('+r.status+').');
 }
+const OWNER_PASSWORD_ITERATIONS=225000;
+const ownerEmail=(address,env)=>{
+ const value=clean(address,254).toLowerCase();
+ return email(value)&&(env.PROHOUSE_ADMIN_EMAILS||'hi@prohouse.com.au').split(',').some(v=>v.trim().toLowerCase()===value)?value:null;
+};
+const randomBytesHex=n=>hex(crypto.getRandomValues(new Uint8Array(n)));
+async function passwordHash(password,salt,iterations=OWNER_PASSWORD_ITERATIONS){
+ const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(password),'PBKDF2',false,['deriveBits']);
+ const saltBytes=new Uint8Array(salt.match(/.{2}/g).map(pair=>parseInt(pair,16)));
+ return hex(await crypto.subtle.deriveBits({name:'PBKDF2',salt:saltBytes,iterations,hash:'SHA-256'},key,256));
+}
+function sameHash(a,b){
+ if(typeof a!=='string'||typeof b!=='string'||a.length!==b.length)return false;
+ let diff=0;for(let i=0;i<a.length;i++)diff|=a.charCodeAt(i)^b.charCodeAt(i);
+ return diff===0;
+}
+const strongPassword=v=>typeof v==='string'&&v.length>=12&&v.length<=128&&!/[\x00-\x1f\x7f]/.test(v);
+async function createOwnerSession(env){
+ const session=token();
+ await db(env).prepare('INSERT INTO rental_v2_auth (token_hash,role,expires_at,created_at) VALUES (?,?,?,?)')
+ .bind(await hash(session),'owner_session',plus(7*24*60),now()).run();
+ return session;
+}
 async function owner(req,env){
  const t=bearer(req);if(!validToken(t))return false;
  const row=await db(env).prepare("SELECT token_hash FROM rental_v2_auth WHERE token_hash=? AND role='owner_session' AND expires_at>?").bind(await hash(t),now()).first();
