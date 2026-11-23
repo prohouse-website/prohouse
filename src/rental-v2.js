@@ -94,7 +94,7 @@ async function owner(req,env){
 }
 async function agreement(env,id){return db(env).prepare('SELECT * FROM rental_v2_agreements WHERE id=?').bind(id).first()}
 function safe(row,admin=false){
- const obj={id:row.id,status:row.status,clauses:JSON.parse(row.clauses_json),schedule:JSON.parse(row.schedule_json),guestEmail:row.guest_email,sentAt:row.sent_at,deadlineAt:row.deadline_at,guestSignedAt:row.guest_signed_at,providerSignedAt:row.provider_signed_at,identityStatus:row.identity_status,diditStarted:!!row.identity_session_id};
+ const obj={id:row.id,status:row.status,clauses:JSON.parse(row.clauses_json),schedule:JSON.parse(row.schedule_json),guestEmail:row.guest_email,guestName:row.guest_full_name||null,sentAt:row.sent_at,deadlineAt:row.deadline_at,guestSignedAt:row.guest_signed_at,providerSignedAt:row.provider_signed_at,identityStatus:row.identity_status,diditStarted:!!row.identity_session_id};
  if(admin){obj.guestName=row.guest_full_name;obj.guestDob=row.guest_dob;obj.guestPhone=row.guest_phone;obj.verifiedName=row.verified_name;obj.verifiedDob=row.verified_dob;obj.identityCheckedAt=row.identity_checked_at;obj.diditSessionId=row.identity_session_id;}
  return obj;
 }
@@ -433,10 +433,10 @@ export async function rentalV2(req,env){
   }
   if(path==='owner/create'&&req.method==='POST'){
    if(!await owner(req,env))return reply(403,'Sign in as ProHouse first.');
-   const x=await apiBody(req),clauses=chosen(x.selectedIds),schedule=scanFields(x.schedule),to=clean(x.guestEmail);
+   const x=await apiBody(req),clauses=chosen(x.selectedIds),schedule=scanFields(x.schedule),to=clean(x.guestEmail).toLowerCase(),guestName=clean(x.guestName,140);
    if(!email(to)||!clauses.length)return reply(400,'Guest email and at least one clause required.');
    const id=crypto.randomUUID(),timestamp=now();
-   await db(env).prepare('INSERT INTO rental_v2_agreements (id,status,clauses_json,schedule_json,guest_email,created_at,updated_at) VALUES (?,?,?,?,?,?,?)').bind(id,'draft',JSON.stringify(clauses),JSON.stringify(schedule),to,timestamp,timestamp).run();
+   await db(env).prepare('INSERT INTO rental_v2_agreements (id,status,clauses_json,schedule_json,guest_email,guest_full_name,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)').bind(id,'draft',JSON.stringify(clauses),JSON.stringify(schedule),to,guestName||null,timestamp,timestamp).run();
    return reply(200,'Draft saved. Nothing has been sent.',{agreementId:id});
   }
   if(path==='owner/send'&&req.method==='POST'){
