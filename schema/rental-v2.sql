@@ -33,3 +33,29 @@ CREATE TABLE IF NOT EXISTS rental_v2_agreements (
  updated_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS rental_v2_status ON rental_v2_agreements(status,deadline_at);
+-- Admin password login (PBKDF2 hashes, never plaintext passwords).
+CREATE TABLE IF NOT EXISTS rental_v2_owner_credentials (
+ email TEXT PRIMARY KEY,
+ password_salt TEXT NOT NULL,
+ password_hash TEXT NOT NULL,
+ iterations INTEGER NOT NULL,
+ updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS rental_v2_password_tokens (
+ token_hash TEXT PRIMARY KEY,
+ email TEXT NOT NULL,
+ purpose TEXT NOT NULL CHECK(purpose IN ('setup','reset')),
+ expires_at TEXT NOT NULL,
+ created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS rental_v2_password_tokens_email ON rental_v2_password_tokens(email);
+CREATE TABLE IF NOT EXISTS rental_v2_revisions (
+ id INTEGER PRIMARY KEY AUTOINCREMENT,
+ agreement_id TEXT NOT NULL,
+ previous_guest_email TEXT NOT NULL,
+ previous_guest_name TEXT,
+ previous_schedule_json TEXT NOT NULL,
+ previous_clauses_json TEXT NOT NULL,
+ changed_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS rental_v2_revisions_agreement ON rental_v2_revisions(agreement_id);
