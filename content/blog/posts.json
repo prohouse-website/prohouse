@@ -1,5 +1,57 @@
 [
   {
+    "slug": "wolli-creek-to-sydney-cbd-train-stay",
+    "title": "Can you stay in Wolli Creek and visit Sydney CBD by train?",
+    "category": "Sydney stay guides",
+    "published": "2026-11-24",
+    "description": "Planning a Sydney visit from Wolli Creek? See which city stations the T4 serves, what to check for your travel date and how to choose a private room.",
+    "intro": "Yes. Wolli Creek is outside Sydney CBD, but its station is on the T4 route through Central, Town Hall and Martin Place. If you want a private room near Sydney Airport and plan to visit the city, first choose the CBD station closest to your destination. Check the live journey for your dates before booking; the train ride is only one part of the trip.",
+    "sections": [
+      {
+        "heading": "Which Sydney CBD station should I use from Wolli Creek?",
+        "html": "<p>“Sydney CBD” covers more than one destination. Transport for NSW shows the T4 Eastern Suburbs &amp; Illawarra Line serving Wolli Creek, then Central, Town Hall and Martin Place on its city route. Central may suit onward train connections; Town Hall and Martin Place serve different parts of the city. Enter your actual destination in the <a href=\"https://transportnsw.info/trip\" target=\"_blank\" rel=\"noopener noreferrer\">Transport for NSW Trip Planner</a> rather than assuming every city address is closest to Central.</p><p>Check the platform, direction and stopping pattern for the service you choose. Transport for NSW warns that routes can vary by time of day. Wolli Creek has access to the CBD; the accommodation itself is not in the CBD.</p>"
+      },
+      {
+        "heading": "How long should I allow from my room to a city appointment?",
+        "html": "<p>Plan from the room door to your final address, not just from Wolli Creek Station to a city station. Include the walk to the station, any wait, the train journey, the walk from your city station and a margin for disruptions. A station-to-station estimate cannot promise when you will reach a meeting, attraction or event.</p><p>Check <a href=\"https://transportnsw.info/alerts\" target=\"_blank\" rel=\"noopener noreferrer\">current alerts and trackwork</a> on your travel date, especially for late evening and weekend journeys. If your plans have a fixed start time, check both the outbound and return trips.</p>"
+      },
+      {
+        "heading": "Can I combine a Sydney CBD visit with an airport stay?",
+        "html": "<p>Yes, if the location and room arrangements suit your itinerary. Wolli Creek Station is served by both T4 city routes and the T8 airport route; the stations are different from the property. For the airport, choose Domestic Airport Station or International Airport Station for the correct terminal and check current services. Airport station access fees can affect the total train fare, so compare the full journey before deciding.</p><p>Our <a href=\"/blog/private-room-wolli-creek-station-early-flight/\">early flight guide</a> covers airport timing and overnight planning in more detail. This guide focuses on visiting the CBD while staying outside it.</p>"
+      },
+      {
+        "heading": "What accommodation are you booking in Wolli Creek?",
+        "html": "<p>ProHouse offers <a href=\"/stays/room-1/\">Room 1</a>, <a href=\"/stays/room-2/\">Room 2</a> and <a href=\"/stays/room-3/\">Room 3</a> as private bedrooms with private bathrooms in a shared apartment. The kitchen and living area are shared. Compare each room’s photos, capacity, bathroom details and availability before selecting it; a room booking is not a whole-apartment booking.</p><p>Use the <a href=\"/location/\">location page</a> to review where the property sits relative to Wolli Creek Station. If your city plans end late, review the <a href=\"/blog/self-check-in-short-stay-checklist/\">self check-in steps</a> in advance. ProHouse has no onsite reception, and pre-arrival approvals are handled during the stated weekday hours.</p>"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Transport for NSW: T4 Eastern Suburbs & Illawarra route and stops",
+        "url": "https://transportnsw.info/routes/details/sydney-trains/t4/020T4"
+      },
+      {
+        "label": "Transport for NSW: Wolli Creek Station",
+        "url": "https://transportnsw.info/stop?q=220510"
+      },
+      {
+        "label": "Transport for NSW: Trip Planner",
+        "url": "https://transportnsw.info/trip"
+      },
+      {
+        "label": "Transport for NSW: alerts and trackwork",
+        "url": "https://transportnsw.info/alerts"
+      },
+      {
+        "label": "Transport for NSW: getting to and from Sydney Airport",
+        "url": "https://transportnsw.info/travel-info/airport-travel/getting-to-from-sydney-airport"
+      }
+    ],
+    "cta": {
+      "label": "Compare Wolli Creek rooms",
+      "url": "/book/"
+    }
+  },
+  {
     "slug": "private-room-wolli-creek-station-early-flight",
     "title": "Private rooms near Wolli Creek Station for an early Sydney Airport flight",
     "category": "Sydney stay guides",
