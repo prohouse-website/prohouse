@@ -398,7 +398,7 @@ export async function rentalV2(req,env){
    const b=await apiBody(req),address=ownerEmail(b.email,env);
    if(!address||typeof b.password!=='string')return reply(403,'Incorrect email or password.');
    const credential=await db(env).prepare('SELECT password_salt,password_hash,iterations FROM rental_v2_owner_credentials WHERE email=?').bind(address).first();
-   if(!credential)return reply(403,'Incorrect email or password. Set up a password first if needed.');
+   if(!credential)return reply(403,'Incorrect email or password.');
    const candidate=await passwordHash(b.password,credential.password_salt,credential.iterations);
    if(!sameHash(candidate,credential.password_hash))return reply(403,'Incorrect email or password.');
    return reply(200,'Signed in',{session:await createOwnerSession(env)});
@@ -426,6 +426,7 @@ export async function rentalV2(req,env){
    const session=token();await db(env).batch([db(env).prepare('DELETE FROM rental_v2_auth WHERE token_hash=?').bind(h),db(env).prepare('INSERT INTO rental_v2_auth (token_hash,role,expires_at,created_at) VALUES (?,?,?,?)').bind(await hash(session),'owner_session',plus(7*24*60),now())]);
    return reply(200,'Signed in',{session});
   }
+  if(path==='owner/me'&&req.method==='GET')return await owner(req,env)?reply(200,'Session active'):reply(403,'Admin session expired. Please sign in again.');
   if(path==='owner/list'&&req.method==='GET'){
    if(!await owner(req,env))return reply(403,'Sign in as ProHouse first.');
    const rows=await db(env).prepare('SELECT * FROM rental_v2_agreements ORDER BY created_at DESC LIMIT 100').all();
