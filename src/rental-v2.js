@@ -64,7 +64,8 @@ async function emailSend(env,to,subject,body,attachments=[]){
  const r=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:'Bearer '+env.RESEND_API_KEY,'Content-Type':'application/json'},body:JSON.stringify(payload)});
  if(!r.ok)throw Error('Email delivery failed ('+r.status+').');
 }
-const OWNER_PASSWORD_ITERATIONS=225000;
+// Cloudflare Workers supports PBKDF2 iteration counts up to 100,000.
+const OWNER_PASSWORD_ITERATIONS=100000;
 const ownerEmail=(address,env)=>{
  const value=clean(address,254).toLowerCase();
  return email(value)&&(env.PROHOUSE_ADMIN_EMAILS||'hi@prohouse.com.au').split(',').some(v=>v.trim().toLowerCase()===value)?value:null;
