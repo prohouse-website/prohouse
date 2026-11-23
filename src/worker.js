@@ -1,3 +1,4 @@
+import { guestMessages } from './guest-messages.js';
 import { onRequestPost } from './survey.js';
 import { rentalV2 } from './rental-v2.js';
 import rentalPage from '../public/operations/rental/index.html';
@@ -104,6 +105,12 @@ export default {
       response.headers.set('X-Content-Type-Options', 'nosniff');
       response.headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
       return response;
+    }
+    if (path.startsWith('/api/guest-messages/')) {
+      return guestMessages(request, env, async () => {
+        const me = new Request(new URL('/api/rental-v2/owner/me', url), {headers:request.headers});
+        return (await rentalV2(me, env)).ok;
+      });
     }
     if (path.startsWith('/api/rental-v2/')) return rentalV2(request,env);
     if (path.startsWith('/api/')) return new Response('Not found', { status: 404 });
