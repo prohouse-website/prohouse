@@ -99,3 +99,14 @@ el('send').onclick=()=>run(async()=>{
   clearSelection(); el('notice').textContent='Reply submitted to Hostex.'; await inbox(true);
 });
 if(sessionStorage.getItem(sessionKey)) run(start); else el('signin').hidden=false;
+
+if(location.hash==='#test') el('tester').open=true;
+el('trySample').onclick=()=>run(async()=>{
+  el('sampleResult').textContent='Testing…';
+  try {
+    const result=await call(api+'preview',{text:el('sampleQuestion').value.trim()});
+    el('sampleResult').textContent=[result.decision,result.reply].filter(Boolean).join(' — ');
+  } catch(error) {
+    el('sampleResult').textContent=error.message;
+  }
+});
