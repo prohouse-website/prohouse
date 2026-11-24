@@ -1,5 +1,49 @@
 [
   {
+    "slug": "short-stay-property-owner-monthly-report",
+    "title": "What should a short-stay property owner see in a monthly report?",
+    "category": "Property owner guides",
+    "published": "2026-11-25",
+    "description": "A practical checklist for reviewing short-stay bookings, channel payouts, expenses and property work without mistaking gross booking value for owner income.",
+    "intro": "Ask for a report that lets you trace each booking from the channel statement to the amount received and the costs paid. A headline occupancy or revenue figure alone cannot explain what reached the owner. Agree on the report format, timing and supporting records with a prospective manager before relying on it.",
+    "sections": [
+      {
+        "heading": "Can I match each stay to the money received?",
+        "html": "<p>Start with a booking-level schedule: property or room, booking channel, stay dates, booking reference, status and the amount actually paid out. If a reservation was cancelled, changed or refunded, show that separately rather than folding it into a headline total. For private-room properties, identify the booked room; do not report three room bookings as three whole-apartment stays.</p><p>Ask how the manager ties its figures to the channel’s own statement or payout record. Airbnb, for example, lets hosts review earnings by listing and payout method and download reports. The exact statements available depend on the channels and account permissions in use.</p>"
+      },
+      {
+        "heading": "Which costs should be visible beside booking revenue?",
+        "html": "<p>Request a clear breakdown of channel charges, management fees, cleaning, consumables, maintenance and any other agreed costs. Label each amount as charged, paid or still pending. This helps distinguish the guest-facing booking total, a channel payout and the amount ultimately due to the owner; those are not automatically the same number.</p><p>For unusual expenses, ask for the date, reason, approval route and invoice or receipt. A report should also show credits or reimbursements so a later adjustment is not mistaken for new booking income.</p>"
+      },
+      {
+        "heading": "What should the report say about property condition?",
+        "html": "<p>A financial table cannot show whether an apartment is being looked after. Ask for a concise log of completed cleaning, reported damage, repairs and unresolved maintenance, with dates and supporting evidence where appropriate. Separate a guest issue from work in common or strata-controlled areas, and identify who is responsible for the next action.</p><p>Agree in advance which decisions the manager can make without contacting you, what spending needs approval and how urgent safety or access problems will be escalated. The <a href=\"/blog/questions-to-ask-short-stay-property-manager/\">manager questions guide</a> covers the broader service scope before you sign.</p>"
+      },
+      {
+        "heading": "How do I use the report without treating it as tax advice?",
+        "html": "<p>Keep the underlying booking, income and expense records, not just a polished summary. The Australian Taxation Office advises keeping records for rental property income and expenses and separating records by property. Ask your accountant which records and allocations apply to your ownership and use of the property; a manager’s report is an input, not a tax determination.</p><p>Before engaging a manager, request a sample report with identifying guest details removed. Check that you can follow a booking to its payout, explain each material deduction and find the supporting record if you need it later. If you are exploring ProHouse management, use the <a href=\"/owners/\">owner enquiry page</a> to discuss scope and reporting expectations rather than assuming a standard package.</p>"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Airbnb Help: review earnings and download reports",
+        "url": "https://www.airbnb.com/help/article/3632"
+      },
+      {
+        "label": "Australian Taxation Office: rental property record keeping",
+        "url": "https://www.ato.gov.au/tax-and-super-professionals/for-tax-professionals/prepare-and-lodge/tax-time/tax-time-toolkits/tax-time-toolkit-for-investors/rental-property-expenses/record-keeping-for-rental-properties"
+      },
+      {
+        "label": "Australian Taxation Office: rental income and records",
+        "url": "https://www.ato.gov.au/individuals-and-families/your-tax-return/instructions-to-complete-your-tax-return/mytax-instructions/2026/income/australian-income-or-losses-from-investments-or-property/rent"
+      }
+    ],
+    "cta": {
+      "label": "Discuss your property",
+      "url": "/owners/"
+    }
+  },
+  {
     "slug": "wolli-creek-to-sydney-cbd-train-stay",
     "title": "Can you stay in Wolli Creek and visit Sydney CBD by train?",
     "category": "Sydney stay guides",
