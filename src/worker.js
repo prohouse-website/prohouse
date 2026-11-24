@@ -1,3 +1,4 @@
+import {checkGuestInbox} from './guest-automation.js';
 import { guestMessages } from './guest-messages.js';
 import { onRequestPost } from './survey.js';
 import { rentalV2 } from './rental-v2.js';
@@ -117,6 +118,10 @@ export default {
     return env.ASSETS.fetch(request);
   },
   async scheduled(_event, env, ctx) {
+    if (_event.cron === "*/5 * * * *") {
+      ctx.waitUntil(checkGuestInbox(env));
+      return;
+    }
     ctx.waitUntil(checkLeaseDeadlines(env).catch(e=>console.error('Lease expiry check failed',e?.message)));
     ctx.waitUntil(checkTenantIdentityReviews(env).catch(e=>console.warn('Didit review alerts sweep failed',e?.message)));
     ctx.waitUntil(cleanupLongStayInvitations(env));

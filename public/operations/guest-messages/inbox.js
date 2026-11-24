@@ -35,7 +35,8 @@ async function selectThread(thread,button) {
   clearSelection(); selected=thread; revision=data.revision;
   button.classList.add('active'); el('title').textContent=thread.guest;
   el('promptLabel').hidden=true; el('send').hidden=false;
-  el('history').textContent=data.messages.map(m=>[m.sender,m.at,m.text].filter(Boolean).join(' · ')).join('\n\n');
+  const booking=data.stay ? 'Hostex booking · Check-in '+data.stay.arrival+' · Checkout '+data.stay.departure+(data.stay.security?' · Security deposit '+data.stay.security:'') : 'Booking details require verification.';
+  el('history').textContent=booking+'\n\n'+data.messages.map(m=>[m.sender,m.at,m.text].filter(Boolean).join(' · ')).join('\n\n');
 }
 async function inbox(reset) {
   const start=reset?0:offset;
@@ -50,11 +51,27 @@ async function inbox(reset) {
   offset=start+threads.length; el('more').hidden=threads.length<20;
   if(!offset) el('connection').textContent='No conversations yet.';
 }
+async function automation(result) {
+  const state=result || await call(api+'automation');
+  el('autoStatus').textContent='Automatic replies '+(state.enabled?'on':'off')+' · '+state.health+(state.checked?' · '+new Date(state.checked).toLocaleTimeString():'');
+  el('toggleAuto').textContent=state.enabled?'Pause automatic replies':'Resume automatic replies';
+  el('toggleAuto').onclick=()=>run(async()=>automation(await call(api+'switch',{enabled:!state.enabled})));
+  el('queue').replaceChildren();
+  if(!state.review.length) el('queue').textContent='No messages waiting.';
+  for(const item of state.review){
+    const row=document.createElement('p'), open=document.createElement('button'), resolve=document.createElement('button');
+    open.textContent='Open conversation';resolve.textContent='Mark reviewed';resolve.className='secondary';
+    open.onclick=()=>run(()=>selectThread({id:item.thread,guest:'Hostex conversation '+item.thread,channel:'Hostex'},open));
+    resolve.onclick=()=>run(async()=>automation(await call(api+'resolve',{thread:item.thread,message:item.message})));
+    row.append(item.reason+' ',open,' ',resolve);el('queue').append(row);
+  }
+}
 async function start() {
   const status=await call(api+'status');
   el('signin').hidden=true; el('desk').hidden=false;
   el('connection').textContent=status.connected?'Hostex connected':'Awaiting Hostex token. You can draft from pasted messages.';
   el('refresh').disabled=!status.connected;
+  await automation();
   if(status.connected) await inbox(true);
 }
 el('login').onsubmit=e=>{e.preventDefault();run(async()=>{
@@ -62,7 +79,7 @@ el('login').onsubmit=e=>{e.preventDefault();run(async()=>{
   sessionStorage.setItem(sessionKey,r.session);el('password').value='';await start();
 });};
 el('manual').onclick=()=>{if(canDiscard()) clearSelection();};
-el('refresh').onclick=()=>run(()=>inbox(true));
+el('refresh').onclick=()=>run(async()=>{await automation();await inbox(true);});
 el('more').onclick=()=>run(()=>inbox(false));
 el('generate').onclick=()=>run(async()=>{
   const conversation=selected?[selected.property,el('history').textContent].join('\n').slice(-16000):el('prompt').value.trim();
