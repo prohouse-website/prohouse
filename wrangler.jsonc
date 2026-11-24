@@ -8,6 +8,7 @@
   },
   "triggers": {
     "crons": [
+      "*/5 * * * *",
       "0 23 * * *",
       "0 * * * *"
     ]
@@ -45,6 +46,7 @@
     "not_found_handling": "404-page"
   },
   "vars": {
+    "GUEST_AUTO_PRODUCTION": "on",
     "SURVEY_FROM_EMAIL": "ProHouse Survey <no-reply@prohouse.com.au>",
     "APPLICATION_FROM_EMAIL": "ProHouse Long Stay <no-reply@prohouse.com.au>",
     "PROHOUSE_ADMIN_EMAILS": "hi@prohouse.com.au",
