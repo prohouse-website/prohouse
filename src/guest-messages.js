@@ -8,15 +8,32 @@ function json(data, status = 200) {
 }
 
 async function hostex(env, path, message) {
-  const headers = {'Hostex-Access-Token':env.HOSTEX_ACCESS_TOKEN, Accept:'application/json'};
-  const options = {headers, signal:AbortSignal.timeout(15000), redirect:'error'};
-  if (message !== undefined) {
-    headers['Content-Type'] = 'application/json';
-    Object.assign(options, {method:'POST', body:JSON.stringify({message})});
+  const token = String(env.HOSTEX_ACCESS_TOKEN || '').trim();
+  if (!token || !/^[!-~]+$/.test(token)) throw Error('Hostex token contains spaces or invalid characters. Copy the token again into the Cloudflare secret.');
+  const headers = {'Hostex-Access-Token':token, Accept:'application/json'};
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 30000);
+  let response, result;
+  try {
+    const options = {headers, signal:controller.signal, redirect:'manual'};
+    if (message !== undefined) {
+      headers['Content-Type'] = 'application/json';
+      Object.assign(options, {method:'POST', body:JSON.stringify({message})});
+    }
+    response = await fetch('https://api.hostex.io/v3/conversations' + path, options);
+    const raw = await response.text();
+    try { result = JSON.parse(raw); } catch { /* A gateway can return HTML. */ }
+  } catch {
+    throw Error(controller.signal.aborted ? 'Hostex timed out after 30 seconds. Refresh the inbox again.' : 'Hostex could not be reached from ProHouse. Try refreshing in a moment.');
+  } finally { clearTimeout(timer); }
+  const code = Number(result?.error_code ?? response.status);
+  if (!response.ok || code !== 200) {
+    if (code === 401 || code === 403) throw Error('Hostex denied access ('+code+'). Check that the ProHouse Worker secret contains an active Hostex token.');
+    if (code === 420) throw Error('Hostex returned 420. Check OpenAPI access and subscription status in Hostex.');
+    if (code === 429) throw Error('Hostex rate limit reached. Wait a minute before refreshing.');
+    throw Error('Hostex returned HTTP '+response.status+' (API '+(Number.isFinite(code)?code:'unknown')+'). Check the Hostex inbox and try again.');
   }
-  const response = await fetch('https://api.hostex.io/v3/conversations' + path, options);
-  const result = await response.json();
-  if (!response.ok || Number(result.error_code) !== 200) throw Error('Hostex request failed. Check the token, permissions and channel.');
+  if (!result || typeof result !== 'object') throw Error('Hostex returned an unreadable response (HTTP '+response.status+'). Try refreshing in a moment.');
   return result.data;
 }
 
@@ -56,7 +73,7 @@ export async function guestMessages(request, env, authorise) {
       if (!Number.isSafeInteger(offset) || offset < 0) return json({error:'Invalid page.'},400);
       const data = await hostex(env,'?limit=20&offset='+offset);
       if (!Array.isArray(data?.conversations)) throw Error('Unrecognised Hostex inbox format.');
-      return json({threads:data.conversations.map(c=>({id:String(c.id),guest:c.guest?.name || c.guest?.first_name || 'Guest',property:c.property_title || '',channel:c.channel_type,at:c.last_message_at}))});
+      return json({threads:data.conversations.filter(c=>c?.id != null).map(c=>({id:String(c.id),guest:c.guest?.name || c.guest?.first_name || 'Guest',property:c.property_title || '',channel:c.channel_type,at:c.last_message_at}))});
     }
     const id = url.searchParams.get('id') || '';
     if (!id || id.length > 256 || /[/\\?#\x00-\x1f]/.test(id) || /^\.{1,2}$/.test(id)) return json({error:'Select a conversation.'},400);
@@ -74,6 +91,6 @@ export async function guestMessages(request, env, authorise) {
     catch { return json({error:'Delivery unconfirmed. Check the thread in Hostex before sending manually.'},502); }
     return json({sent:true});
   } catch (err) {
-    return json({error:err.message?.startsWith('Hostex request') || err.message?.startsWith('Unrecognised Hostex') ? err.message : 'Request failed. Refresh and try again.'},502);
+    return json({error:err.message?.startsWith('Hostex ') || err.message?.startsWith('Unrecognised Hostex') ? err.message : 'Request failed. Refresh and try again.'},502);
   }
 }
