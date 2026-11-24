@@ -63,7 +63,13 @@ async function automation(result) {
     open.textContent='Open conversation';resolve.textContent='Mark reviewed';resolve.className='secondary';
     open.onclick=()=>run(()=>selectThread({id:item.thread,guest:'Hostex conversation '+item.thread,channel:'Hostex'},open));
     resolve.onclick=()=>run(async()=>automation(await call(api+'resolve',{thread:item.thread,message:item.message})));
-    row.append(item.reason+' ',open,' ',resolve);el('queue').append(row);
+    const teach=document.createElement('button');teach.textContent='Teach from this';teach.className='secondary';
+    teach.onclick=()=>run(async()=>{
+      const data=await call(api+'thread?id='+encodeURIComponent(item.thread));
+      const message=data.messages.find(m=>String(m.id)===String(item.message) && m.sender==='guest');
+      editFaq(null,message?.text||'');el('teach').open=true;el('faqQuestion').focus();
+    });
+    row.append(item.reason+' ',open,' ',teach,' ',resolve);el('queue').append(row);
   }
 }
 async function start() {
@@ -72,6 +78,7 @@ async function start() {
   el('connection').textContent=status.connected?'Hostex connected':'Awaiting Hostex token. You can draft from pasted messages.';
   el('refresh').disabled=!status.connected;
   await automation();
+  if(el('teach').open) showFaqs((await call(api+'knowledge')).entries);
   if(status.connected) await inbox(true);
 }
 el('login').onsubmit=e=>{e.preventDefault();run(async()=>{
@@ -110,3 +117,35 @@ el('trySample').onclick=()=>run(async()=>{
     el('sampleResult').textContent=error.message;
   }
 });
+
+let editingFaq=null;
+function editFaq(entry,question=''){
+  editingFaq=entry;el('faqQuestion').value=entry?.question||question;el('faqAnswer').value=entry?.answer||'';
+}
+function showFaqs(entries){
+  const list=el('faqList');list.replaceChildren();
+  for(const entry of entries){
+    const row=document.createElement('p'),edit=document.createElement('button'),remove=document.createElement('button');
+    edit.className=remove.className='secondary';edit.textContent='Edit';remove.textContent='Remove';
+    edit.onclick=()=>editFaq(entry);
+    remove.onclick=()=>run(async()=>{
+      if(!confirm('Remove this approved answer?')) return;
+      const result=await call(api+'knowledge',{id:entry.id,remove:true});
+      if(editingFaq?.id===entry.id) editFaq(null);
+      showFaqs(result.entries);
+    });
+    row.append(entry.question+' ',edit,' ',remove);list.append(row);
+  }
+}
+el('teach').ontoggle=async()=>{
+  if(!el('teach').open || el('desk').hidden)return;
+  try{showFaqs((await call(api+'knowledge')).entries);}catch(e){el('notice').textContent=e.message;}
+};
+el('saveFaq').onclick=()=>run(async()=>{
+  const question=el('faqQuestion').value.trim(),answer=el('faqAnswer').value.trim();
+  const result=await call(api+'knowledge',{id:editingFaq?.id,previousQuestion:editingFaq?.question,previousAnswer:editingFaq?.answer,question,answer});
+  showFaqs(result.entries);editFaq(null);el('sampleQuestion').value=question;el('tester').open=true;
+  el('sampleResult').textContent='Answer saved. Run a test with this question or rephrase it.';
+});
+el('newFaq').onclick=()=>editFaq(null);
+if(location.hash==='#teach') el('teach').open=true;
