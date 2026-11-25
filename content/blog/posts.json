@@ -1,5 +1,53 @@
 [
   {
+    "slug": "late-flight-sydney-airport-wolli-creek-self-check-in",
+    "title": "Landing late at Sydney Airport: can you self check in at Wolli Creek?",
+    "category": "Sydney stay guides",
+    "published": "2026-11-26",
+    "description": "A late Sydney Airport arrival needs more than a short trip to Wolli Creek. Prepare identity checks, pre-authorisation, door access and transport before flying.",
+    "intro": "A late arrival can work with ProHouse self check-in only when the required pre-arrival steps and access arrangements are completed in time. There is no onsite reception to finish them after landing. Before you fly, confirm your room dates, complete the identity and credit card pre-authorisation steps, and save your arrival instructions. Then check transport from your actual terminal to Wolli Creek for your landing date.",
+    "sections": [
+      {
+        "heading": "What must be done before a late check-in?",
+        "html": "<p>ProHouse check-in begins at 3pm. Required identity approvals and unique door-code generation are handled Monday–Friday, 9am–5pm Sydney time. If your flight lands after those hours, or over a weekend, complete the requested steps in advance; paying for a room does not itself complete an unfinished approval. Do not plan to resolve missing arrival checks at a front desk, because there is no onsite reception.</p><p>Read the <a href=\"/blog/self-check-in-short-stay-checklist/\">self check-in checklist</a> for the preparation sequence and the <a href=\"/preauth/\">credit card pre-authorisation guide</a> if a pending card hold is unfamiliar. Use the booking and pre-arrival instructions sent for your own stay as the final source for the steps that apply.</p>"
+      },
+      {
+        "heading": "How do I plan the trip from Sydney Airport at night?",
+        "html": "<p>Start with the correct airport terminal: T1 International or T2/T3 Domestic. Transport for NSW lists the T8 Airport &amp; South Line for the airport stations, but its service pattern and your last suitable train depend on the actual date. Check the <a href=\"https://transportnsw.info/trip\" target=\"_blank\" rel=\"noopener noreferrer\">Trip Planner</a> and <a href=\"https://transportnsw.info/alerts\" target=\"_blank\" rel=\"noopener noreferrer\">travel alerts</a> shortly before travel. Do not assume a train is available at any hour.</p><p>If rail is unsuitable for your arrival, Sydney Airport also lists taxi and rideshare options. Follow the airport’s current pickup directions for your terminal and compare the full fare and journey. ProHouse is in Wolli Creek, outside the terminals; no airport shuttle is promised in the room booking.</p>"
+      },
+      {
+        "heading": "What if my flight is delayed?",
+        "html": "<p>A delay changes the transport you can use, even if your room remains booked. Before leaving the terminal, recheck the live journey and your saved property-access instructions. Allow time for luggage collection, the trip to Wolli Creek and finding the property entrance. A short station-to-station rail ride is not a door-to-door arrival time.</p><p>If you have not completed an access requirement, contact ProHouse using the details in your booking instructions as soon as you know. Do not assume an after-hours approval or newly generated code will be available. Keep your phone charged and the arrival link accessible without relying on memory of a code.</p>"
+      },
+      {
+        "heading": "Which Wolli Creek room are you reserving?",
+        "html": "<p>Compare <a href=\"/stays/room-1/\">Room 1</a>, <a href=\"/stays/room-2/\">Room 2</a> and <a href=\"/stays/room-3/\">Room 3</a> for your dates and guest count. These are private bedrooms with private bathrooms in a shared apartment; the kitchen and living area are shared. Check the selected room’s photos, capacity, conditions and availability on the <a href=\"/book/\">booking page</a>. A private-room reservation is not a whole-apartment booking.</p><p>Review the <a href=\"/location/\">location guide</a> before travelling so you know where to go after reaching Wolli Creek. If your concern is an early departure rather than a late arrival, use the separate <a href=\"/blog/private-room-wolli-creek-station-early-flight/\">early-flight guide</a>.</p>"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Transport for NSW: getting to and from Sydney Airport",
+        "url": "https://transportnsw.info/travel-info/airport-travel/getting-to-from-sydney-airport"
+      },
+      {
+        "label": "Transport for NSW: Trip Planner",
+        "url": "https://transportnsw.info/trip"
+      },
+      {
+        "label": "Transport for NSW: travel alerts",
+        "url": "https://transportnsw.info/alerts"
+      },
+      {
+        "label": "Sydney Airport: transport options",
+        "url": "https://www.sydneyairport.com.au/info-sheet/transport-options"
+      }
+    ],
+    "cta": {
+      "label": "Compare Wolli Creek rooms",
+      "url": "/book/"
+    }
+  },
+  {
     "slug": "short-stay-property-owner-monthly-report",
     "title": "What should a short-stay property owner see in a monthly report?",
     "category": "Property owner guides",
