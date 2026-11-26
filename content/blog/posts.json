@@ -1,5 +1,57 @@
 [
   {
+    "slug": "sydney-airport-to-wolli-creek-how-long",
+    "title": "How long from Sydney Airport to Wolli Creek? Plan the whole journey",
+    "category": "Sydney stay guides",
+    "published": "2026-11-27",
+    "description": "The airport-to-Wolli Creek train ride is only part of your arrival. Check the correct terminal, current T8 service, airport station fee and walk to your room.",
+    "intro": "There is no single reliable door-to-door time from Sydney Airport to a Wolli Creek room. The T8 train connects the airport stations and Wolli Creek, but your total time also includes leaving the aircraft, any baggage or border formalities, reaching the station, waiting for a service and getting from Wolli Creek Station to the property. Check a trip for your actual terminal and arrival date before relying on a train estimate.",
+    "sections": [
+      {
+        "heading": "How long is the train ride from my airport terminal?",
+        "html": "<p>Transport for NSW shows Wolli Creek, International Airport and Domestic Airport in that order on the T8 Airport &amp; South Line route map. From T1 International, Wolli Creek is the next station shown on that map; from the T2/T3 Domestic station, International Airport is between the terminal and Wolli Creek. This describes the station sequence, not a guaranteed departure, stopping pattern or travel time for every service.</p><p>Enter <strong>International Airport Station</strong> or <strong>Domestic Airport Station</strong> and Wolli Creek Station in the <a href=\"https://transportnsw.info/trip\" target=\"_blank\" rel=\"noopener noreferrer\">Transport for NSW Trip Planner</a>. Use your travel date and time to see the current train ride, platform and any changes. If you are arriving at T1, do not accidentally plan from the Domestic station.</p>"
+      },
+      {
+        "heading": "Why will my total arrival take longer than the train ride?",
+        "html": "<p>Start your estimate when you expect to leave the aircraft, not when the train departs. You may need time to leave the terminal, collect luggage and, for an international arrival, complete entry formalities. Transport for NSW says the airport train stations are underneath the terminals and gives separate directions for T1 and T2/T3. Add the walk to the station, the wait for your actual service and the walk from Wolli Creek Station to the property.</p><p>Read the <a href=\"/location/\">ProHouse location guide</a> and your own arrival instructions for the correct property entrance. If you are meeting someone or planning self check-in, allow a margin rather than treating a station-to-station estimate as your arrival time. Our <a href=\"/blog/late-flight-sydney-airport-wolli-creek-self-check-in/\">late-arrival guide</a> explains the separate access preparation.</p>"
+      },
+      {
+        "heading": "What will the airport train cost?",
+        "html": "<p>Transport for NSW says an airport station access fee is added to the train fare when you use International Airport Station or Domestic Airport Station. The total depends on the journey and ticket or payment method; check the current fare in the Trip Planner rather than using a fare quoted in an old travel article. The airport page explains how to pay by Opal or contactless card and how the station fee is charged.</p><p>Compare the whole journey when choosing between train, taxi and rideshare, especially if you have heavy luggage or travel outside the services that suit your flight. Transport for NSW lists taxi ranks outside the terminals. Follow the current pickup information for your terminal and check the quoted or metered fare before travelling.</p>"
+      },
+      {
+        "heading": "What if I land very early or late?",
+        "html": "<p>Do not assume the train runs at every hour. Check the Trip Planner and <a href=\"https://transportnsw.info/alerts\" target=\"_blank\" rel=\"noopener noreferrer\">current travel alerts</a> for your exact date, including trackwork or changed service patterns. A published rail service window does not tell you whether a suitable departure matches your flight, baggage collection or walk to the platform.</p><p>ProHouse uses self check-in without onsite reception. Complete the identity and <a href=\"/preauth/\">credit card pre-authorisation</a> steps requested for your booking before travelling. Required approvals and door-code generation are handled Monday–Friday, 9am–5pm Sydney time; arriving after those hours does not make an unfinished approval automatic. Use the instructions sent for your booking as the final access guide.</p>"
+      },
+      {
+        "heading": "Which Wolli Creek stay does this journey lead to?",
+        "html": "<p>ProHouse offers <a href=\"/stays/room-1/\">Room 1</a>, <a href=\"/stays/room-2/\">Room 2</a> and <a href=\"/stays/room-3/\">Room 3</a> as private bedrooms with private bathrooms in a shared Wolli Creek apartment. The kitchen and living room are shared. Compare the exact room, guest capacity, conditions and availability on the <a href=\"/book/\">booking page</a>; a private-room booking is not a whole-apartment booking or a room inside an airport terminal.</p><p>For a flight leaving early the next day, the separate <a href=\"/blog/private-room-wolli-creek-station-early-flight/\">overnight stay guide</a> explains how to choose the correct booking night and work backwards from the airline’s terminal arrival requirement.</p>"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Transport for NSW: T8 Airport & South Line stops",
+        "url": "https://transportnsw.info/routes/details/sydney-trains/t8/020t8"
+      },
+      {
+        "label": "Transport for NSW: getting to and from Sydney Airport",
+        "url": "https://transportnsw.info/travel-info/airport-travel/getting-to-from-sydney-airport"
+      },
+      {
+        "label": "Transport for NSW: Trip Planner",
+        "url": "https://transportnsw.info/trip"
+      },
+      {
+        "label": "Transport for NSW: travel alerts",
+        "url": "https://transportnsw.info/alerts"
+      }
+    ],
+    "cta": {
+      "label": "Compare Wolli Creek rooms",
+      "url": "/book/"
+    }
+  },
+  {
     "slug": "late-flight-sydney-airport-wolli-creek-self-check-in",
     "title": "Landing late at Sydney Airport: can you self check in at Wolli Creek?",
     "category": "Sydney stay guides",
