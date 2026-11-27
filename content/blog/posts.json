@@ -1,5 +1,53 @@
 [
   {
+    "slug": "wolli-creek-private-room-ensuite-bathroom",
+    "title": "Which Wolli Creek private rooms have an ensuite bathroom?",
+    "category": "Sydney stay guides",
+    "published": "2026-11-28",
+    "description": "Compare the bathroom descriptions for ProHouse Wolli Creek Rooms 1–3: dedicated private bathroom versus ensuite, and what to confirm before booking a private room.",
+    "intro": "ProHouse describes Wolli Creek Rooms 2 and 3 as private bedrooms with ensuites. Room 1 is described as a private bedroom with a dedicated private bathroom, but its page does not call that bathroom an ensuite. If direct access from the bedroom matters to you, compare the exact room listing and ask ProHouse to confirm the arrangement before booking. All three are private-room bookings in a shared apartment, not whole-apartment reservations.",
+    "sections": [
+      {
+        "heading": "What is the difference between an ensuite and a private bathroom?",
+        "html": "<p>An <strong>ensuite</strong> is a bathroom directly connected to and entered through a bedroom. A <strong>private bathroom</strong> describes who uses it, but that phrase alone does not say where the door is. Cambridge Dictionary defines the first term by its connection to the bedroom; the ProHouse room pages use different wording for Room 1 and Rooms 2–3.</p><p>Do not assume a dedicated private bathroom is shared with strangers, or that every private bathroom opens directly from the bedroom. The exact access arrangement is more useful than a general label when you are choosing accommodation.</p>"
+      },
+      {
+        "heading": "Which description applies to each ProHouse room?",
+        "html": "<p><a href=\"/stays/room-1/\">Room 1</a> says “private bedroom &amp; dedicated private bathroom.” The page does not identify it as an ensuite. <a href=\"/stays/room-2/\">Room 2</a> and <a href=\"/stays/room-3/\">Room 3</a> each say “private bedroom &amp; ensuite.” Use those room-specific pages to compare the wording and photos rather than relying on a general Wolli Creek search result.</p><p>The live booking widget on each page belongs to that room. Check the selected listing, guest capacity, conditions and availability for your dates before paying. If the position of a bathroom door is important for accessibility, privacy or a child travelling with you, ask for confirmation of the particular room’s layout rather than inferring it from a photograph.</p>"
+      },
+      {
+        "heading": "Does a private bathroom mean I get the whole apartment?",
+        "html": "<p>No. The Wolli Creek pages describe a private bedroom and its own bathroom arrangement, with the kitchen and living area shared with guests in the other rooms. Booking one room does not reserve the other bedrooms or give exclusive use of the apartment.</p><p>Our <a href=\"/blog/private-room-or-whole-apartment-sydney/\">private room versus whole apartment guide</a> explains how to compare occupancy and shared spaces. If you want to stay near Sydney Airport, the <a href=\"/sydney-airport-accommodation/\">airport accommodation page</a> is the main starting point for the location and booking options; the individual room page gives the bathroom detail.</p>"
+      },
+      {
+        "heading": "What should I check before choosing a room?",
+        "html": "<p>Open the exact <a href=\"/stays/room-1/\">Room 1</a>, <a href=\"/stays/room-2/\">Room 2</a> or <a href=\"/stays/room-3/\">Room 3</a> page, then compare its bathroom wording, photos, guest count and current booking conditions. If anything is unclear, use the contact option on that page before confirming the booking. Do not use the bathroom label as a substitute for checking whether the room suits your needs.</p><p>For your arrival, review the <a href=\"/location/\">Wolli Creek location guide</a> and the <a href=\"/blog/self-check-in-short-stay-checklist/\">self check-in checklist</a>. ProHouse has no onsite reception, so the room choice and access preparation are best settled before travel.</p>"
+      }
+    ],
+    "sources": [
+      {
+        "label": "ProHouse: Wolli Creek Room 1",
+        "url": "https://www.prohouse.com.au/stays/room-1/"
+      },
+      {
+        "label": "ProHouse: Wolli Creek Room 2",
+        "url": "https://www.prohouse.com.au/stays/room-2/"
+      },
+      {
+        "label": "ProHouse: Wolli Creek Room 3",
+        "url": "https://www.prohouse.com.au/stays/room-3/"
+      },
+      {
+        "label": "Cambridge Dictionary: en suite",
+        "url": "https://dictionary.cambridge.org/dictionary/english/en-suite"
+      }
+    ],
+    "cta": {
+      "label": "Compare Wolli Creek rooms",
+      "url": "/book/"
+    }
+  },
+  {
     "slug": "sydney-airport-to-wolli-creek-how-long",
     "title": "How long from Sydney Airport to Wolli Creek? Plan the whole journey",
     "category": "Sydney stay guides",
